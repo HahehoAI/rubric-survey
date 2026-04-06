@@ -27,8 +27,8 @@ const StickyHeader = ({ lang, setLang, doneR, totalR, breadcrumb }) => {
       h('span', {style:{color:white, fontSize:14, fontWeight:600,
         flex:1, marginRight:12, whiteSpace:"nowrap", overflow:"hidden",
         textOverflow:"ellipsis"}},
-        T("AI-Generated Rubric Frameworks — Clinical History-Taking Assessment",
-          "임상 병력 청취 평가 — AI 생성 루브릭 프레임워크", lang)),
+        T("Evaluating AI-Generated Rubrics — Pediatric EM",
+          "소아 응급의학 AI 생성 루브릭 평가", lang)),
       h('div', {style:{display:"flex", gap:4}},
         ["en","ko"].map(l =>
           h('button', {key:l, onClick:()=>setLang(l),
@@ -280,11 +280,11 @@ function VignetteSidebar({ caseData }) {
 }
 
 // ─── PART A SCREEN ───────────────────────────────────────────────────────────
-function PartAScreen({ caseData, rubric, onNext, onBack, draftAnswers, onDraftChange }) {
+function PartAScreen({ caseData, rubric, onNext, onBack, draft, onDraftChange }) {
   const lang = useLang();
   const t = (en,ko) => T(en,ko,lang);
-  const [partA, setPartA] = useState(()=>draftAnswers.answers||{});
-  const [comments, setComments] = useState(()=>draftAnswers.comments||{});
+  const [partA, setPartA] = useState(()=> draft?.partA || {});
+  const [comments, setComments] = useState(()=> draft?.comments || {});
 
   const allItems = [...rubric.d1, ...rubric.d2];
   const totalItems = allItems.length;
@@ -301,6 +301,11 @@ function PartAScreen({ caseData, rubric, onNext, onBack, draftAnswers, onDraftCh
     if (el) { el.scrollIntoView({behavior:"smooth", block:"center"}); }
     setTimeout(() => setHighlightId(null), 5000);
   };
+
+  // Save draft to App-level state on every change so back-navigation restores it
+  React.useEffect(() => {
+    if(onDraftChange) onDraftChange(rubric.id, {partA, comments});
+  }, [partA, comments]);
 
   const ItemRow = ({item, idx, showTop}) => {
     const ans = partA[item.id];
@@ -334,13 +339,13 @@ function PartAScreen({ caseData, rubric, onNext, onBack, draftAnswers, onDraftCh
         h('p',{style:{fontSize:13,color:ans===true?"#14532d":ans===false?"#4c0519":"#374151",
           lineHeight:1.65,margin:0}},t(item.xEn,item.xKo))),
       h('div',{style:{display:"flex",gap:10,marginBottom:ans!==undefined?12:0}},
-        h('button',{onClick:()=>{setPartA(p=>{const n={...p,[item.id]:true}; onDraftChange(item.id,true,comments); return n;})},
+        h('button',{onClick:()=>setPartA(p=>({...p,[item.id]:true})),
           style:{flex:1,padding:"11px 0",borderRadius:8,fontSize:14,fontWeight:600,
             border:"2px solid "+(ans===true?green:cardBd),
             background:ans===true?greenBg:white,color:ans===true?green:muted,
             cursor:"pointer",transition:"all 0.15s"}},
           "✓ "+t("Agree","동의")),
-        h('button',{onClick:()=>{setPartA(p=>{const n={...p,[item.id]:false}; onDraftChange(item.id,false,comments); return n;})},
+        h('button',{onClick:()=>setPartA(p=>({...p,[item.id]:false})),
           style:{flex:1,padding:"11px 0",borderRadius:8,fontSize:14,fontWeight:600,
             border:"2px solid "+(ans===false?red:cardBd),
             background:ans===false?redBg:white,color:ans===false?red:muted,
@@ -349,7 +354,7 @@ function PartAScreen({ caseData, rubric, onNext, onBack, draftAnswers, onDraftCh
       ans!==undefined && h('textarea',{
         placeholder:t("Optional comment for this item…","이 항목에 대한 선택적 의견…"),
         value:comments[item.id]||"",
-        onChange:e=>setComments(c=>{const n={...c,[item.id]:e.target.value}; onDraftChange(item.id,partA[item.id],n); return n;}),
+        onChange:e=>setComments(c=>({...c,[item.id]:e.target.value})),
         style:{width:"100%",padding:"9px 12px",fontSize:14,
           border:"1px solid "+cardBd,borderRadius:8,resize:"vertical",
           fontFamily:ffs,boxSizing:"border-box",minHeight:60,
@@ -397,8 +402,8 @@ function PartAScreen({ caseData, rubric, onNext, onBack, draftAnswers, onDraftCh
             t(rubric.threshold_en||rubric.rationale_en,
               rubric.threshold_ko||rubric.rationale_ko)))
     ),
-    h(Domain,{items:rubric.d1,label:d1label,desc:t(rubric.d1desc_en||'',rubric.d1desc_ko||''),pts:rubric.d1pts}),
-    h(Domain,{items:rubric.d2,label:d2label,desc:t(rubric.d2desc_en||'',rubric.d2desc_ko||''),pts:rubric.d2pts}),
+    h(Domain,{items:rubric.d1,label:d1label,desc:'',pts:rubric.d1pts}),
+    h(Domain,{items:rubric.d2,label:d2label,desc:'',pts:rubric.d2pts}),
     h('div',{style:{display:"flex",gap:12,alignItems:"center"}},
       onBack && h('button',{onClick:onBack,
         style:{padding:"14px 20px",borderRadius:10,border:"2px solid "+navy,
@@ -406,38 +411,30 @@ function PartAScreen({ caseData, rubric, onNext, onBack, draftAnswers, onDraftCh
           cursor:"pointer",whiteSpace:"nowrap",flexShrink:0}},
         "← "+t("Back","이전")),
       h(PrimaryBtn,{
-        onClick:()=>{ if(allAnswered){ onNext({partA,comments}); } else { goToFirst(); } }},
+        onClick:()=>{ if(allAnswered){ onNext({partA,comments}, rubric.id); } else { goToFirst(); } }},
         t("Continue to Part B →","파트 B로 계속 →"))
     )
   );
 }
 
 // ─── PART B SCREEN ───────────────────────────────────────────────────────────
-function PartBScreen({ caseData, rubric, ci, ri, isLast, onSubmit, partAData, onBack, bDraft, onBDraftChange }) {
+function PartBScreen({ caseData, rubric, ci, ri, isLast, onSubmit, partAData, onBack, draft, onDraftChange }) {
   const lang = useLang();
   const t = (en,ko) => T(en,ko,lang);
-  const [d1Order, setD1Order_] = useState(()=>bDraft?.d1Order||[...rubric.d1].sort((a,b)=>b.pts-a.pts).map(i=>i.id));
-  const [d2Order, setD2Order_] = useState(()=>bDraft?.d2Order||[...rubric.d2].sort((a,b)=>b.pts-a.pts).map(i=>i.id));
-  const [finalCmt, setFinalCmt_] = useState(bDraft?.finalCmt||"");
-  // Wrapped setters that also persist draft immediately (no useEffect = no re-render cascade)
-  const d1OrderRef  = React.useRef(d1Order);
-  const d2OrderRef  = React.useRef(d2Order);
-  const finalCmtRef = React.useRef(finalCmt);
-  const setD1Order = React.useCallback((valOrFn)=>{
-    setD1Order_(prev=>{ const next=typeof valOrFn==='function'?valOrFn(prev):valOrFn; d1OrderRef.current=next; onBDraftChange(next,d2OrderRef.current,finalCmtRef.current); return next; });
-  },[onBDraftChange]);
-  const setD2Order = React.useCallback((valOrFn)=>{
-    setD2Order_(prev=>{ const next=typeof valOrFn==='function'?valOrFn(prev):valOrFn; d2OrderRef.current=next; onBDraftChange(d1OrderRef.current,next,finalCmtRef.current); return next; });
-  },[onBDraftChange]);
-  const setFinalCmt = React.useCallback((val)=>{
-    setFinalCmt_(val); finalCmtRef.current=val; onBDraftChange(d1OrderRef.current,d2OrderRef.current,val);
-  },[onBDraftChange]);
+  const [d1Order, setD1Order] = useState(()=> draft?.d1Order || [...rubric.d1].sort((a,b)=>b.pts-a.pts).map(i=>i.id));
+  const [d2Order, setD2Order] = useState(()=> draft?.d2Order || [...rubric.d2].sort((a,b)=>b.pts-a.pts).map(i=>i.id));
+  const [finalCmt, setFinalCmt] = useState(()=> draft?.finalCmt || "");
   const moveItem = (order, setOrder, idx, dir) => {
     const next=[...order]; const to=idx+dir;
     if(to<0||to>=next.length) return;
     [next[idx],next[to]]=[next[to],next[idx]];
     setOrder(next);
   };
+
+  // Save draft to App-level state on every change
+  React.useEffect(() => {
+    if(onDraftChange) onDraftChange(rubric.id, {d1Order, d2Order, finalCmt});
+  }, [d1Order, d2Order, finalCmt]);
 
   // Next button label — no "submit", just navigation
   const nextLabel = () => {
@@ -769,8 +766,8 @@ function App() {
   const [ci, setCi] = useState(saved?.ci || 0);
   const [ri, setRi] = useState(saved?.ri || 0);
   const [partAData, setPartAData] = useState(saved?.partAData || null);
-  const [partADraft, setPartADraft] = useState(saved?.partADraft || {});
-  const [partBDraft, setPartBDraft] = useState(saved?.partBDraft || {});
+  const [partADrafts, setPartADrafts] = useState(saved?.partADrafts || {});
+  const [partBDrafts, setPartBDrafts] = useState(saved?.partBDrafts || {});
   const [responses, setResponses] = useState(saved?.responses || {});
 
   const totalR = CASES.reduce((s,c)=>s+c.rubrics.length,0);
@@ -782,11 +779,24 @@ function App() {
   React.useEffect(() => {
     if (step === "consent") return; // don't save before they start
     try {
-      localStorage.setItem(LS_KEY, JSON.stringify({lang,step,ci,ri,partAData,partADraft,partBDraft,responses}));
+      localStorage.setItem(LS_KEY, JSON.stringify({lang,step,ci,ri,partAData,partADrafts,partBDrafts,responses}));
     } catch(e) {}
   }, [lang, step, ci, ri, partAData, responses]);
 
-  const goPartB = useCallback((aData)=>{ setPartAData(aData); setStep("partB"); scrollTop(); },[]);
+  const goPartB = useCallback((aData, rubricId)=>{
+    setPartAData(aData);
+    // Clear draft since it's now committed to partAData
+    setPartADrafts(d=>{ const n={...d}; delete n[rubricId]; return n; });
+    setStep("partB"); scrollTop();
+  },[]);
+  const saveDraft = useCallback((rubricId, data)=>{
+    setPartADrafts(d=>({...d, [rubricId]:data}));
+  },[]);
+
+  const saveBDraft = useCallback((rubricId, data)=>{
+    setPartBDrafts(d=>({...d, [rubricId]:data}));
+  },[]);
+
   const goBack = useCallback(()=>{
     // If on partA of a non-first rubric, go to partB of previous rubric
     if(ri > 0){ setRi(ri-1); setStep("partB"); scrollTop(); }
@@ -795,8 +805,7 @@ function App() {
   },[ci,ri]);
   const submitRubric = useCallback((id,data)=>{
     setResponses(r=>({...r,[id]:data}));
-    setPartADraft(d=>{ const n={...d}; delete n[id]; return n; });
-    setPartBDraft(d=>{ const n={...d}; delete n[id]; return n; });
+    setPartBDrafts(d=>{ const n={...d}; delete n[id]; return n; });
     const nr=ri+1;
     if(nr<curCase.rubrics.length){ setRi(nr); setStep("partA"); }
     else { const nc=ci+1; if(nc<CASES.length){setCi(nc);setRi(0);setStep("partA");}else setStep("done"); }
@@ -825,13 +834,12 @@ function App() {
       step==="partA" && curRubric && h(SL,null,
         h(PartAScreen,{key:"A-"+curRubric.id,caseData:curCase,rubric:curRubric,
           ci,ri,onNext:goPartB,onBack:goBack,
-          draftAnswers:partADraft[curRubric.id]||{},
-          onDraftChange:(id,val,cmts)=>setPartADraft(d=>({...d,[curRubric.id]:{answers:{...((d[curRubric.id]||{}).answers||{}), [id]:val}, comments:{...((d[curRubric.id]||{}).comments||{}), ...cmts}}}))})),
+          draft:partADrafts[curRubric.id],onDraftChange:saveDraft})),
       step==="partB" && curRubric && h(SL,null,
         h(PartBScreen,{key:"B-"+curRubric.id,caseData:curCase,rubric:curRubric,
-          ci,ri,isLast:doneR+1>=totalR,onSubmit:submitRubric,partAData,onBack:()=>{setStep("partA");scrollTop();},
-          bDraft:partBDraft[curRubric.id]||null,
-          onBDraftChange:(d1,d2,cmt)=>setPartBDraft(d=>({...d,[curRubric.id]:{d1Order:d1,d2Order:d2,finalCmt:cmt}}))})),
+          ci,ri,isLast:doneR+1>=totalR,onSubmit:submitRubric,partAData,
+          onBack:()=>{setStep("partA");scrollTop();},
+          draft:partBDrafts[curRubric.id],onDraftChange:saveBDraft})),
       step==="done" && h(DoneScreen,{responses,onBack:()=>{setStep("partB");scrollTop();}})
     )
   );
