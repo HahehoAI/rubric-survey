@@ -263,7 +263,7 @@ function VignetteSidebar({ caseData }) {
               h('span',{style:{color:txt,fontWeight:500,textAlign:"right"}},t(v.val_en,v.val_ko)))
           )
         ),
-        h('div',{style:{padding:"9px 16px"}},
+        h('div',{style:{padding:"9px 16px",borderBottom:"1px solid "+cardBd}},
           h('p',{style:{fontSize:12,fontWeight:700,color:muted,
             textTransform:"uppercase",letterSpacing:"0.04em",margin:"0 0 6px"}},
             t("Physical Exam","신체 검진")),
@@ -272,6 +272,16 @@ function VignetteSidebar({ caseData }) {
               borderTop:i>0?"1px solid "+cardBd:"none",lineHeight:1.5}},
               h('span',{style:{color:muted,fontWeight:600}},t(e.en,e.ko)+": "),
               h('span',{style:{color:txt}},t(e.val_en,e.val_ko)))
+          )
+        ),
+        caseData.vignette.labs && caseData.vignette.labs.length > 0 &&
+        h('div',{style:{padding:"9px 16px"}},
+          h('p',{style:{fontSize:12,fontWeight:700,color:muted,
+            textTransform:"uppercase",letterSpacing:"0.04em",margin:"0 0 6px"}},
+            t("Relevant Lab/Studies","관련 검사 결과")),
+          caseData.vignette.labs.map((l,i) =>
+            h('p',{key:i,style:{fontSize:13,color:txt,lineHeight:1.6,margin:0}},
+              t(l.val_en,l.val_ko))
           )
         )
       )
@@ -291,6 +301,7 @@ function PartAScreen({ caseData, rubric, onNext, onBack, draftAnswers, onDraftCh
   const answeredItems = Object.keys(partA).length;
   const allAnswered = answeredItems === totalItems;
   const itemRefs = React.useRef({});
+  const commentTimer = React.useRef(null);
   const [highlightId, setHighlightId] = useState(null);
 
   const goToFirst = () => {
@@ -308,7 +319,9 @@ function PartAScreen({ caseData, rubric, onNext, onBack, draftAnswers, onDraftCh
     // Split on first colon: "Item N. Name: description" → bold name + normal body
     const colonIdx = raw.indexOf(": ");
     const lbl = colonIdx > -1 ? raw.slice(0, colonIdx) : raw;
-    const body = colonIdx > -1 ? raw.slice(colonIdx+2) : "";
+    const bodyRaw = colonIdx > -1 ? raw.slice(colonIdx+2) : "";
+    const ptsLabel = lang==="ko" ? " — " + item.pts + "점" : " — " + item.pts + " points";
+    const body = bodyRaw ? bodyRaw + ptsLabel : ptsLabel.trim();
     const isHighlighted = highlightId === item.id;
     return h('div',{ref: el => { itemRefs.current[item.id] = el; },
       style:{
@@ -349,7 +362,7 @@ function PartAScreen({ caseData, rubric, onNext, onBack, draftAnswers, onDraftCh
       ans!==undefined && h('textarea',{
         placeholder:t("Optional comment for this item…","이 항목에 대한 선택적 의견…"),
         value:comments[item.id]||"",
-        onChange:e=>setComments(c=>{const n={...c,[item.id]:e.target.value}; onDraftChange(item.id,partA[item.id],n); return n;}),
+        onChange:e=>{const v=e.target.value; setComments(c=>({...c,[item.id]:v})); if(commentTimer.current) clearTimeout(commentTimer.current); commentTimer.current=setTimeout(()=>onDraftChange(item.id,partA[item.id],{...comments,[item.id]:v}),600);},
         style:{width:"100%",padding:"9px 12px",fontSize:14,
           border:"1px solid "+cardBd,borderRadius:8,resize:"vertical",
           fontFamily:ffs,boxSizing:"border-box",minHeight:60,
@@ -421,6 +434,7 @@ function PartBScreen({ caseData, rubric, ci, ri, isLast, onSubmit, partAData, on
   const [finalCmt, setFinalCmt_] = useState(bDraft?.finalCmt||"");
   // Wrapped setters that also persist draft immediately (no useEffect = no re-render cascade)
   const d1OrderRef  = React.useRef(d1Order);
+  const bCommentTimer = React.useRef(null);
   const d2OrderRef  = React.useRef(d2Order);
   const finalCmtRef = React.useRef(finalCmt);
   const setD1Order = React.useCallback((valOrFn)=>{
@@ -628,7 +642,7 @@ function PartBScreen({ caseData, rubric, ci, ri, isLast, onSubmit, partAData, on
         t("Overall Comment (optional)","전반적인 의견 (선택사항)")),
       h('textarea',{
         placeholder:t("Any comments or suggestions for this rubric?","이 루브릭에 대한 의견이나 제안이 있으신가요?"),
-        value:finalCmt,onChange:e=>setFinalCmt(e.target.value),
+        value:finalCmt,onChange:e=>{const v=e.target.value; setFinalCmt_(v); finalCmtRef.current=v; if(bCommentTimer.current) clearTimeout(bCommentTimer.current); bCommentTimer.current=setTimeout(()=>onBDraftChange(d1OrderRef.current,d2OrderRef.current,v),600);},
         style:{width:"100%",padding:"12px 14px",fontSize:14,
           border:"1px solid "+cardBd,borderRadius:8,resize:"vertical",
           fontFamily:ffs,boxSizing:"border-box",minHeight:80}})
