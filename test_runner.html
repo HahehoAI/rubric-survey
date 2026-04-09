@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Survey Test Runner</title>
+<style>
+  body { font-family: 'Segoe UI', sans-serif; max-width: 820px; margin: 40px auto; padding: 0 24px; color: #1f2937; }
+  h1 { font-size: 20px; font-weight: 700; color: #1a2744; margin-bottom: 4px; }
+  .subtitle { color: #6b7280; font-size: 13px; margin-bottom: 28px; }
+  .section { margin-bottom: 24px; }
+  .section h2 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #6b7280; margin-bottom: 10px; border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; }
+  .test { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f3f4f6; font-size: 13px; }
+  .test:last-child { border-bottom: none; }
+  .icon { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+  .test-name { flex: 1; font-weight: 500; }
+  .test-detail { color: #6b7280; font-size: 12px; margin-top: 2px; }
+  .pass { color: #16a34a; }
+  .fail { color: #dc2626; }
+  .warn { color: #d97706; }
+  .pending { color: #9ca3af; }
+  .btn { padding: 10px 20px; background: #1a2744; color: #fff; border: none; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; margin-right: 10px; }
+  .btn:hover { background: #243356; }
+  .btn-danger { background: #dc2626; }
+  .btn-danger:hover { background: #b91c1c; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .summary { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; font-size: 13px; }
+  .summary.ok { background: #f0fdf4; border-color: #86efac; }
+  .summary.fail { background: #fef2f2; border-color: #fecaca; }
+  pre { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; font-size: 11px; overflow-x: auto; max-height: 200px; overflow-y: auto; }
+  .progress { height: 4px; background: #e5e7eb; border-radius: 2px; margin-bottom: 20px; overflow: hidden; }
+  .progress-bar { height: 100%; background: #3b82f6; border-radius: 2px; transition: width .3s; }
+  #log { font-size: 11px; color: #374151; }
+</style>
+</head>
+<body>
+
+<h1>📋 Survey Test Runner</h1>
+<p class="subtitle">Validates survey structure and tests Supabase submission end-to-end</p>
+
+<div id="summary" class="summary">Ready to run. Click "Run All Tests" to start.</div>
+<div class="progress"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
+
+<div style="margin-bottom:20px">
+  <button class="btn" id="runBtn" onclick="runAll()">▶ Run All Tests</button>
+  <button class="btn btn-danger" id="submitBtn" onclick="runSubmitTest()" style="display:none">🗄 Submit Test Record to Supabase</button>
+</div>
+
+<div id="testResults"></div>
+<div class="section" id="logSection" style="display:none">
+  <h2>Log</h2>
+  <pre id="log"></pre>
+</div>
+
+<script>
+const SUPABASE_URL = "https://qydinydhytepqptcvslb.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF5ZGlueWRoeXRlcHFwdGN2c2xiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4Mjk0NTUsImV4cCI6MjA5MDQwNTQ1NX0.ZniqFMfctWHgbA4dJSlrvlFxWRcRfCrVuA9S3gjcA5o";
+
+const results = [];
+let totalTests = 0;
+let passedTests = 0;
+
+function log(msg) {
+  const el = document.getElementById('log');
+  el.textContent += '[' + new Date().toISOString().slice(11,19) + '] ' + msg + '\n';
+  el.scrollTop = el.scrollHeight;
+  document.getElementById('logSection').style.display = '';
+}
+
+function addResult(section, name, status, detail='') {
+  results.push({ section, name, status, detail });
+}
+
+function renderResults() {
+  const bySection = {};
+  results.forEach(r => {
+    if (!bySection[r.section]) bySection[r.section] = [];
+    bySection[r.section].push(r);
+  });
+  
+  let html = '';
+  for (const [section, tests] of Object.entries(bySection)) {
+    html += `<div class="section"><h2>${section}</h2>`;
+    tests.forEach(t => {
+      const icon = t.status === 'pass' ? '✅' : t.status === 'fail' ? '❌' : t.status === 'warn' ? '⚠️' : '⏳';
+      const cls = t.status === 'pass' ? 'pass' : t.status === 'fail' ? 'fail' : t.status === 'warn' ? 'warn' : 'pending';
+      html += `<div class="test">
+        <span class="icon">${icon}</span>
+        <div>
+          <div class="test-name ${cls}">${t.name}</div>
+          ${t.detail ? `<div class="test-detail">${t.detail}</div>` : ''}
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+  document.getElementById('testResults').innerHTML = html;
+  
+  const passed = results.filter(r => r.status === 'pass').length;
+  const failed = results.filter(r => r.status === 'fail').length;
+  const total = results.length;
+  const pct = Math.round((passed/total)*100);
+  document.getElementById('progressBar').style.width = pct + '%';
+  
+  const summaryEl = document.getElementById('summary');
+  if (failed === 0) {
+    summaryEl.className = 'summary ok';
+    summaryEl.innerHTML = `<strong>✅ All ${passed} tests passed.</strong> Survey structure is valid and ready for deployment.`;
+  } else {
+    summaryEl.className = 'summary fail';
+    summaryEl.innerHTML = `<strong>❌ ${failed} tests failed</strong>, ${passed} passed out of ${total}.`;
+  }
+}
+
+// ── LOAD SURVEY ───────────────────────────────────────────────────────────────
+async function loadSurvey() {
+  log('Loading survey from index.html...');
+  // Try to load CASES from the survey index.html
+  // We'll use a fetch + parse approach
+  try {
+    const resp = await fetch('index.html');
+    if (!resp.ok) throw new Error('Cannot fetch index.html — run this file from the same folder');
+    const text = await resp.text();
+    // Extract CASES
+    const match = text.match(/const CASES = (\[[\s\S]+?\]);\s*\n/);
+    if (!match) throw new Error('CASES array not found in index.html');
+    const CASES = JSON.parse(match[1]);
+    log(`Loaded ${CASES.length} cases`);
+    return CASES;
+  } catch(e) {
+    log('ERROR loading survey: ' + e.message);
+    return null;
+  }
+}
+
+// ── TEST SUITE ────────────────────────────────────────────────────────────────
+async function runAll() {
+  results.length = 0;
+  document.getElementById('runBtn').disabled = true;
+  document.getElementById('testResults').innerHTML = '';
+  log('Starting test run...');
+  
+  const CASES = await loadSurvey();
+  
+  // ── 1. Structure Tests ─────────────────────────────────────────────────────
+  if (!CASES) {
+    addResult('Structure', 'Load survey data', 'fail', 'Could not load CASES — make sure index.html is in the same folder');
+    renderResults();
+    document.getElementById('runBtn').disabled = false;
+    return;
+  }
+  
+  addResult('Structure', 'Load survey data', 'pass', `${CASES.length} cases loaded`);
+  
+  // Case count
+  addResult('Structure', '5 cases present', CASES.length === 5 ? 'pass' : 'fail',
+    `Found ${CASES.length} cases`);
+  
+  // Each case has 4 rubrics
+  const rubricCounts = CASES.map(c => c.rubrics.length);
+  const allFour = rubricCounts.every(n => n === 4);
+  addResult('Structure', 'Each case has 4 rubrics', allFour ? 'pass' : 'fail',
+    `Counts: ${rubricCounts.join(', ')}`);
+  
+  // Total items
+  const totalItems = CASES.reduce((s,c) => s + c.rubrics.reduce((rs,r) => rs + r.d1.length + r.d2.length, 0), 0);
+  addResult('Structure', '290 total items', totalItems === 290 ? 'pass' : 'fail',
+    `Found ${totalItems} items`);
+  
+  // All items have required fields
+  let missingFields = [];
+  CASES.forEach(c => c.rubrics.forEach(r => {
+    [...r.d1, ...r.d2].forEach(item => {
+      if (!item.id) missingFields.push(`${item.id}: missing id`);
+      if (item.pts === undefined) missingFields.push(`${item.id}: missing pts`);
+      if (!item.en) missingFields.push(`${item.id}: missing en`);
+      if (!item.ko) missingFields.push(`${item.id}: missing ko`);
+    });
+  }));
+  addResult('Structure', 'All items have id/pts/en/ko', missingFields.length === 0 ? 'pass' : 'fail',
+    missingFields.length > 0 ? missingFields.slice(0,3).join('; ') : `${totalItems} items OK`);
+  
+  // All items have xEn explanations
+  let missingXen = [];
+  CASES.forEach(c => c.rubrics.forEach(r => {
+    [...r.d1, ...r.d2].forEach(item => {
+      if (!item.xEn || !item.xEn.trim()) missingXen.push(item.id);
+    });
+  }));
+  addResult('Structure', 'All items have explanations (xEn)',
+    missingXen.length === 0 ? 'pass' : 'warn',
+    missingXen.length > 0 ? `${missingXen.length} items missing xEn: ${missingXen.slice(0,5).join(', ')}` : 'All OK');
+  
+  // Vignettes
+  let vigIssues = [];
+  CASES.forEach(c => {
+    if (!c.vignette.rows || c.vignette.rows.length === 0) vigIssues.push(`Case ${c.id}: no rows`);
+    if (!c.vignette.vitals || c.vignette.vitals.length === 0) vigIssues.push(`Case ${c.id}: no vitals`);
+    if (!c.vignette.exam || c.vignette.exam.length === 0) vigIssues.push(`Case ${c.id}: no exam`);
+    if (c.id > 1 && (!c.vignette.labs || c.vignette.labs.length === 0)) vigIssues.push(`Case ${c.id}: no labs`);
+  });
+  addResult('Structure', 'All vignettes complete (rows/vitals/exam/labs)',
+    vigIssues.length === 0 ? 'pass' : 'fail',
+    vigIssues.length > 0 ? vigIssues.join('; ') : 'All OK');
+  
+  // Rubric point totals
+  let ptErrors = [];
+  CASES.forEach(c => c.rubrics.forEach(r => {
+    const d1sum = r.d1.reduce((s,i) => s + (i.pts||0), 0);
+    const d2sum = r.d2.reduce((s,i) => s + (i.pts||0), 0);
+    if (d1sum !== r.d1pts) ptErrors.push(`${r.id}: D1 items sum to ${d1sum}, d1pts=${r.d1pts}`);
+    if (d2sum !== r.d2pts) ptErrors.push(`${r.id}: D2 items sum to ${d2sum}, d2pts=${r.d2pts}`);
+    if (r.d1pts + r.d2pts !== 100) ptErrors.push(`${r.id}: total=${r.d1pts+r.d2pts} (not 100)`);
+  }));
+  addResult('Content', 'Point totals add to 100', ptErrors.length === 0 ? 'pass' : 'fail',
+    ptErrors.length > 0 ? ptErrors.slice(0,3).join('; ') : '20 rubrics × 100pts OK');
+  
+  // No KO fields empty where EN has content
+  let koMissing = [];
+  CASES.forEach(c => c.rubrics.forEach(r => {
+    [...r.d1, ...r.d2].forEach(item => {
+      if (item.en && !item.ko) koMissing.push(`${item.id} ko`);
+      if (item.xEn && !item.xKo) koMissing.push(`${item.id} xKo`);
+    });
+  }));
+  addResult('Content', 'Korean translations present', koMissing.length === 0 ? 'pass' : 'warn',
+    koMissing.length > 0 ? `${koMissing.length} missing: ${koMissing.slice(0,5).join(', ')}` : 'All OK');
+  
+  // No "Disagree 비동의" junk
+  const fullText = JSON.stringify(CASES);
+  const hasJunk = fullText.includes('Disagree 비동의') || fullText.includes('Agree 동의');
+  addResult('Content', 'No UI junk text in content', !hasJunk ? 'pass' : 'fail',
+    hasJunk ? 'Found "Disagree 비동의" or "Agree 동의" in content' : 'Clean');
+  
+  // No trailing ---
+  const hasDashes = /---"/.test(fullText);
+  addResult('Content', 'No trailing "---" artifacts', !hasDashes ? 'pass' : 'fail',
+    hasDashes ? 'Found trailing --- in some fields' : 'Clean');
+  
+  // ── 2. Submission Structure ────────────────────────────────────────────────
+  log('Building mock submission...');
+  
+  // Build mock responses
+  const mockResponses = {};
+  CASES.forEach(c => c.rubrics.forEach(r => {
+    const partA = {};
+    [...r.d1, ...r.d2].forEach((item,i) => { partA[item.id] = i % 2 === 0; });
+    const d1ids = [...r.d1.map(i=>i.id)];
+    const d2ids = [...r.d2.map(i=>i.id)];
+    mockResponses[r.id] = { partA, comments: {}, d1Order: d1ids, d2Order: d2ids, finalCmt: 'test' };
+  }));
+  
+  // Run submit logic
+  const rows = [];
+  for (const [rubricId, rd] of Object.entries(mockResponses)) {
+    const parts = rubricId.split('-');
+    const caseNo = parseInt(parts[0]), rubricNo = parseInt(parts[1]);
+    const rubricLabel = `C${caseNo}-R${rubricNo}`;
+    const base = { participant_id:'P-AUTOTEST', lang:'en', case_no:caseNo,
+      rubric_no:rubricNo, rubric_id:rubricLabel, overall_comment:rd.finalCmt||'' };
+    for (const [itemId, agreed] of Object.entries(rd.partA||{}))
+      rows.push({...base, item_id:itemId, agreed, comment:'', domain:null, rank:null});
+    (rd.d1Order||[]).forEach((id,i) => rows.push({...base, item_id:id, agreed:null, comment:'', domain:'d1', rank:i+1}));
+    (rd.d2Order||[]).forEach((id,i) => rows.push({...base, item_id:id, agreed:null, comment:'', domain:'d2', rank:i+1}));
+  }
+  
+  addResult('Submission', 'Mock submission builds correctly', rows.length > 0 ? 'pass' : 'fail',
+    `${rows.length} rows generated`);
+  
+  // Expected: 290 agreement + 151 d1 + 139 d2 = 580
+  const agreeRows = rows.filter(r => r.agreed !== null && r.agreed !== undefined);
+  const d1Rows = rows.filter(r => r.domain === 'd1');
+  const d2Rows = rows.filter(r => r.domain === 'd2');
+  addResult('Submission', `${agreeRows.length} agreement rows (expected 290)`,
+    agreeRows.length === 290 ? 'pass' : 'fail', `Got ${agreeRows.length}`);
+  addResult('Submission', `${d1Rows.length + d2Rows.length} ranking rows`,
+    (d1Rows.length + d2Rows.length) === 290 ? 'pass' : 'fail',
+    `D1: ${d1Rows.length}, D2: ${d2Rows.length}, total: ${d1Rows.length+d2Rows.length}`);
+  
+  // All required fields present
+  const reqFields = ['participant_id','lang','case_no','rubric_no','rubric_id','item_id','overall_comment'];
+  const missingReq = rows.filter(r => reqFields.some(f => r[f] === undefined));
+  addResult('Submission', 'All rows have required fields', missingReq.length === 0 ? 'pass' : 'fail',
+    missingReq.length > 0 ? `${missingReq.length} rows missing fields` : 'All OK');
+  
+  // No row has both agreed and rank set
+  const badRows = rows.filter(r => r.agreed !== null && r.agreed !== undefined && r.rank !== null);
+  addResult('Submission', 'Agreement and ranking rows are mutually exclusive',
+    badRows.length === 0 ? 'pass' : 'fail',
+    badRows.length > 0 ? `${badRows.length} rows have both agreed and rank` : 'OK');
+  
+  // ── 3. Supabase Connectivity ───────────────────────────────────────────────
+  log('Testing Supabase connectivity...');
+  try {
+    const resp = await fetch(SUPABASE_URL + '/rest/v1/responses?limit=1', {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+    });
+    if (resp.ok || resp.status === 406) { // 406 = no rows but endpoint works
+      addResult('Supabase', 'API endpoint reachable', 'pass', `HTTP ${resp.status}`);
+    } else {
+      addResult('Supabase', 'API endpoint reachable', 'fail', `HTTP ${resp.status}: ${await resp.text()}`);
+    }
+  } catch(e) {
+    addResult('Supabase', 'API endpoint reachable', 'fail', e.message);
+  }
+  
+  // Check table schema by querying one row
+  try {
+    const resp = await fetch(SUPABASE_URL + '/rest/v1/responses?limit=1&select=*', {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY,
+                 'Accept': 'application/json' }
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      if (data.length > 0) {
+        const cols = Object.keys(data[0]);
+        const expected = ['participant_id','lang','case_no','rubric_no','rubric_id','item_id','agreed','rank','domain','comment','overall_comment'];
+        const missing = expected.filter(c => !cols.includes(c));
+        addResult('Supabase', 'Table schema has all expected columns',
+          missing.length === 0 ? 'pass' : 'fail',
+          missing.length > 0 ? `Missing: ${missing.join(', ')}` : `Cols: ${cols.join(', ')}`);
+        log('Existing columns: ' + cols.join(', '));
+      } else {
+        addResult('Supabase', 'Table schema', 'warn', 'Table is empty — cannot verify schema. Will test on submit.');
+      }
+    }
+  } catch(e) {
+    addResult('Supabase', 'Table schema check', 'warn', e.message);
+  }
+  
+  renderResults();
+  document.getElementById('runBtn').disabled = false;
+  document.getElementById('submitBtn').style.display = '';
+  log('Test run complete.');
+}
+
+// ── SUBMIT TEST ───────────────────────────────────────────────────────────────
+async function runSubmitTest() {
+  document.getElementById('submitBtn').disabled = true;
+  log('Submitting test record to Supabase...');
+  
+  const testRows = [
+    { participant_id: 'P-AUTOTEST-' + Date.now(), lang: 'en', case_no: 1, rubric_no: 1,
+      rubric_id: 'C1-R1', item_id: '1-1-1-1', agreed: true, comment: 'auto test comment',
+      domain: null, rank: null, overall_comment: 'auto test overall' },
+    { participant_id: 'P-AUTOTEST-' + Date.now(), lang: 'en', case_no: 1, rubric_no: 1,
+      rubric_id: 'C1-R1', item_id: '1-1-1-1', agreed: null, comment: '',
+      domain: 'd1', rank: 1, overall_comment: 'auto test overall' }
+  ];
+  
+  try {
+    const res = await fetch(SUPABASE_URL + '/rest/v1/responses', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY,
+                 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Prefer': 'return=minimal' },
+      body: JSON.stringify(testRows)
+    });
+    if (res.ok) {
+      addResult('Supabase', 'Test record submitted successfully ✓', 'pass',
+        `2 rows inserted (participant P-AUTOTEST-...). Check Supabase dashboard to verify.`);
+      log('✅ Submit succeeded — check Supabase dashboard for P-AUTOTEST rows');
+    } else {
+      const errText = await res.text();
+      addResult('Supabase', 'Test record submission', 'fail', `HTTP ${res.status}: ${errText}`);
+      log('❌ Submit failed: ' + errText);
+    }
+  } catch(e) {
+    addResult('Supabase', 'Test record submission', 'fail', e.message);
+    log('❌ Submit error: ' + e.message);
+  }
+  
+  renderResults();
+  document.getElementById('submitBtn').disabled = false;
+}
+</script>
+</body>
+</html>
