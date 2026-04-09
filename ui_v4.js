@@ -279,10 +279,16 @@ function VignetteSidebar({ caseData }) {
           h('p',{style:{fontSize:12,fontWeight:700,color:muted,
             textTransform:"uppercase",letterSpacing:"0.04em",margin:"0 0 6px"}},
             t("Relevant Lab/Studies","관련 검사 결과")),
-          caseData.vignette.labs.map((l,i) =>
-            h('p',{key:i,style:{fontSize:13,color:txt,lineHeight:1.6,margin:0}},
-              t(l.val_en,l.val_ko))
-          )
+          t(caseData.vignette.labs[0].val_en, caseData.vignette.labs[0].val_ko)
+            .split("\\n").filter(Boolean).map((line,i) => {
+              const colon = line.indexOf(": ");
+              const lbl = colon > -1 ? line.slice(0, colon) : line;
+              const val = colon > -1 ? line.slice(colon+2) : "";
+              return h('div',{key:i,style:{fontSize:13,padding:"3px 0",
+                borderTop:i>0?"1px solid "+cardBd:"none",lineHeight:1.5}},
+                h('span',{style:{color:muted,fontWeight:600}},lbl+(val?": ":"")),
+                h('span',{style:{color:txt}},val))
+            })
         )
       )
     )
@@ -361,8 +367,9 @@ function PartAScreen({ caseData, rubric, onNext, onBack, draftAnswers, onDraftCh
           "✗ "+t("Disagree","비동의"))),
       ans!==undefined && h('textarea',{
         placeholder:t("Optional comment for this item…","이 항목에 대한 선택적 의견…"),
-        value:comments[item.id]||"",
-        onChange:e=>{const v=e.target.value; setComments(c=>({...c,[item.id]:v})); if(commentTimer.current) clearTimeout(commentTimer.current); commentTimer.current=setTimeout(()=>onDraftChange(item.id,partA[item.id],{...comments,[item.id]:v}),600);},
+        defaultValue:comments[item.id]||"",
+        key:"cmt-"+item.id,
+        onInput:e=>{const v=e.target.value; if(commentTimer.current) clearTimeout(commentTimer.current); commentTimer.current=setTimeout(()=>{setComments(c=>({...c,[item.id]:v})); onDraftChange(item.id,partA[item.id],{...comments,[item.id]:v});},600);},
         style:{width:"100%",padding:"9px 12px",fontSize:14,
           border:"1px solid "+cardBd,borderRadius:8,resize:"vertical",
           fontFamily:ffs,boxSizing:"border-box",minHeight:60,
@@ -642,7 +649,7 @@ function PartBScreen({ caseData, rubric, ci, ri, isLast, onSubmit, partAData, on
         t("Overall Comment (optional)","전반적인 의견 (선택사항)")),
       h('textarea',{
         placeholder:t("Any comments or suggestions for this rubric?","이 루브릭에 대한 의견이나 제안이 있으신가요?"),
-        value:finalCmt,onChange:e=>{const v=e.target.value; setFinalCmt_(v); finalCmtRef.current=v; if(bCommentTimer.current) clearTimeout(bCommentTimer.current); bCommentTimer.current=setTimeout(()=>onBDraftChange(d1OrderRef.current,d2OrderRef.current,v),600);},
+        defaultValue:finalCmt,key:"finalcmt",onInput:e=>{const v=e.target.value; finalCmtRef.current=v; if(bCommentTimer.current) clearTimeout(bCommentTimer.current); bCommentTimer.current=setTimeout(()=>{setFinalCmt_(v); onBDraftChange(d1OrderRef.current,d2OrderRef.current,v);},600);},
         style:{width:"100%",padding:"12px 14px",fontSize:14,
           border:"1px solid "+cardBd,borderRadius:8,resize:"vertical",
           fontFamily:ffs,boxSizing:"border-box",minHeight:80}})
