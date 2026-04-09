@@ -3769,7 +3769,7 @@ function VignetteSidebar({ caseData }) {
             textTransform:"uppercase",letterSpacing:"0.04em",margin:"0 0 6px"}},
             t("Relevant Lab/Studies","관련 검사 결과")),
           t(caseData.vignette.labs[0].val_en, caseData.vignette.labs[0].val_ko)
-            .split("\\n").filter(Boolean).map((line,i) => {
+            .split("\n").filter(Boolean).map((line,i) => {
               const colon = line.indexOf(": ");
               const lbl = colon > -1 ? line.slice(0, colon) : line;
               const val = colon > -1 ? line.slice(colon+2) : "";
