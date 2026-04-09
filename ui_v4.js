@@ -369,7 +369,7 @@ function PartAScreen({ caseData, rubric, onNext, onBack, draftAnswers, onDraftCh
         placeholder:t("Optional comment for this item…","이 항목에 대한 선택적 의견…"),
         defaultValue:comments[item.id]||"",
         key:"cmt-"+item.id,
-        onInput:e=>{const v=e.target.value; if(commentTimer.current) clearTimeout(commentTimer.current); commentTimer.current=setTimeout(()=>{setComments(c=>({...c,[item.id]:v})); onDraftChange(item.id,partA[item.id],{...comments,[item.id]:v});},600);},
+        onInput:e=>{const v=e.target.value; if(commentTimer.current) clearTimeout(commentTimer.current); commentTimer.current=setTimeout(()=>setComments(c=>({...c,[item.id]:v})),600);},
         style:{width:"100%",padding:"9px 12px",fontSize:14,
           border:"1px solid "+cardBd,borderRadius:8,resize:"vertical",
           fontFamily:ffs,boxSizing:"border-box",minHeight:60,
