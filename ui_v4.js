@@ -377,6 +377,12 @@ function PartAScreen({ caseData, rubric, onNext, onBack, draftAnswers, onDraftCh
   const commentTimer = React.useRef(null);
   const [highlightId, setHighlightId] = useState(null);
 
+
+  // Save full draft (answers + comments) to parent on every change
+  React.useEffect(() => {
+    onDraftChange({answers: partA, comments});
+  }, [partA, comments]);
+
   const goToFirst = () => {
     const firstMissing = allItems.find(item => partA[item.id] === undefined);
     if (!firstMissing) return;
@@ -420,13 +426,13 @@ function PartAScreen({ caseData, rubric, onNext, onBack, draftAnswers, onDraftCh
         h('p',{style:{fontSize:13,color:ans===true?"#14532d":ans===false?"#4c0519":"#374151",
           lineHeight:1.65,margin:0}},t(item.xEn,item.xKo))),
       h('div',{style:{display:"flex",gap:10,marginBottom:ans!==undefined?12:0}},
-        h('button',{onClick:()=>{setPartA(p=>{const n={...p,[item.id]:true}; onDraftChange(item.id,true,comments); return n;})},
+        h('button',{onClick:()=>{setPartA(p=>({...p,[item.id]:true}))},
           style:{flex:1,padding:"11px 0",borderRadius:8,fontSize:14,fontWeight:600,
             border:"2px solid "+(ans===true?green:cardBd),
             background:ans===true?greenBg:white,color:ans===true?green:muted,
             cursor:"pointer",transition:"all 0.15s"}},
           "✓ "+t("Agree","동의")),
-        h('button',{onClick:()=>{setPartA(p=>{const n={...p,[item.id]:false}; onDraftChange(item.id,false,comments); return n;})},
+        h('button',{onClick:()=>{setPartA(p=>({...p,[item.id]:false}))},
           style:{flex:1,padding:"11px 0",borderRadius:8,fontSize:14,fontWeight:600,
             border:"2px solid "+(ans===false?red:cardBd),
             background:ans===false?redBg:white,color:ans===false?red:muted,
@@ -503,9 +509,9 @@ function PartAScreen({ caseData, rubric, onNext, onBack, draftAnswers, onDraftCh
 function PartBScreen({ caseData, rubric, ci, ri, isLast, onSubmit, partAData, onBack, bDraft, onBDraftChange }) {
   const lang = useLang();
   const t = (en,ko) => T(en,ko,lang);
-  const [d1Order, setD1Order_] = useState(()=>bDraft?.d1Order||[...rubric.d1].sort((a,b)=>b.pts-a.pts).map(i=>i.id));
-  const [d2Order, setD2Order_] = useState(()=>bDraft?.d2Order||[...rubric.d2].sort((a,b)=>b.pts-a.pts).map(i=>i.id));
-  const [finalCmt, setFinalCmt_] = useState(bDraft?.finalCmt||"");
+  const [d1Order, setD1Order_] = useState(()=>(bDraft && bDraft.d1Order)||[...rubric.d1].sort((a,b)=>b.pts-a.pts).map(i=>i.id));
+  const [d2Order, setD2Order_] = useState(()=>(bDraft && bDraft.d2Order)||[...rubric.d2].sort((a,b)=>b.pts-a.pts).map(i=>i.id));
+  const [finalCmt, setFinalCmt_] = useState((bDraft && bDraft.finalCmt)||"");
   // Wrapped setters that also persist draft immediately (no useEffect = no re-render cascade)
   const d1OrderRef  = React.useRef(d1Order);
   const bCommentTimer = React.useRef(null);
@@ -582,7 +588,7 @@ function PartBScreen({ caseData, rubric, ci, ri, isLast, onSubmit, partAData, on
       const onMove = (e) => {
         const drag = draggingRef.current;
         if(!drag) return;
-        const clientY = e.clientY !== undefined ? e.clientY : e.touches?.[0]?.clientY;
+        const clientY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] && e.touches[0].clientY);
         if(clientY === undefined) return;
         const updated = {...drag, currentY: clientY};
         draggingRef.current = updated;
@@ -852,14 +858,14 @@ function App() {
   // ── Restore from localStorage if available ──────────────────────────────
   const saved = (() => { try { const s=localStorage.getItem(LS_KEY); return s?JSON.parse(s):null; } catch(e){return null;} })();
 
-  const [lang, setLang] = useState(saved?.lang || "en");
-  const [step, setStep] = useState(saved?.step || "consent");
-  const [ci, setCi] = useState(saved?.ci || 0);
-  const [ri, setRi] = useState(saved?.ri || 0);
-  const [partAData, setPartAData] = useState(saved?.partAData || null);
-  const [partADraft, setPartADraft] = useState(saved?.partADraft || {});
-  const [partBDraft, setPartBDraft] = useState(saved?.partBDraft || {});
-  const [responses, setResponses] = useState(saved?.responses || {});
+  const [lang, setLang] = useState((saved && saved.lang) || "en");
+  const [step, setStep] = useState((saved && saved.step) || "consent");
+  const [ci, setCi] = useState((saved && saved.ci) || 0);
+  const [ri, setRi] = useState((saved && saved.ri) || 0);
+  const [partAData, setPartAData] = useState((saved && saved.partAData) || null);
+  const [partADraft, setPartADraft] = useState((saved && saved.partADraft) || {});
+  const [partBDraft, setPartBDraft] = useState((saved && saved.partBDraft) || {});
+  const [responses, setResponses] = useState((saved && saved.responses) || {});
 
   const totalR = CASES.reduce((s,c)=>s+c.rubrics.length,0);
   const doneR  = CASES.slice(0,ci).reduce((s,c)=>s+c.rubrics.length,0)+ri;
@@ -948,7 +954,7 @@ function App() {
         h(PartAScreen,{key:"A-"+curRubric.id,caseData:curCase,rubric:curRubric,
           ci,ri,onNext:goPartB,onBack:goBack,
           draftAnswers:partADraft[curRubric.id]||(responses[curRubric.id]?{answers:responses[curRubric.id].partA||{},comments:responses[curRubric.id].comments||{}}:null)||{},
-          onDraftChange:(id,val,cmts)=>setPartADraft(d=>({...d,[curRubric.id]:{answers:{...((d[curRubric.id]||{}).answers||{}), [id]:val}, comments:{...((d[curRubric.id]||{}).comments||{}), ...cmts}}}))})),
+          onDraftChange:(data)=>setPartADraft(d=>({...d,[curRubric.id]:data}))})),
       step==="partB" && curRubric && h(SL,null,
         h(PartBScreen,{key:"B-"+curRubric.id,caseData:curCase,rubric:curRubric,
           ci,ri,isLast:doneR+1>=totalR,onSubmit:submitRubric,partAData,onBack:()=>{setStep("partA");scrollTop();},
