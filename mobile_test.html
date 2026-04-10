@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Mobile Diagnostic</title>
+<style>
+body { font-family: sans-serif; padding: 20px; background: #f0f0f0; }
+.box { background: white; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+.ok { color: green; font-weight: bold; }
+.fail { color: red; font-weight: bold; }
+.warn { color: orange; font-weight: bold; }
+pre { font-size: 11px; white-space: pre-wrap; word-break: break-all; background: #eee; padding: 8px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<div class="box"><h2>Mobile Diagnostic</h2><p id="ua"></p></div>
+
+<!-- Step 1: Basic JS -->
+<div class="box" id="box1"><b>Step 1:</b> Basic JS — <span id="s1">testing...</span></div>
+
+<!-- Step 2: const/let/arrow -->
+<div class="box" id="box2"><b>Step 2:</b> const/let/arrow — <span id="s2">testing...</span></div>
+
+<!-- Step 3: spread/destructure -->
+<div class="box" id="box3"><b>Step 3:</b> Spread &amp; destructure — <span id="s3">testing...</span></div>
+
+<!-- Step 4: localStorage -->
+<div class="box" id="box4"><b>Step 4:</b> localStorage — <span id="s4">testing...</span></div>
+
+<!-- Step 5: fetch -->
+<div class="box" id="box5"><b>Step 5:</b> fetch API — <span id="s5">testing...</span></div>
+
+<!-- Step 6: React production CDN -->
+<div class="box" id="box6"><b>Step 6:</b> React CDN load — <span id="s6">waiting...</span></div>
+
+<!-- Step 7: React render -->
+<div class="box" id="box7"><b>Step 7:</b> React render — <div id="react-test">waiting...</div></div>
+
+<!-- Step 8: Screen info -->
+<div class="box" id="box8">
+  <b>Step 8:</b> Screen info<br>
+  <span id="screen-info"></span>
+</div>
+
+<div class="box"><b>Any errors:</b><pre id="errors">none</pre></div>
+
+<script>
+// Catch all errors
+var errorLog = [];
+window.onerror = function(msg, src, line, col, err) {
+  errorLog.push('ERROR: ' + msg + ' (line ' + line + ')');
+  document.getElementById('errors').textContent = errorLog.join('\n');
+  return false;
+};
+window.onunhandledrejection = function(e) {
+  errorLog.push('PROMISE: ' + (e.reason && e.reason.message || e.reason));
+  document.getElementById('errors').textContent = errorLog.join('\n');
+};
+
+// User agent
+document.getElementById('ua').textContent = navigator.userAgent;
+
+// Step 1: basic
+try {
+  document.getElementById('s1').innerHTML = '<span class="ok">PASS</span>';
+} catch(e) {
+  document.getElementById('s1').innerHTML = '<span class="fail">FAIL: ' + e.message + '</span>';
+}
+
+// Step 2: const/let/arrow/template literals
+try {
+  const x = 1;
+  let y = 2;
+  const add = (a, b) => a + b;
+  const str = `result: ${add(x, y)}`;
+  if (str !== 'result: 3') throw new Error('template literal failed');
+  document.getElementById('s2').innerHTML = '<span class="ok">PASS</span>';
+} catch(e) {
+  document.getElementById('s2').innerHTML = '<span class="fail">FAIL: ' + e.message + '</span>';
+}
+
+// Step 3: spread / destructure
+try {
+  const obj = { a: 1, b: 2 };
+  const { a, b } = obj;
+  const merged = { ...obj, c: 3 };
+  const arr = [1, 2, 3];
+  const [first, ...rest] = arr;
+  if (a !== 1 || merged.c !== 3 || first !== 1 || rest.length !== 2) throw new Error('mismatch');
+  document.getElementById('s3').innerHTML = '<span class="ok">PASS</span>';
+} catch(e) {
+  document.getElementById('s3').innerHTML = '<span class="fail">FAIL: ' + e.message + '</span>';
+}
+
+// Step 4: localStorage
+try {
+  localStorage.setItem('_test', '1');
+  const v = localStorage.getItem('_test');
+  localStorage.removeItem('_test');
+  if (v !== '1') throw new Error('value mismatch');
+  document.getElementById('s4').innerHTML = '<span class="ok">PASS</span>';
+} catch(e) {
+  document.getElementById('s4').innerHTML = '<span class="warn">WARN: ' + e.message + ' (private mode?)</span>';
+}
+
+// Step 5: fetch
+try {
+  if (typeof fetch === 'undefined') throw new Error('fetch not available');
+  document.getElementById('s5').innerHTML = '<span class="ok">PASS (available)</span>';
+} catch(e) {
+  document.getElementById('s5').innerHTML = '<span class="fail">FAIL: ' + e.message + '</span>';
+}
+
+// Step 8: screen
+document.getElementById('screen-info').innerHTML =
+  'innerWidth: ' + window.innerWidth + '<br>' +
+  'innerHeight: ' + window.innerHeight + '<br>' +
+  'devicePixelRatio: ' + window.devicePixelRatio + '<br>' +
+  'online: ' + navigator.onLine;
+</script>
+
+<!-- Load React production -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"
+  onload="document.getElementById('s6').innerHTML='<span class=ok>PASS — React ' + React.version + '</span>'; testReact();"
+  onerror="document.getElementById('s6').innerHTML='<span class=fail>FAIL — CDN blocked or no internet</span>';"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"
+  onerror="document.getElementById('s6').innerHTML='<span class=fail>FAIL — react-dom CDN failed</span>';"></script>
+
+<script>
+function testReact() {
+  try {
+    const el = React.createElement('span', {style:{color:'green',fontWeight:'bold'}}, 'PASS — React rendered!');
+    const root = ReactDOM.createRoot(document.getElementById('react-test'));
+    root.render(el);
+  } catch(e) {
+    document.getElementById('react-test').innerHTML = '<span class="fail">FAIL: ' + e.message + '</span>';
+  }
+}
+</script>
+</body></html>
