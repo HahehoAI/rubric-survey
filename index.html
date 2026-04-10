@@ -7,6 +7,21 @@
 <script crossorigin src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
 <script>
+// Set up error catching BEFORE any app code runs
+window.__appErrors = [];
+window.onerror = function(msg, src, line, col, err) {
+  window.__appErrors.push('ERROR L' + line + ': ' + msg);
+  var d = document.getElementById('root');
+  if(d) d.innerHTML = '<div style="padding:20px;font-family:monospace;font-size:13px;color:#c00;background:#fff;border:2px solid #c00;margin:20px;border-radius:8px"><b>App Error (please screenshot this)</b><br><br>' + window.__appErrors.join('<br>') + '</div>';
+};
+window.addEventListener('unhandledrejection', function(e) {
+  var msg = e.reason && (e.reason.message || String(e.reason)) || 'unknown';
+  window.__appErrors.push('PROMISE: ' + msg);
+  var d = document.getElementById('root');
+  if(d) d.innerHTML = '<div style="padding:20px;font-family:monospace;font-size:13px;color:#c00;background:#fff;border:2px solid #c00;margin:20px;border-radius:8px"><b>App Error (please screenshot this)</b><br><br>' + window.__appErrors.join('<br>') + '</div>';
+});
+</script>
+<script>
 // rubrics_data.js
 // Edit cases/vignettes/rubrics/items here. Run: python3 build.py to rebuild.
 
