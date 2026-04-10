@@ -3510,10 +3510,10 @@ const StickyHeader = ({ lang, setLang, doneR, totalR, breadcrumb }) => {
   const pct = totalR > 0 ? Math.round((doneR / totalR) * 100) : 0;
   return h('div', {style:{position:"sticky", top:0, zIndex:100}},
     // Navy title bar
-    h('div', {style:{background:navy, padding:"0 28px", height:50,
+    h('div', {style:{background:navy, padding: window.innerWidth < 768 ? "0 14px" : "0 28px", height:50,
       display:"flex", alignItems:"center", justifyContent:"space-between",
       boxShadow:"0 1px 0 rgba(255,255,255,0.08)"}},
-      h('span', {style:{color:white, fontSize:14, fontWeight:600,
+      h('span', {style:{color:white, fontSize: window.innerWidth < 768 ? 11 : 14, fontWeight:600,
         flex:1, marginRight:12, whiteSpace:"nowrap", overflow:"hidden",
         textOverflow:"ellipsis"}},
         T("AI-Generated Rubric Frameworks — Clinical History-Taking Assessment",
@@ -3721,6 +3721,73 @@ function InstrScreen({ onStart }) {
 }
 
 // ─── VIGNETTE SIDEBAR ────────────────────────────────────────────────────────
+
+// ─── VIGNETTE MODAL (mobile) ─────────────────────────────────────────────────
+function VignetteModal({ caseData, onClose }) {
+  const lang = useLang();
+  const t = (en,ko) => T(en,ko,lang);
+  return h('div',{
+    style:{position:"fixed",inset:0,zIndex:1000,display:"flex",flexDirection:"column",
+           background:pageBg},
+    },
+    // Header
+    h('div',{style:{background:navy,padding:"14px 18px",display:"flex",
+      alignItems:"center",justifyContent:"space-between",flexShrink:0}},
+      h('p',{style:{fontSize:13,fontWeight:700,color:white,margin:0,lineHeight:1.4,flex:1,marginRight:12}},
+        t(caseData.en, caseData.ko)),
+      h('button',{onClick:onClose,
+        style:{background:"rgba(255,255,255,0.15)",border:"none",borderRadius:6,
+               color:white,fontSize:13,fontWeight:600,padding:"7px 14px",cursor:"pointer",flexShrink:0}},
+        t("Got it, start reviewing →","확인, 검토 시작 →"))
+    ),
+    // Content - scrollable
+    h('div',{style:{overflowY:"auto",flex:1}},
+      caseData.vignette.rows.map((r,i) =>
+        h('div',{key:i,style:{padding:"10px 18px",borderBottom:"1px solid "+cardBd}},
+          h('p',{style:{fontSize:12,fontWeight:700,color:muted,textTransform:"uppercase",
+            letterSpacing:"0.04em",margin:"0 0 2px"}}, t(r.en,r.ko)),
+          h('p',{style:{fontSize:13,color:txt,lineHeight:1.6,margin:0}}, t(r.val_en,r.val_ko)))
+      ),
+      h('div',{style:{padding:"10px 18px",borderBottom:"1px solid "+cardBd}},
+        h('p',{style:{fontSize:12,fontWeight:700,color:muted,textTransform:"uppercase",
+          letterSpacing:"0.04em",margin:"0 0 6px"}}, t("Vital Signs","활력 징후")),
+        caseData.vignette.vitals.map((v,i) =>
+          h('div',{key:i,style:{display:"flex",justifyContent:"space-between",
+            alignItems:"flex-start",fontSize:13,padding:"3px 0",
+            borderTop:i>0?"1px solid "+cardBd:"none"}},
+            h('span',{style:{color:muted,flexShrink:0,marginRight:8}},t(v.en,v.ko)),
+            h('span',{style:{color:txt,fontWeight:500,textAlign:"right"}},t(v.val_en,v.val_ko)))
+        )
+      ),
+      h('div',{style:{padding:"10px 18px",borderBottom:caseData.vignette.labs?"1px solid "+cardBd:"none"}},
+        h('p',{style:{fontSize:12,fontWeight:700,color:muted,textTransform:"uppercase",
+          letterSpacing:"0.04em",margin:"0 0 6px"}}, t("Physical Exam","신체 검진")),
+        caseData.vignette.exam.map((e,i) =>
+          h('div',{key:i,style:{fontSize:13,padding:"3px 0",
+            borderTop:i>0?"1px solid "+cardBd:"none",lineHeight:1.5}},
+            h('span',{style:{color:muted,fontWeight:600}},t(e.en,e.ko)+": "),
+            h('span',{style:{color:txt}},t(e.val_en,e.val_ko)))
+        )
+      ),
+      caseData.vignette.labs && caseData.vignette.labs.length > 0 &&
+      h('div',{style:{padding:"10px 18px"}},
+        h('p',{style:{fontSize:12,fontWeight:700,color:muted,textTransform:"uppercase",
+          letterSpacing:"0.04em",margin:"0 0 6px"}}, t("Relevant Lab/Studies","관련 검사 결과")),
+        t(caseData.vignette.labs[0].val_en, caseData.vignette.labs[0].val_ko)
+          .split("\n").filter(Boolean).map((line,i) => {
+            const colon = line.indexOf(": ");
+            const lbl = colon > -1 ? line.slice(0, colon) : line;
+            const val = colon > -1 ? line.slice(colon+2) : "";
+            return h('div',{key:i,style:{fontSize:13,padding:"3px 0",
+              borderTop:i>0?"1px solid "+cardBd:"none",lineHeight:1.5}},
+              h('span',{style:{color:muted,fontWeight:600}},lbl+(val?": ":"")),
+              h('span',{style:{color:txt}},val))
+          })
+      )
+    )
+  );
+}
+
 function VignetteSidebar({ caseData }) {
   const lang = useLang();
   const t = (en,ko) => T(en,ko,lang);
@@ -4323,12 +4390,46 @@ function App() {
             "기준표 "+(ri+1)+"/"+curCase.rubrics.length, lang)))
     : null;
 
+  // Track which cases have had their vignette auto-shown
+  const seenCasesRef = React.useRef(new Set());
+  const [showVigModal, setShowVigModal] = React.useState(false);
+
+  // Auto-open modal for first rubric of each new case (mobile only)
+  React.useEffect(()=>{
+    if(typeof window !== 'undefined' && window.innerWidth < 768) {
+      if(!seenCasesRef.current.has(ci)) {
+        seenCasesRef.current.add(ci);
+        setShowVigModal(true);
+      }
+    }
+  }, [ci]);
+
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
   const SL = ({children}) => h('div',{style:{maxWidth:1140,margin:"0 auto",
-    padding:"28px 24px 80px",display:"flex",gap:24,alignItems:"flex-start"}},
-    h(VignetteSidebar,{caseData:curCase}), children);
+    padding: isMobile ? "12px 14px 100px" : "28px 24px 80px",
+    display:"flex", gap:24, alignItems:"flex-start"}},
+    // Desktop: show sidebar as normal
+    !isMobile && h(VignetteSidebar,{caseData:curCase}),
+    // Mobile: show modal + floating button
+    isMobile && showVigModal && curCase && h(VignetteModal,{caseData:curCase, onClose:()=>setShowVigModal(false)}),
+    children
+  );
 
   return h(LangCtx.Provider,{value:lang},
     h('div',{style:{background:pageBg,minHeight:"100vh",fontFamily:ffs}},
+      // Mobile floating "View Case" button — shown when modal is closed and on mobile
+      isMobile && curCase && !showVigModal && step !== "done" && step !== "welcome" &&
+        h('div',{style:{position:"fixed",bottom:24,left:"50%",transform:"translateX(-50%)",zIndex:500}},
+          h('button',{
+            onClick:()=>setShowVigModal(true),
+            style:{background:navy,color:white,border:"none",borderRadius:20,
+                   padding:"10px 20px",fontSize:13,fontWeight:600,cursor:"pointer",
+                   boxShadow:"0 4px 16px rgba(0,0,0,0.25)",display:"flex",
+                   alignItems:"center",gap:6}},
+            "📋 ", t("View Case","사례 보기")
+          )
+        ),
       h(StickyHeader,{lang,setLang,doneR,totalR,breadcrumb}),
       step==="consent" && h(ConsentScreen,{onAgree:()=>{setStep("instr");scrollTop();}}),
       step==="instr"   && h(InstrScreen,{onStart:()=>{setStep("partA");scrollTop();}}),
