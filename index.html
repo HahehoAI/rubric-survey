@@ -2152,9 +2152,11 @@ function App() {
     )
   );
 }
-try {
-  ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
-} catch(e) {
-  document.getElementById('root').innerHTML = '<div style="padding:32px;font-family:sans-serif;color:#c00"><h2>Loading error</h2><pre style="white-space:pre-wrap;font-size:12px">'+e.message+'\n'+e.stack+'</pre></div>';
-}
+window.addEventListener('load', function() {
+  try {
+    ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+  } catch(e) {
+    document.getElementById('root').innerHTML = '<div style="padding:32px;font-family:sans-serif;color:#c00"><h2>Loading error</h2><pre style="white-space:pre-wrap;font-size:12px">'+e.message+'\n'+e.stack+'</pre></div>';
+  }
+});
 </script></body></html>

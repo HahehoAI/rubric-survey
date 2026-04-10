@@ -2,7 +2,7 @@
 <html lang="en"><head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Mobile Diagnostic v2</title>
+<title>Mobile Diagnostic v3</title>
 <style>
 body { font-family: sans-serif; padding: 20px; background: #f0f0f0; }
 .box { background: white; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
@@ -12,7 +12,7 @@ pre { font-size: 11px; white-space: pre-wrap; word-break: break-all; background:
 </style>
 </head>
 <body>
-<div class="box"><h2>Mobile Diagnostic v2</h2><p id="ua"></p></div>
+<div class="box"><h2>Mobile Diagnostic v3</h2><p id="ua"></p></div>
 <div class="box"><b>Step 6a:</b> react.js (jsDelivr) — <span id="s6a">waiting...</span></div>
 <div class="box"><b>Step 6b:</b> react-dom.js (jsDelivr) — <span id="s6b">waiting...</span></div>
 <div class="box"><b>Step 7:</b> React render — <div id="react-test">waiting...</div></div>
@@ -24,29 +24,27 @@ window.onerror = function(msg, src, line, col, err) {
   errorLog.push('ERROR: ' + msg + ' (line ' + line + ')');
   document.getElementById('errors').textContent = errorLog.join('\n');
 };
-window.onunhandledrejection = function(e) {
-  errorLog.push('PROMISE: ' + (e.reason && e.reason.message || e.reason));
-  document.getElementById('errors').textContent = errorLog.join('\n');
-};
 document.getElementById('ua').textContent = navigator.userAgent;
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js" crossorigin
-  onload="document.getElementById('s6a').innerHTML='<span class=ok>PASS \u2014 React ' + React.version + '</span>';"
-  onerror="document.getElementById('s6a').innerHTML='<span class=fail>FAIL \u2014 react.js blocked</span>';"></script>
+  onload="document.getElementById('s6a').innerHTML='<span class=ok>PASS &mdash; React ' + React.version + '</span>';"
+  onerror="document.getElementById('s6a').innerHTML='<span class=fail>FAIL &mdash; react.js blocked</span>';"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js" crossorigin
-  onload="document.getElementById('s6b').innerHTML='<span class=ok>PASS</span>'; testReact();"
-  onerror="document.getElementById('s6b').innerHTML='<span class=fail>FAIL \u2014 react-dom.js blocked</span>';"></script>
+  onload="document.getElementById('s6b').innerHTML='<span class=ok>PASS</span>';"
+  onerror="document.getElementById('s6b').innerHTML='<span class=fail>FAIL &mdash; react-dom.js blocked</span>';"></script>
 
 <script>
-function testReact() {
+// Use window.load so all CDN scripts are guaranteed to have run first
+window.addEventListener('load', function() {
   try {
-    var el = React.createElement('span', {style:{color:'green',fontWeight:'bold'}}, 'PASS \u2014 React rendered OK!');
+    if (typeof ReactDOM === 'undefined') throw new Error('ReactDOM not loaded');
+    var el = React.createElement('span', {style:{color:'green',fontWeight:'bold'}}, 'PASS \u2014 React rendered OK! Main app should work now.');
     ReactDOM.createRoot(document.getElementById('react-test')).render(el);
   } catch(e) {
-    document.getElementById('react-test').innerHTML = '<span style="color:red">FAIL: ' + e.message + '</span>';
+    document.getElementById('react-test').innerHTML = '<span style="color:red;font-weight:bold">FAIL: ' + e.message + '</span>';
   }
-}
+});
 </script>
 </body></html>
