@@ -238,7 +238,7 @@ function VignetteModal({ caseData, onClose }) {
   const lang = useLang();
   const t = (en,ko) => T(en,ko,lang);
   return h('div',{
-    style:{position:"fixed",inset:0,zIndex:1000,display:"flex",flexDirection:"column",
+    style:{position:"fixed",top:0,right:0,bottom:0,left:0,zIndex:1000,display:"flex",flexDirection:"column",
            background:pageBg},
     },
     // Header
@@ -921,17 +921,17 @@ function App() {
     }
   }, [ci]);
 
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth < 768);
+  React.useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
-  const SL = ({children}) => h('div',{style:{maxWidth:1140,margin:"0 auto",
+  // SL: layout shell — rendered inline (NOT as a nested component) to avoid remount
+  const slStyle = {maxWidth:1140, margin:"0 auto",
     padding: isMobile ? "12px 14px 100px" : "28px 24px 80px",
-    display:"flex", gap:24, alignItems:"flex-start"}},
-    // Desktop: show sidebar as normal
-    !isMobile && h(VignetteSidebar,{caseData:curCase}),
-    // Mobile: show modal + floating button
-    isMobile && showVigModal && curCase && h(VignetteModal,{caseData:curCase, onClose:()=>setShowVigModal(false)}),
-    children
-  );
+    display:"flex", gap:24, alignItems:"flex-start"};
 
   return h(LangCtx.Provider,{value:lang},
     h('div',{style:{background:pageBg,minHeight:"100vh",fontFamily:ffs}},
@@ -950,12 +950,16 @@ function App() {
       h(StickyHeader,{lang,setLang,doneR,totalR,breadcrumb}),
       step==="consent" && h(ConsentScreen,{onAgree:()=>{setStep("instr");scrollTop();}}),
       step==="instr"   && h(InstrScreen,{onStart:()=>{setStep("partA");scrollTop();}}),
-      step==="partA" && curRubric && h(SL,null,
+      step==="partA" && curRubric && h('div',{style:slStyle},
+        !isMobile && h(VignetteSidebar,{caseData:curCase}),
+        isMobile && showVigModal && curCase && h(VignetteModal,{caseData:curCase, onClose:()=>setShowVigModal(false)}),
         h(PartAScreen,{key:"A-"+curRubric.id,caseData:curCase,rubric:curRubric,
           ci,ri,onNext:goPartB,onBack:goBack,
           draftAnswers:partADraft[curRubric.id]||(responses[curRubric.id]?{answers:responses[curRubric.id].partA||{},comments:responses[curRubric.id].comments||{}}:null)||{},
           onDraftChange:(data)=>setPartADraft(d=>({...d,[curRubric.id]:data}))})),
-      step==="partB" && curRubric && h(SL,null,
+      step==="partB" && curRubric && h('div',{style:slStyle},
+        !isMobile && h(VignetteSidebar,{caseData:curCase}),
+        isMobile && showVigModal && curCase && h(VignetteModal,{caseData:curCase, onClose:()=>setShowVigModal(false)}),
         h(PartBScreen,{key:"B-"+curRubric.id,caseData:curCase,rubric:curRubric,
           ci,ri,isLast:doneR+1>=totalR,onSubmit:submitRubric,partAData,onBack:()=>{setStep("partA");scrollTop();},
           bDraft:partBDraft[curRubric.id]||(responses[curRubric.id]?{d1Order:responses[curRubric.id].d1Order,d2Order:responses[curRubric.id].d2Order,finalCmt:responses[curRubric.id].finalCmt||''}:null),
