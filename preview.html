@@ -28,8 +28,8 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;padding-bottom:46
   <button id="b_ds" onclick="pjump('done_post')">Done (✓)</button>
   <span style="margin-left:6px;color:rgba(255,255,255,0.4)">Supabase blocked</span>
 </div>
-<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script crossorigin src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
 <script>
 const _f=window.fetch;window.fetch=function(url,o){
   if(url&&url.includes('supabase')){return Promise.resolve({ok:true,text:function(){return Promise.resolve('');}});}
