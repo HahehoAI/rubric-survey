@@ -4705,26 +4705,42 @@ window.__qaRun=async function(){
       if(!ok){__log('fail','Rubric '+rub.id+': Part A not found');continue;}
       __log('pass','Rubric '+rub.id+': Part A loaded');
 
-      // Click Agree until Continue is enabled
-      for(var ii=0;ii<rub.items.length*3;ii++){
+      // Click Agree on every item by count (Continue button is never disabled,
+      // it just shows a warning - so we can't use its disabled state as a signal)
+      var clicked=0;
+      for(var ii=0;ii<rub.items.length*3 && clicked<rub.items.length;ii++){
         if(__stopped)return;
-        var c2b=__find('Continue to Part B')||__find('파트 B');
-        if(c2b&&!c2b.disabled)break;
-        var agreeBtn=__btns().find(function(b){var t=b.textContent.trim();return t==='✓ Agree'||t==='✓ 동의';});
+        var agreeBtn=__btns().find(function(b){
+          var t=b.textContent.trim();
+          return t==='✓ Agree'||t==='✓ 동의';
+        });
         if(!agreeBtn)break;
         __click(agreeBtn);
-        await __wait(80);
+        clicked++;
+        await __wait(100);
       }
+      __log(clicked>=rub.items.length?'pass':'warn',
+        'Rubric '+rub.id+': clicked Agree on '+clicked+'/'+rub.items.length+' items');
 
+      // Wait a moment for React to process all clicks
+      await __wait(300);
+
+      // Now click Continue (it navigates if all answered, or scrolls to first unanswered)
       var c2b=__find('Continue to Part B')||__find('파트 B');
-      if(c2b&&!c2b.disabled){
-        __log('pass','Rubric '+rub.id+': Part A done, clicking Continue');
+      if(c2b){
+        __log('pass','Rubric '+rub.id+': clicking Continue to Part B');
         __click(c2b);
       } else {
-        __log('fail','Rubric '+rub.id+': Continue to Part B not enabled');
+        __log('fail','Rubric '+rub.id+': Continue to Part B button not found');
         continue;
       }
-      await __wait(800);
+      // Wait for Part A to disappear (confirms navigation happened)
+      await __waitFor(function(){
+        return !__btns().some(function(b){
+          return b.textContent.indexOf('Continue to Part B')>=0||b.textContent.indexOf('파트 B')>=0;
+        });
+      },5000,'Part A to disappear');
+      await __wait(500);
 
       // ── PART B ────────────────────────────────────────────────────
       ok=await __waitFor(function(){
