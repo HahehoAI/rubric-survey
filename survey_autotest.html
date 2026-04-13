@@ -4705,19 +4705,35 @@ window.__qaRun=async function(){
       if(!ok){__log('fail','Rubric '+rub.id+': Part A not found');continue;}
       __log('pass','Rubric '+rub.id+': Part A loaded');
 
-      // Click Agree on every item by count (Continue button is never disabled,
-      // it just shows a warning - so we can't use its disabled state as a signal)
+      // Click Agree on every item - find unselected ones by checking border color
+      // Selected Agree buttons have green border (16A34A), unselected have grey (DDE4EF)
       var clicked=0;
-      for(var ii=0;ii<rub.items.length*3 && clicked<rub.items.length;ii++){
+      var prevGreen=-1;
+      for(var ii=0;ii<rub.items.length*4 && clicked<rub.items.length;ii++){
         if(__stopped)return;
+        // Find an Agree button that is NOT yet selected
+        // Unselected = border contains DDE4EF or button has white/transparent bg
         var agreeBtn=__btns().find(function(b){
-          var t=b.textContent.trim();
-          return t==='✓ Agree'||t==='✓ 동의';
+          if(b.textContent.trim()!=='✓ Agree'&&b.textContent.trim()!=='✓ 동의')return false;
+          // Check border - unselected buttons have grey border
+          var border=b.style.borderColor||b.style.border||'';
+          var bg=b.style.background||b.style.backgroundColor||'';
+          // If border contains green color code, it's already selected - skip
+          if(border.indexOf('16A34A')>=0||border.indexOf('rgb(22, 163, 74)')>=0)return false;
+          if(bg.indexOf('F0FDF4')>=0||bg.indexOf('240, 253, 244')>=0)return false;
+          return true;
         });
-        if(!agreeBtn)break;
+        if(!agreeBtn){
+          // No unselected Agree buttons found - may all be answered
+          break;
+        }
+        // Scroll into view before clicking
+        try{agreeBtn.scrollIntoView({block:'center',behavior:'instant'});}catch(e){}
+        await __wait(50);
         __click(agreeBtn);
         clicked++;
-        await __wait(100);
+        // Wait for the click to register (textarea should appear for this item)
+        await __wait(150);
       }
       __log(clicked>=rub.items.length?'pass':'warn',
         'Rubric '+rub.id+': clicked Agree on '+clicked+'/'+rub.items.length+' items');
