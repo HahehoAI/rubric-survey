@@ -10,7 +10,6 @@ h1 { font-size: 18px; font-weight: 700; color: #1B2B5E; margin-bottom: 4px; }
 .subtitle { font-size: 13px; color: #6B7A99; margin-bottom: 20px; }
 .section { background: white; border-radius: 12px; border: 1px solid #DDE4EF; margin-bottom: 16px; overflow: hidden; }
 .section-header { background: #EEF2F8; padding: 10px 16px; font-size: 13px; font-weight: 700; color: #1B2B5E; border-bottom: 1px solid #DDE4EF; display: flex; justify-content: space-between; align-items: center; }
-.section-score { font-size: 12px; font-weight: 600; color: #6B7A99; }
 .item { padding: 10px 16px; border-bottom: 1px solid #F0F3F8; display: flex; align-items: flex-start; gap: 10px; font-size: 13px; }
 .item:last-child { border-bottom: none; }
 .status { width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; margin-top: 1px; }
@@ -20,14 +19,13 @@ h1 { font-size: 18px; font-weight: 700; color: #1B2B5E; margin-bottom: 4px; }
 .manual { background: #EEF2F8; color: #1B2B5E; }
 .item-text { flex: 1; line-height: 1.45; color: #1A2340; }
 .item-detail { font-size: 11px; color: #6B7A99; margin-top: 2px; }
-.item-error { font-size: 11px; color: #DC2626; margin-top: 2px; font-family: monospace; }
+.item-error { font-size: 11px; color: #DC2626; margin-top: 2px; font-family: monospace; word-break: break-all; }
 .summary { background: #1B2B5E; color: white; border-radius: 12px; padding: 16px; margin-bottom: 16px; display: flex; gap: 20px; flex-wrap: wrap; }
 .sum-item { text-align: center; }
 .sum-num { font-size: 28px; font-weight: 700; display: block; }
 .sum-label { font-size: 11px; opacity: 0.7; }
 .sum-pass { color: #86efac; }
 .sum-fail { color: #fca5a5; }
-.sum-warn { color: #fcd34d; }
 .sum-manual { color: #93c5fd; }
 .manual-note { font-size: 12px; color: #6B7A99; padding: 8px 16px; background: #FAFBFC; border-top: 1px solid #DDE4EF; font-style: italic; }
 button.rerun { background: #1B2B5E; color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 13px; font-weight: 600; cursor: pointer; margin-bottom: 16px; }
@@ -38,345 +36,222 @@ button.rerun { background: #1B2B5E; color: white; border: none; border-radius: 8
 
 <h1>Survey QA Checklist</h1>
 <p class="subtitle">Automated + manual tests for all features. Open on both desktop and mobile.</p>
-
 <div class="device-info" id="device-info">Loading device info...</div>
-
 <button class="rerun" onclick="runAll()">↺ Re-run automated tests</button>
-
 <div class="summary" id="summary">Running tests...</div>
-
 <div id="results"></div>
+<div class="section" style="margin-top:0">
+  <div class="section-header">9. Content integrity (auto — loads index.html)</div>
+  <div id="content-results"><div class="item"><div class="status manual">→</div><div class="item-text">Waiting...</div></div></div>
+</div>
 
 <script crossorigin src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
 
 <script>
-// ── test runner ──────────────────────────────────────────────────────────────
-var results = { pass: 0, fail: 0, warn: 0, manual: 0 };
+var totalPass = 0, totalFail = 0, totalManual = 0;
 
-function makeItem(status, text, detail, error) {
-  var icons = { pass: '✓', fail: '✗', warn: '!', manual: '?' };
-  return '<div class="item">' +
-    '<div class="status ' + status + '">' + icons[status] + '</div>' +
-    '<div class="item-text">' + text +
-      (detail ? '<div class="item-detail">' + detail + '</div>' : '') +
-      (error  ? '<div class="item-error">' + error + '</div>' : '') +
+function mkItem(status, text, detail, error) {
+  var icons = {pass:'✓', fail:'✗', warn:'!', manual:'?'};
+  if(status==='pass') totalPass++;
+  else if(status==='fail') totalFail++;
+  else if(status==='manual') totalManual++;
+  return '<div class="item"><div class="status '+status+'">'+icons[status]+'</div>'+
+    '<div class="item-text">'+text+
+    (detail?'<div class="item-detail">'+detail+'</div>':'')+
+    (error?'<div class="item-error">'+error+'</div>':'')+
     '</div></div>';
 }
+function auto(ok, text, detail, err) { return mkItem(ok?'pass':'fail', text, detail, ok?null:err); }
+function manual(text, detail) { return mkItem('manual', text, detail, null); }
+function sec(title, html, note) {
+  return '<div class="section"><div class="section-header">'+title+'</div>'+html+
+    (note?'<div class="manual-note">'+note+'</div>':'')+
+    '</div>';
+}
 
-function section(title, items) {
-  var score = items.auto !== undefined ? items.auto + ' / ' + items.total + ' auto-passed' : '';
-  return '<div class="section"><div class="section-header">' + title +
-    (score ? '<span class="section-score">' + score + '</span>' : '') +
-    '</div>' + items.html + '</div>';
+function updateSummary() {
+  document.getElementById('summary').innerHTML =
+    '<div class="sum-item"><span class="sum-num sum-pass">'+totalPass+'</span><span class="sum-label">Auto-pass</span></div>'+
+    '<div class="sum-item"><span class="sum-num sum-fail">'+totalFail+'</span><span class="sum-label">Auto-fail</span></div>'+
+    '<div class="sum-item"><span class="sum-num sum-manual">'+totalManual+'</span><span class="sum-label">Manual checks</span></div>'+
+    '<div class="sum-item"><span class="sum-num" style="color:white">'+(totalPass+totalFail+totalManual)+'</span><span class="sum-label">Total</span></div>';
 }
 
 function runAll() {
-  results = { pass: 0, fail: 0, warn: 0, manual: 0 };
+  totalPass=0; totalFail=0; totalManual=0;
   var html = '';
-
-  // Device info
   var isMobile = window.innerWidth < 768;
+
   document.getElementById('device-info').innerHTML =
-    '<b>Device:</b> ' + (isMobile ? '📱 Mobile' : '🖥 Desktop') +
-    ' &nbsp;|&nbsp; <b>Width:</b> ' + window.innerWidth + 'px' +
-    ' &nbsp;|&nbsp; <b>UA:</b> ' + navigator.userAgent.slice(0, 80) + '...' +
-    ' &nbsp;|&nbsp; <b>Online:</b> ' + navigator.onLine;
+    '<b>Device:</b> '+(isMobile?'Mobile':'Desktop')+
+    ' &nbsp;|&nbsp; <b>Width:</b> '+window.innerWidth+'px'+
+    ' &nbsp;|&nbsp; <b>UA:</b> '+navigator.userAgent.slice(0,90)+'...'+
+    ' &nbsp;|&nbsp; <b>Online:</b> '+navigator.onLine;
 
-  // ── SECTION 1: Environment ───────────────────────────────────────────────
-  var s1 = '';
-  function test(ok, text, detail, errMsg) {
-    var status = ok ? 'pass' : 'fail';
-    results[status]++;
-    s1 += makeItem(status, text, detail, ok ? null : errMsg);
-  }
+  // 1. Environment
+  var s = '';
+  s += auto(typeof React!=='undefined', 'React loaded', typeof React!=='undefined'?'v'+React.version:null, 'React CDN failed');
+  s += auto(typeof ReactDOM!=='undefined', 'ReactDOM loaded', null, 'ReactDOM CDN failed');
+  var lsOk=false; try{localStorage.setItem('_qa','1');lsOk=localStorage.getItem('_qa')==='1';localStorage.removeItem('_qa');}catch(e){}
+  s += auto(lsOk, 'localStorage works', null, 'Blocked — private mode?');
+  s += auto(typeof fetch!=='undefined', 'fetch API available', null, 'fetch not available');
+  s += auto(window.innerWidth>0, 'Window dimensions valid', window.innerWidth+'×'+window.innerHeight);
+  html += sec('1. Environment', s);
 
-  test(typeof React !== 'undefined', 'React loaded',
-    typeof React !== 'undefined' ? 'Version ' + React.version : null,
-    'React is undefined — CDN failed to load');
+  // 2. Navigation flow
+  s = '';
+  s += manual('Consent screen loads on first visit', 'Open in fresh/incognito tab');
+  s += manual('EN/KO toggle switches all text on consent screen');
+  s += manual('Agree checkbox enables Continue button', 'Disabled until checked');
+  s += manual('Continue → goes to Instructions, scrolls to top');
+  s += manual('Begin Survey → shows vignette modal (mobile) or Part A (desktop)');
+  s += manual('"Back to Instructions" visible on Case 1 Rubric 1 vignette only');
+  s += manual('"Got it" button at bottom of vignette — must scroll down to reach it');
+  s += manual('Navigating between screens scrolls to top each time');
+  html += sec('2. Navigation flow', s, 'Open survey in another tab and step through');
 
-  test(typeof ReactDOM !== 'undefined', 'ReactDOM loaded', null, 'ReactDOM undefined');
+  // 3. Part A
+  s = '';
+  s += manual('Agree/Disagree buttons highlight green/red on selection');
+  s += manual('Comment textarea appears only after selecting Agree or Disagree');
+  s += manual('Keyboard stays open while typing a comment — does NOT dismiss');
+  s += manual('Comment saved after tapping away — persists on back-navigation');
+  s += manual('All answers preserved when going Back from Part B to Part A');
+  s += manual('Changing one answer on Back does NOT wipe other answers');
+  s += manual('"Continue to Part B" disabled until all items answered');
+  s += manual('Tapping Continue early highlights first unanswered item in amber');
+  html += sec('3. Part A — item rating', s, 'Test on Case 1 Rubric 1');
 
-  var lsOk = false;
-  try { localStorage.setItem('_qa','1'); lsOk = localStorage.getItem('_qa')==='1'; localStorage.removeItem('_qa'); } catch(e) {}
-  test(lsOk, 'localStorage read/write', null, 'localStorage blocked (private mode?)');
+  // 4. Part B
+  s = '';
+  s += manual('Two domain sections shown with items to rank');
+  s += manual('⠿ drag handle visible on left of each item');
+  s += manual('Dragging ⠿ handle reorders items correctly');
+  s += manual('Touching item text/body scrolls page — does NOT drag');
+  s += manual('↑↓ arrow buttons reorder items');
+  s += manual('First item ▲ and last item ▼ are greyed out');
+  s += manual('Part B order preserved when navigating away and back');
+  s += manual('Button label: "Next Rubric" / "Next Case" / "Finish Survey" as appropriate');
+  html += sec('4. Part B — ranking', s);
 
-  test(typeof fetch !== 'undefined', 'fetch API available', null, 'fetch not available');
+  // 5. Mobile
+  s = '';
+  s += manual('Survey loads without blank page on mobile Safari');
+  s += manual('"View Case" floating button visible during Part A / Part B');
+  s += manual('"View Case" button NOT visible on consent or instructions screens');
+  s += manual('Vignette modal shows full wrapping case title — not truncated');
+  s += manual('EN/KO toggle in vignette modal says "한국어" (not "한")');
+  s += manual('EN/KO toggle in vignette modal works correctly');
+  s += manual('"Got it" button closes modal and returns to Part A/B');
+  s += manual('Page scrolls normally — dragging item body does not reorder');
+  html += sec('5. Mobile-specific', s, 'Test on actual iPhone/Android');
 
-  test(window.innerWidth > 0 && window.innerHeight > 0, 'window dimensions valid',
-    window.innerWidth + ' × ' + window.innerHeight);
+  // 6. Desktop
+  s = '';
+  s += manual('Vignette sidebar visible and sticky on left in Part A/B');
+  s += manual('Full survey title visible in header — wraps, not truncated');
+  s += manual('EN/KO toggle in sticky header works on all screens');
+  s += manual('Progress bar advances with each completed rubric');
+  s += manual('Breadcrumb shows correct Case X of 5 › Rubric Y of 4');
+  html += sec('6. Desktop-specific', s);
 
-  html += section('1. Environment', { html: s1, auto: results.pass, total: results.pass + results.fail });
-  var s1pass = results.pass, s1fail = results.fail;
-
-  // ── SECTION 2: Survey app load ────────────────────────────────────────────
-  var s2 = ''; var p2 = results.pass, f2 = results.fail;
-  function t2(ok, text, detail, err) {
-    var status = ok ? 'pass' : 'fail'; results[status]++;
-    s2 += makeItem(status, text, detail, ok ? null : err);
-  }
-
-  // Load the survey in an iframe and check it mounts
-  var surveyUrl = window.location.href.replace('survey_test.html', 'index.html');
-  t2(true, 'Survey URL detected', surveyUrl, null);
-
-  // Check if we can fetch the index.html
-  var fetchOk = false;
-  fetch(surveyUrl).then(function(r) {
-    fetchOk = r.ok;
-    document.getElementById('fetch-result').textContent = r.ok ?
-      '✓ index.html fetched (' + r.status + ')' : '✗ fetch failed: ' + r.status;
-  }).catch(function(e) {
-    document.getElementById('fetch-result').textContent = '✗ ' + e.message;
-  });
-
-  s2 += '<div class="item"><div class="status manual">→</div><div class="item-text">index.html fetchable from same origin<div class="item-detail" id="fetch-result">checking...</div></div></div>';
-  results.manual++;
-
-  html += section('2. Survey page', { html: s2 });
-
-  // ── SECTION 3: Manual — Navigation flow ──────────────────────────────────
-  var s3 = '';
-  function manual(text, detail) {
-    results.manual++;
-    s3 += makeItem('manual', text, detail, null);
-  }
-
-  manual('Consent screen loads on first visit', 'Open survey in fresh tab / incognito');
-  manual('EN/KO toggle switches all text on consent screen', 'Toggle should update all labels, section titles, body text');
-  manual('Agree checkbox enables Continue button', 'Button should be disabled until checkbox checked');
-  manual('Continue → goes to Instructions screen', 'Scroll should jump to top');
-  manual('Begin Survey → goes to Case 1 Vignette modal (mobile) or Part A (desktop)', 'Mobile: full-screen modal appears');
-  manual('"Back to Instructions" button visible on Case 1 Rubric 1 vignette', 'Small button below case title in modal header');
-  manual('"Back to Instructions" NOT visible on Case 2+ vignette', 'Button should be absent');
-  manual('"Got it, start reviewing →" button at bottom of vignette', 'Requires scrolling down to reach it');
-  manual('Page scrolls to top when navigating between screens', 'Especially consent → instructions → part A');
-
-  s3 += '<div class="manual-note">Open the survey in another tab and work through each step</div>';
-  html += section('3. Navigation flow', { html: s3 });
-
-  // ── SECTION 4: Manual — Part A ────────────────────────────────────────────
-  var s4 = '';
-  manual = function(text, detail) { results.manual++; s4 += makeItem('manual', text, detail, null); };
-
-  manual('Agree / Disagree buttons highlight correctly when selected', 'Green for agree, red for disagree');
-  manual('Comment textarea appears only after Agree/Disagree selected', 'Not visible before selection');
-  manual('Typing a comment — keyboard stays open throughout', 'Should NOT dismiss keyboard while typing');
-  manual('Comment saved after tapping away (blur)', 'Type comment, tap elsewhere, go back — comment persists');
-  manual('Going back from Part B to Part A restores all selections', 'All agree/disagree answers still selected');
-  manual('Going back and changing a selection keeps other selections', 'Only the changed item updates');
-  manual('Comment added after initial answer persists on back-navigation', 'Type comment, Next, Back — comment still there');
-  manual('"Continue to Part B →" disabled until all items answered', 'Greyed out, tapping scrolls to first unanswered item');
-  manual('"Continue to Part B →" enabled once all items answered', 'Button becomes active navy color');
-  manual('Unanswered item highlighted in amber when Next tapped early', 'Yellow highlight + warning message on item');
-
-  s4 += '<div class="manual-note">Test on Case 1, Rubric 1</div>';
-  html += section('4. Part A — item rating', { html: s4 });
-
-  // ── SECTION 5: Manual — Part B ────────────────────────────────────────────
-  var s5 = '';
-  manual = function(text, detail) { results.manual++; s5 += makeItem('manual', text, detail, null); };
-
-  manual('Part B shows two domain sections with items to rank', 'Domain 1 and Domain 2 listed separately');
-  manual('⠿ drag handle visible on left of each item', 'Braille dots icon, slightly muted color');
-  manual('Dragging ⠿ handle reorders items', 'Touch and drag the handle — item moves, others shift');
-  manual('Touching item text/body does NOT trigger drag', 'Scrolling the page works normally on item body');
-  manual('↑↓ arrow buttons reorder items', 'Tapping ▲ moves item up, ▼ moves down');
-  manual('First item ▲ disabled, last item ▼ disabled', 'Greyed out arrows at boundaries');
-  manual('Part B draft saved when navigating away and back', 'Go to next rubric, back — order preserved');
-  manual('"Next Rubric →" / "Next Case →" / "Finish Survey →" label correct', 'Last rubric of last case shows Finish');
-
-  html += section('5. Part B — ranking', { html: s5 });
-
-  // ── SECTION 6: Manual — Mobile specific ──────────────────────────────────
-  var s6 = '';
-  manual = function(text, detail) { results.manual++; s6 += makeItem('manual', text, detail, null); };
-
-  manual('Survey loads without blank page on mobile Safari', 'iOS 18 tested');
-  manual('"View Case 📋" floating button visible during Part A / Part B', 'Bottom center, navy pill button');
-  manual('"View Case" button NOT visible on consent / instructions screens', 'Should be hidden on those screens');
-  manual('Tapping "View Case" opens full-screen vignette modal', 'Covers entire screen');
-  manual('Vignette modal shows full case title (wrapping, not truncated)', 'Title wraps to 2 lines if needed');
-  manual('EN/KO toggle in vignette modal says "한국어" not "한"', 'Matches main header toggle label');
-  manual('EN/KO toggle in vignette modal works', 'Switching language updates modal content');
-  manual('Closing vignette modal returns to Part A / Part B', '"Got it" button at bottom closes modal');
-  manual('"View Case" floating button reappears after closing modal', 'Pill button visible again');
-  manual('Page scrolls normally outside of drag handles', 'Scrolling the page should not reorder items');
-
-  s6 += '<div class="manual-note">Test on actual mobile device (iPhone/Android)</div>';
-  html += section('6. Mobile-specific', { html: s6 });
-
-  // ── SECTION 7: Manual — Desktop specific ─────────────────────────────────
-  var s7 = '';
-  manual = function(text, detail) { results.manual++; s7 += makeItem('manual', text, detail, null); };
-
-  manual('Vignette sidebar visible on left (sticky) in Part A', '336px wide sidebar with case info');
-  manual('Sidebar scrolls independently from main content', 'Sticky positioning, max-height with overflow');
-  manual('EN/KO toggle in sticky header works on all screens', 'Language switches everywhere');
-  manual('Full survey title visible in header (wraps to 2 lines if needed)', 'Not truncated with ...');
-  manual('Progress bar advances with each completed rubric', 'Blue fill grows from left to right');
-  manual('Breadcrumb shows correct Case X of 5 › Rubric Y of 4', 'Updates on navigation');
-
-  html += section('7. Desktop-specific', { html: s7 });
-
-  // ── SECTION 8: Manual — Data & submission ─────────────────────────────────
-  var s8 = '';
-  manual = function(text, detail) { results.manual++; s8 += makeItem('manual', text, detail, null); };
-
-  manual('Session auto-saves to localStorage', 'Refresh mid-survey — should restore position');
-  manual('Refreshing the page mid-survey restores state', 'Same step, same rubric, same answers');
-  manual('All 20 rubrics completable without error', '5 cases × 4 rubrics each');
-  manual('"Finish Survey →" appears on last rubric (Case 5, Rubric 4)', 'Not "Next Rubric"');
-  manual('Done screen appears after completing all rubrics', 'Shows "All rubrics completed"');
-  manual('Submit button sends data to Supabase', 'Check Supabase dashboard for new row');
-  manual('Download backup link works on Done screen', 'JSON file downloads with response data');
-
-  html += section('8. Data & submission', { html: s8 });
-
-  // ── Summary ───────────────────────────────────────────────────────────────
-  var total = results.pass + results.fail + results.warn + results.manual;
-  document.getElementById('summary').innerHTML =
-    '<div class="sum-item"><span class="sum-num sum-pass">' + results.pass + '</span><span class="sum-label">Auto-pass</span></div>' +
-    '<div class="sum-item"><span class="sum-num sum-fail">' + results.fail + '</span><span class="sum-label">Auto-fail</span></div>' +
-    '<div class="sum-item"><span class="sum-num sum-warn">' + results.warn + '</span><span class="sum-label">Warnings</span></div>' +
-    '<div class="sum-item"><span class="sum-num sum-manual">' + results.manual + '</span><span class="sum-label">Manual checks</span></div>' +
-    '<div class="sum-item"><span class="sum-num" style="color:white">' + total + '</span><span class="sum-label">Total</span></div>';
+  // 7. Data & submission
+  s = '';
+  s += manual('Refreshing mid-survey restores position and answers');
+  s += manual('All 20 rubrics completable without error (5 cases × 4 rubrics)');
+  s += manual('"Finish Survey" appears on Case 5 Rubric 4 only');
+  s += manual('Done screen appears after completing all rubrics');
+  s += manual('Submit sends data to Supabase — check dashboard');
+  s += manual('Download backup JSON works on Done screen');
+  html += sec('7. Data & submission', s, 'Check Supabase dashboard after submitting');
 
   document.getElementById('results').innerHTML = html;
+  updateSummary();
 }
 
 runAll();
-</script>
-</body></html>
-<script>
-// Content integrity checks — injected separately so they run after CASES is loaded
-function runContentChecks() {
-  var out = '';
-  var pass = 0, fail = 0;
 
-  function ct(ok, text, detail, err) {
-    var status = ok ? 'pass' : 'fail';
-    if(ok) pass++; else fail++;
-    var icons = {pass:'✓', fail:'✗'};
-    out += '<div class="item"><div class="status ' + status + '">' + icons[status] + '</div>' +
-      '<div class="item-text">' + text +
-        (detail ? '<div class="item-detail">' + detail + '</div>' : '') +
-        (!ok && err ? '<div class="item-error">' + err + '</div>' : '') +
-      '</div></div>';
-  }
+// Content integrity — runs after a delay, fetches index.html
+setTimeout(function() {
+  var surveyUrl = window.location.href.replace('survey_test.html', 'index.html');
 
-  // Fetch and eval the survey script, then check CASES
-  fetch(window.location.href.replace('survey_test.html','index.html'))
-    .then(function(r){ return r.text(); })
+  fetch(surveyUrl)
+    .then(function(r) { return r.text(); })
     .then(function(html) {
-      // Extract the inline script
-      var scriptStart = html.indexOf('<script>\n');
-      var scriptEnd = html.lastIndexOf('</script>');
-      if(scriptStart < 0 || scriptEnd < 0) {
-        document.getElementById('content-results').innerHTML = '<div class="item"><div class="status fail">✗</div><div class="item-text">Could not extract script from index.html</div></div>';
-        return;
+      var out = '';
+      var cPass = 0, cFail = 0;
+
+      function ct(ok, text, detail, err) {
+        if(ok) { cPass++; totalPass++; }
+        else { cFail++; totalFail++; }
+        out += '<div class="item"><div class="status '+(ok?'pass':'fail')+'">'+(ok?'✓':'✗')+'</div>'+
+          '<div class="item-text">'+text+
+          (detail?'<div class="item-detail">'+detail+'</div>':'')+
+          (!ok&&err?'<div class="item-error">'+err+'</div>':'')+
+          '</div></div>';
       }
-      var script = html.slice(scriptStart + 9, scriptEnd);
 
-      // Run script in an isolated scope
-      try {
-        var fn = new Function('React', 'ReactDOM', script + '\n return typeof CASES !== "undefined" ? CASES : null;');
-        var CASES = fn(window.React, window.ReactDOM);
+      // Extract and eval script
+      var s1 = html.indexOf('<script>\n');
+      var s2 = html.lastIndexOf('</script>');
+      if(s1<0||s2<0) { ct(false,'Could not extract app script from index.html',null,'Check index.html structure'); }
+      else {
+        var script = html.slice(s1+9, s2);
+        try {
+          var fn = new Function('React','ReactDOM', script+'\nreturn typeof CASES!=="undefined"?CASES:null;');
+          var CASES = fn(window.React, window.ReactDOM);
 
-        if(!CASES) { ct(false, 'CASES variable found in script', null, 'CASES is undefined after eval'); }
-        else {
-          ct(true, 'CASES loaded from index.html', CASES.length + ' cases');
+          ct(!!CASES, 'CASES data found in index.html', null, 'CASES undefined after eval');
 
-          // Case count
-          ct(CASES.length === 5, 'Exactly 5 cases', 'Found: ' + CASES.length, 'Expected 5, got ' + CASES.length);
+          if(CASES) {
+            ct(CASES.length===5, 'Exactly 5 cases', 'Found: '+CASES.length, 'Expected 5, got '+CASES.length);
 
-          // Each case has 4 rubrics
-          CASES.forEach(function(c) {
-            ct(c.rubrics && c.rubrics.length === 4,
-              'Case ' + c.id + ': 4 rubrics',
-              c.en ? c.en.slice(0,50)+'...' : '',
-              'Found ' + (c.rubrics ? c.rubrics.length : 0) + ' rubrics');
-          });
+            var totalR=0, koreanInEn=0, missingFields=0, dupIds={}, ptsErrors=[];
+            CASES.forEach(function(c) {
+              ct(c.rubrics&&c.rubrics.length===4, 'Case '+c.id+': 4 rubrics',
+                c.en?c.en.slice(0,55)+'...':null, 'Found '+(c.rubrics?c.rubrics.length:0));
+              ct(!!(c.vignette&&c.vignette.rows&&c.vignette.rows.length), 'Case '+c.id+': vignette data present',
+                c.vignette?c.vignette.rows.length+' rows':null, 'Missing vignette');
 
-          // Total rubrics = 20
-          var totalR = CASES.reduce(function(s,c){ return s + c.rubrics.length; }, 0);
-          ct(totalR === 20, 'Total 20 rubrics', totalR + ' found');
-
-          // Each rubric: d1pts + d2pts = 100
-          CASES.forEach(function(c) {
-            c.rubrics.forEach(function(r) {
-              ct((r.d1pts||0)+(r.d2pts||0) === 100,
-                'Rubric ' + r.id + ': d1pts+d2pts=100',
-                r.d1pts + '+' + r.d2pts + '=' + ((r.d1pts||0)+(r.d2pts||0)),
-                'Sum is ' + ((r.d1pts||0)+(r.d2pts||0)));
-            });
-          });
-
-          // Each item has required fields, no Korean in EN fields
-          var koreanInEn = 0, missingFields = 0, dupIds = {};
-          CASES.forEach(function(c) {
-            c.rubrics.forEach(function(r) {
-              var allItems = (r.d1||[]).concat(r.d2||[]);
-              allItems.forEach(function(item) {
-                // Check duplicate IDs
-                if(dupIds[item.id]) dupIds[item.id]++;
-                else dupIds[item.id] = 1;
-                // Check required fields
-                var missing = [];
-                ['en','ko','xEn','xKo','pts'].forEach(function(f){ if(!item[f]) missing.push(f); });
-                if(missing.length) missingFields++;
-                // Check Korean in EN fields
-                var koreanRe = /[\uAC00-\uD7A3]/;
-                if(koreanRe.test(item.en||'') || koreanRe.test(item.xEn||'')) koreanInEn++;
+              (c.rubrics||[]).forEach(function(r) {
+                totalR++;
+                var pts = (r.d1pts||0)+(r.d2pts||0);
+                if(pts!==100) ptsErrors.push('Rubric '+r.id+': '+r.d1pts+'+'+r.d2pts+'='+pts);
+                var items = (r.d1||[]).concat(r.d2||[]);
+                items.forEach(function(item) {
+                  dupIds[item.id] = (dupIds[item.id]||0)+1;
+                  ['en','ko','xEn','xKo','pts'].forEach(function(f){ if(!item[f]) missingFields++; });
+                  if(/[\uAC00-\uD7A3]/.test(item.en||'')||/[\uAC00-\uD7A3]/.test(item.xEn||'')) koreanInEn++;
+                });
               });
             });
-          });
 
-          ct(koreanInEn === 0, 'No Korean text in EN item fields',
-            'All ' + (totalR * 10) + '+ items checked', koreanInEn + ' items have Korean in EN fields');
-
-          ct(missingFields === 0, 'All items have required fields (en, ko, xEn, xKo, pts)',
-            null, missingFields + ' items missing fields');
-
-          var dups = Object.keys(dupIds).filter(function(k){ return dupIds[k]>1; });
-          ct(dups.length === 0, 'No duplicate item IDs',
-            null, 'Duplicates: ' + dups.join(', '));
-
-          // Check vignette fields exist for each case
-          CASES.forEach(function(c) {
-            var hasVig = c.vignette && c.vignette.rows && c.vignette.rows.length > 0;
-            ct(hasVig, 'Case ' + c.id + ': vignette data present',
-              hasVig ? c.vignette.rows.length + ' rows' : null, 'Missing vignette data');
-          });
+            ct(totalR===20, 'Total 20 rubrics (5×4)', totalR+' found', 'Expected 20');
+            ct(ptsErrors.length===0, 'All rubrics: d1pts+d2pts=100',
+              null, ptsErrors.join('; '));
+            ct(koreanInEn===0, 'No Korean text in any EN item fields', null,
+              koreanInEn+' items have Korean in EN fields');
+            ct(missingFields===0, 'All items have required fields (en,ko,xEn,xKo,pts)', null,
+              missingFields+' missing fields');
+            var dups = Object.keys(dupIds).filter(function(k){return dupIds[k]>1;});
+            ct(dups.length===0, 'No duplicate item IDs', null, 'Duplicates: '+dups.join(', '));
+          }
+        } catch(e) {
+          ct(false, 'Script eval succeeded', null, e.message);
         }
-      } catch(e) {
-        ct(false, 'Script eval succeeded', null, e.message);
       }
 
-      // Update summary
-      var summaryEl = document.getElementById('summary');
-      var existing = summaryEl.innerHTML;
-      summaryEl.innerHTML = existing.replace(
-        /Auto-pass<\/span><\/div>/,
-        'Auto-pass (incl. content)<\/span><\/div>'
-      );
-
-      document.getElementById('content-results').innerHTML = out +
-        '<div class="manual-note">Content checks: ' + pass + ' passed, ' + fail + ' failed</div>';
+      out += '<div class="manual-note">Content: '+cPass+' passed, '+cFail+' failed</div>';
+      document.getElementById('content-results').innerHTML = out;
+      updateSummary();
     })
     .catch(function(e) {
       document.getElementById('content-results').innerHTML =
-        '<div class="item"><div class="status warn">!</div><div class="item-text">Could not load index.html for content check: ' + e.message + '<div class="item-detail">Make sure survey_test.html is on the same domain as index.html</div></div></div>';
+        '<div class="item"><div class="status warn">!</div>'+
+        '<div class="item-text">Could not load index.html: '+e.message+
+        '<div class="item-detail">Make sure both files are on the same GitHub Pages domain</div></div></div>';
     });
-
-  document.getElementById('content-results').innerHTML = '<div class="item"><div class="status manual">→</div><div class="item-text">Running content checks...</div></div>';
-}
-
-// Run content checks after a short delay (wait for React CDN)
-setTimeout(runContentChecks, 1500);
+}, 1500);
 </script>
-
-<div class="section" style="margin-top:16px">
-  <div class="section-header">9. Content integrity (auto — loads index.html)</div>
-  <div id="content-results"><div class="item"><div class="status manual">→</div><div class="item-text">Waiting for React to load...</div></div></div>
-</div>
+</body></html>
