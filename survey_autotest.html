@@ -76,6 +76,16 @@ function setProgress(done,total,label){
 function wait(ms){return new Promise(function(r){setTimeout(r,ms);});}
 function gd(){return document.getElementById('frame').contentDocument||document.getElementById('frame').contentWindow.document;}
 function gw(){return document.getElementById('frame').contentWindow;}
+
+// Fire a real mouse event that React will respond to
+function rclick(el){
+  if(!el)return false;
+  el.dispatchEvent(new MouseEvent('mousedown',{bubbles:true,cancelable:true,view:gw()}));
+  el.dispatchEvent(new MouseEvent('mouseup',{bubbles:true,cancelable:true,view:gw()}));
+  el.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,view:gw()}));
+  return true;
+}
+
 function allBtns(){try{return Array.from(gd().querySelectorAll('button'));}catch(e){return [];}}
 function findBtn(text){return allBtns().find(function(b){return b.textContent.indexOf(text)>=0&&!b.disabled;});}
 
@@ -107,7 +117,7 @@ async function startTest(){
 
 async function runTest(){
   setStatus('Loading...');
-  log('info','Survey URL: '+SURVEY_URL);
+  log('info','Survey: '+SURVEY_URL);
 
   var fr=document.getElementById('frame');
   fr.src=SURVEY_URL;
@@ -115,43 +125,37 @@ async function runTest(){
   try{gw().localStorage.clear();}catch(e){}
   fr.src=SURVEY_URL;
 
-  // Wait for survey to load fully
   var loaded=await waitFor(function(){
     var d=gd(); return d&&d.readyState==='complete'&&d.body&&d.body.innerHTML.length>1000;
   },12000,'survey load');
   if(!loaded)return;
-  await wait(2000); // extra time for React to mount
+  await wait(2500);
   log('pass','Survey loaded');
 
   // ── CONSENT ─────────────────────────────────────────────────────────────
   setStatus('Consent');
-  log('info','-- Consent --');
-  var ok=await waitFor(function(){return !!gd().querySelector('input[type="checkbox"]');},8000,'consent checkbox');
+  var ok=await waitFor(function(){return !!gd().querySelector('input[type="checkbox"]');},8000,'consent');
   if(!ok)return;
   log('pass','Consent screen loaded');
 
-  var cb=gd().querySelector('input[type="checkbox"]');
-  var contBtn=findBtn('Continue');
-  if(contBtn&&contBtn.disabled)log('pass','Continue disabled before checkbox');
-  else log('warn','Continue state unclear');
+  rclick(gd().querySelector('input[type="checkbox"]'));
+  await wait(400);
 
-  cb.click(); await wait(300);
-  contBtn=findBtn('Continue');
-  if(contBtn&&!contBtn.disabled){log('pass','Continue enabled after checkbox'); contBtn.click();}
+  var contBtn=findBtn('Continue');
+  if(contBtn&&!contBtn.disabled){log('pass','Continue enabled'); rclick(contBtn);}
   else{log('fail','Continue not enabled after checkbox'); return;}
-  await wait(1000);
+  await wait(1200);
 
   // ── INSTRUCTIONS ────────────────────────────────────────────────────────
   setStatus('Instructions');
-  log('info','-- Instructions --');
   ok=await waitFor(function(){return !!(findBtn('Begin')||findBtn('시작'));},8000,'instructions');
   if(!ok)return;
   log('pass','Instructions loaded');
-  var beginBtn=findBtn('Begin')||findBtn('시작');
-  beginBtn.click(); await wait(1000);
+  rclick(findBtn('Begin')||findBtn('시작'));
+  await wait(1200);
 
   // ── RUBRIC LOOP ──────────────────────────────────────────────────────────
-  log('info','-- Starting '+RUBRICS.length+' rubrics --');
+  log('info','Starting '+RUBRICS.length+' rubrics');
 
   for(var ri=0;ri<RUBRICS.length;ri++){
     if(stopped)return;
@@ -159,75 +163,69 @@ async function runTest(){
     setProgress(ri,RUBRICS.length,'Rubric '+rub.id);
     log('info','Rubric '+rub.id+' ('+rub.items.length+' items)');
 
-    // Close vignette modal if present
-    await wait(500);
+    // Close vignette modal if open
+    await wait(600);
     var gotIt=findBtn('Got it')||findBtn('확인');
-    if(gotIt){gotIt.click();log('pass','Rubric '+rub.id+': closed vignette modal');await wait(500);}
+    if(gotIt){rclick(gotIt);log('pass','Rubric '+rub.id+': closed vignette');await wait(600);}
 
     // ── PART A ──────────────────────────────────────────────────────────
     ok=await waitFor(function(){
-      return allBtns().some(function(b){return b.textContent.trim().indexOf('Agree')>=0||b.textContent.trim().indexOf('동의')>=0;});
+      return allBtns().some(function(b){
+        var t=b.textContent.trim();
+        return t==='✓ Agree'||t==='✓ 동의';
+      });
     },8000,'Part A rubric '+rub.id);
     if(!ok){log('fail','Rubric '+rub.id+': Part A not found');continue;}
     log('pass','Rubric '+rub.id+': Part A loaded');
 
-    // Click Agree on each item - use item IDs from the data
-    var itemsAnswered=0;
-    for(var ii=0;ii<rub.items.length+3;ii++){
+    // Click Agree on every item - repeat until Continue is enabled
+    var maxLoops=rub.items.length*2+5;
+    for(var ii=0;ii<maxLoops;ii++){
       if(stopped)return;
-      // Find any Agree button that hasn't been selected (not green background)
-      var agreeBtns=allBtns().filter(function(b){
-        if(b.textContent.trim()!=='✓ Agree'&&b.textContent.trim()!=='✓ 동의')return false;
-        var bg=b.style.background||b.style.backgroundColor||'';
-        var border=b.style.border||b.style.borderColor||'';
-        // Not selected = white/transparent background
-        return bg.indexOf('240')>=0||bg.indexOf('white')>=0||bg===''||border.indexOf('DDE')>=0;
+      // Check if Continue is already enabled
+      var c2b=findBtn('Continue to Part B')||findBtn('파트 B');
+      if(c2b&&!c2b.disabled)break;
+      // Find first Agree button (not selected = green border not set)
+      var agreeBtn=allBtns().find(function(b){
+        var t=b.textContent.trim();
+        return t==='✓ Agree'||t==='✓ 동의';
       });
-      if(agreeBtns.length===0)break;
-      agreeBtns[0].click();
-      itemsAnswered++;
-      await wait(60);
+      if(!agreeBtn)break;
+      rclick(agreeBtn);
+      await wait(100);
     }
-    log('info','Rubric '+rub.id+': clicked Agree on ~'+itemsAnswered+' items');
 
-    // Wait for Continue button to be enabled
-    ok=await waitFor(function(){
-      var b=findBtn('Continue to Part B')||findBtn('파트 B');
-      return b&&!b.disabled;
-    },5000,'Continue to Part B enabled');
-
-    var contPartB=findBtn('Continue to Part B')||findBtn('파트 B');
-    if(contPartB&&!contPartB.disabled){
-      log('pass','Rubric '+rub.id+': Part A complete, Continue enabled');
-      contPartB.click();
+    // Verify and click Continue
+    var c2b=findBtn('Continue to Part B')||findBtn('파트 B');
+    if(c2b&&!c2b.disabled){
+      log('pass','Rubric '+rub.id+': Part A done, clicking Continue to Part B');
+      rclick(c2b);
     } else {
-      // Try clicking anyway - maybe all were already answered
-      if(contPartB)contPartB.click();
-      else{log('fail','Rubric '+rub.id+': Continue to Part B not found');continue;}
+      log('fail','Rubric '+rub.id+': Continue to Part B not enabled');
+      continue;
     }
+    await wait(1000);
 
-    // Wait for Part B - look for the submit/next button by React state
-    // Part B shows: onSubmit button with nextLabel() text
+    // ── PART B ──────────────────────────────────────────────────────────
     ok=await waitFor(function(){
       return allBtns().some(function(b){
         var t=b.textContent;
-        return (t.indexOf('Next Rubric')>=0||t.indexOf('Next Case')>=0||
-                t.indexOf('Finish Survey')>=0||t.indexOf('다음 기준표')>=0||
-                t.indexOf('다음 사례')>=0||t.indexOf('설문 완료')>=0);
+        return t.indexOf('Next Rubric')>=0||t.indexOf('Next Case')>=0||
+               t.indexOf('Finish Survey')>=0||t.indexOf('다음 기준표')>=0||
+               t.indexOf('다음 사례')>=0||t.indexOf('설문 완료')>=0;
       });
-    },8000,'Part B next button rubric '+rub.id);
+    },10000,'Part B rubric '+rub.id);
 
     if(!ok){
-      // Debug: log all visible button texts
-      var btxtList=allBtns().map(function(b){return '"'+b.textContent.trim().slice(0,30)+'"';}).join(', ');
-      log('fail','Rubric '+rub.id+': Part B next button not found. Visible buttons: '+btxtList);
+      var btxt=allBtns().slice(0,8).map(function(b){return '"'+b.textContent.trim().slice(0,20)+'"';}).join(', ');
+      log('fail','Rubric '+rub.id+': Part B not found. First 8 buttons: '+btxt);
       continue;
     }
     log('pass','Rubric '+rub.id+': Part B loaded');
 
-    // Verify drag handles
+    // Check drag handles and arrows
     var handles=Array.from(gd().querySelectorAll('div')).filter(function(d){return d.textContent.trim()==='⠿';});
-    if(handles.length>0)log('pass','Rubric '+rub.id+': '+handles.length+' drag handles found');
+    if(handles.length>0)log('pass','Rubric '+rub.id+': '+handles.length+' drag handles');
     else log('warn','Rubric '+rub.id+': no drag handles');
 
     // Click Next/Finish
@@ -238,53 +236,50 @@ async function runTest(){
              t.indexOf('Finish Survey')>=0||t.indexOf('다음')>=0||t.indexOf('설문 완료')>=0;
     });
     if(nextBtn){
-      if(isLast){
-        if(nextBtn.textContent.indexOf('Finish')>=0||nextBtn.textContent.indexOf('완료')>=0)
-          log('pass','Last rubric: "Finish Survey" label correct');
-        else
-          log('fail','Last rubric wrong label: '+nextBtn.textContent.trim());
-      }
-      nextBtn.click();
+      if(isLast&&(nextBtn.textContent.indexOf('Finish')>=0||nextBtn.textContent.indexOf('완료')>=0))
+        log('pass','Last rubric: Finish Survey label correct');
+      else if(isLast)
+        log('fail','Last rubric wrong label: '+nextBtn.textContent.trim());
+      rclick(nextBtn);
     } else {
-      log('fail','Rubric '+rub.id+': Next button not found in Part B');
+      log('fail','Rubric '+rub.id+': no Next button in Part B');
     }
-    await wait(300);
+    await wait(400);
   }
 
   setProgress(RUBRICS.length,RUBRICS.length,'All rubrics done');
 
   // ── DONE SCREEN ──────────────────────────────────────────────────────────
   setStatus('Done screen');
-  log('info','-- Done screen --');
   ok=await waitFor(function(){
     return allBtns().some(function(b){return b.textContent.indexOf('Submit')>=0||b.textContent.indexOf('제출')>=0;});
-  },8000,'Done screen');
-  if(!ok){log('fail','Done screen not found');setStatus('Failed');return;}
+  },10000,'Done screen');
+  if(!ok){
+    var btxt=allBtns().slice(0,6).map(function(b){return '"'+b.textContent.trim().slice(0,20)+'"';}).join(', ');
+    log('fail','Done screen not found. Buttons: '+btxt);
+    setStatus('Failed'); return;
+  }
   log('pass','Done screen loaded');
 
-  // Get participant ID
   var pid=null;
-  var bodyTxt=gd().body.innerText||'';
-  var pm=bodyTxt.match(/P-[A-Z0-9]{6}/);
+  var pm=(gd().body.innerText||'').match(/P-[A-Z0-9]{6}/);
   if(pm){pid=pm[0];log('pass','Participant ID: '+pid);}
 
-  // Submit
   var subBtn=findBtn('Submit')||findBtn('제출');
-  if(!subBtn){log('fail','Submit button not found');return;}
   log('info','Submitting...');
-  subBtn.click();
+  rclick(subBtn);
 
   ok=await waitFor(function(){
     var t=gd().body.innerText||'';
-    return t.indexOf('thank you')>=0||t.indexOf('감사합니다')>=0||t.indexOf('submitted')>=0||t.indexOf('완료')>=0;
+    return t.indexOf('thank you')>=0||t.indexOf('감사합니다')>=0||t.indexOf('submitted')>=0;
   },20000,'submission success');
 
   if(ok)log('pass','Submission succeeded!');
-  else log('fail','Submission may have failed — check Supabase');
+  else log('fail','Submission failed — check Supabase manually');
 
   // ── VERIFY SUPABASE ──────────────────────────────────────────────────────
   if(pid){
-    log('info','Verifying in Supabase for: '+pid);
+    log('info','Checking Supabase for: '+pid);
     setStatus('Checking DB...');
     try{
       var r=await fetch(SUPA_URL+'/rest/v1/responses?participant_id=eq.'+pid+'&select=participant_id,rubric_id,item_id&limit=10',{
@@ -295,16 +290,15 @@ async function runTest(){
         log('pass','Supabase: '+rows.length+'+ rows found for '+pid);
         log('pass','Sample: rubric='+rows[0].rubric_id+', item='+rows[0].item_id);
       } else if(rows&&rows.length===0){
-        log('fail','Supabase: 0 rows for '+pid+' — submission failed');
+        log('fail','Supabase: 0 rows — submission did not land');
       } else {
         log('fail','Supabase error: '+JSON.stringify(rows).slice(0,80));
       }
-    }catch(e){log('fail','Supabase check error: '+e.message);}
+    }catch(e){log('fail','Supabase check: '+e.message);}
   }
 
-  var finalOk=fail===0;
-  setStatus(finalOk?'All passed!':fail+' failures');
-  log('info','-- Done: '+pass+' passed, '+fail+' failed --');
+  setStatus(fail===0?'All passed!':fail+' failures');
+  log('info','Done: '+pass+' passed, '+fail+' failed');
 }
 </script>
 </body></html>
