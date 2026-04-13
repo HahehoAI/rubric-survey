@@ -4,254 +4,165 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Survey QA Checklist</title>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Segoe UI', system-ui, sans-serif; background: #F0F3F8; padding: 16px; }
-h1 { font-size: 18px; font-weight: 700; color: #1B2B5E; margin-bottom: 4px; }
-.subtitle { font-size: 13px; color: #6B7A99; margin-bottom: 20px; }
-.section { background: white; border-radius: 12px; border: 1px solid #DDE4EF; margin-bottom: 16px; overflow: hidden; }
-.section-header { background: #EEF2F8; padding: 10px 16px; font-size: 13px; font-weight: 700; color: #1B2B5E; border-bottom: 1px solid #DDE4EF; display: flex; justify-content: space-between; align-items: center; }
-.item { padding: 10px 16px; border-bottom: 1px solid #F0F3F8; display: flex; align-items: flex-start; gap: 10px; font-size: 13px; }
-.item:last-child { border-bottom: none; }
-.status { width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; margin-top: 1px; }
-.pass { background: #dcfce7; color: #16A34A; }
-.fail { background: #fee2e2; color: #DC2626; }
-.warn { background: #FFF3CD; color: #92400e; }
-.manual { background: #EEF2F8; color: #1B2B5E; }
-.item-text { flex: 1; line-height: 1.45; color: #1A2340; }
-.item-detail { font-size: 11px; color: #6B7A99; margin-top: 2px; }
-.item-error { font-size: 11px; color: #DC2626; margin-top: 2px; font-family: monospace; word-break: break-all; }
-.summary { background: #1B2B5E; color: white; border-radius: 12px; padding: 16px; margin-bottom: 16px; display: flex; gap: 20px; flex-wrap: wrap; }
-.sum-item { text-align: center; }
-.sum-num { font-size: 28px; font-weight: 700; display: block; }
-.sum-label { font-size: 11px; opacity: 0.7; }
-.sum-pass { color: #86efac; }
-.sum-fail { color: #fca5a5; }
-.sum-manual { color: #93c5fd; }
-.manual-note { font-size: 12px; color: #6B7A99; padding: 8px 16px; background: #FAFBFC; border-top: 1px solid #DDE4EF; font-style: italic; }
-button.rerun { background: #1B2B5E; color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 13px; font-weight: 600; cursor: pointer; margin-bottom: 16px; }
-.device-info { font-size: 11px; color: #6B7A99; background: white; border-radius: 8px; padding: 8px 12px; margin-bottom: 16px; border: 1px solid #DDE4EF; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#F0F3F8;padding:16px}
+h1{font-size:18px;font-weight:700;color:#1B2B5E;margin-bottom:4px}
+.sub{font-size:13px;color:#6B7A99;margin-bottom:20px}
+.sec{background:white;border-radius:12px;border:1px solid #DDE4EF;margin-bottom:16px;overflow:hidden}
+.sec-h{background:#EEF2F8;padding:10px 16px;font-size:13px;font-weight:700;color:#1B2B5E;border-bottom:1px solid #DDE4EF}
+.item{padding:10px 16px;border-bottom:1px solid #F0F3F8;display:flex;align-items:flex-start;gap:10px;font-size:13px}
+.item:last-child{border-bottom:none}
+.dot{width:20px;height:20px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;margin-top:1px}
+.p{background:#dcfce7;color:#16A34A}.f{background:#fee2e2;color:#DC2626}
+.w{background:#FFF3CD;color:#92400e}.m{background:#EEF2F8;color:#1B2B5E}
+.txt{flex:1;line-height:1.45;color:#1A2340}
+.d{font-size:11px;color:#6B7A99;margin-top:2px}
+.e{font-size:11px;color:#DC2626;margin-top:2px;font-family:monospace;word-break:break-all}
+.sum{background:#1B2B5E;color:white;border-radius:12px;padding:16px;margin-bottom:16px;display:flex;gap:20px;flex-wrap:wrap}
+.si{text-align:center}.sn{font-size:28px;font-weight:700;display:block}
+.sp{color:#86efac}.sf{color:#fca5a5}.sm{color:#93c5fd}
+.note{font-size:12px;color:#6B7A99;padding:8px 16px;background:#FAFBFC;border-top:1px solid #DDE4EF;font-style:italic}
+.btn{background:#1B2B5E;color:white;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:16px}
+.dev{font-size:11px;color:#6B7A99;background:white;border-radius:8px;padding:8px 12px;margin-bottom:16px;border:1px solid #DDE4EF}
 </style>
-</head>
-<body>
-
+</head><body>
 <h1>Survey QA Checklist</h1>
-<p class="subtitle">Automated + manual tests for all features. Open on both desktop and mobile.</p>
-<div class="device-info" id="device-info">Loading device info...</div>
-<button class="rerun" onclick="runAll()">↺ Re-run automated tests</button>
-<div class="summary" id="summary">Running tests...</div>
-<div id="results"></div>
-<div class="section" style="margin-top:0">
-  <div class="section-header">9. Content integrity (auto — loads index.html)</div>
-  <div id="content-results"><div class="item"><div class="status manual">→</div><div class="item-text">Waiting...</div></div></div>
+<p class="sub">Automated + manual tests. Open on both desktop and mobile.</p>
+<div class="dev" id="dev">Loading...</div>
+<button class="btn" onclick="runAll()">&#8635; Re-run</button>
+<div class="sum" id="sum">Running...</div>
+<div id="res"></div>
+<div class="sec">
+  <div class="sec-h">9. Content integrity (auto)</div>
+  <div id="cr"><div class="item"><div class="dot m">&#8594;</div><div class="txt">Waiting for React CDN...</div></div></div>
 </div>
-
 <script crossorigin src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
-
 <script>
-var totalPass = 0, totalFail = 0, totalManual = 0;
 
-function mkItem(status, text, detail, error) {
-  var icons = {pass:'✓', fail:'✗', warn:'!', manual:'?'};
-  if(status==='pass') totalPass++;
-  else if(status==='fail') totalFail++;
-  else if(status==='manual') totalManual++;
-  return '<div class="item"><div class="status '+status+'">'+icons[status]+'</div>'+
-    '<div class="item-text">'+text+
-    (detail?'<div class="item-detail">'+detail+'</div>':'')+
-    (error?'<div class="item-error">'+error+'</div>':'')+
-    '</div></div>';
+var TP=0,TF=0,TM=0;
+function itm(c,i,t,d,e){return '<div class="item"><div class="dot '+c+'">'+i+'</div><div class="txt">'+t+(d?'<div class="d">'+d+'</div>':'')+(e?'<div class="e">'+e+'</div>':'')+'</div></div>';}
+function at(ok,t,d,e){if(ok)TP++;else TF++;return itm(ok?'p':'f',ok?'&#10003;':'&#10007;',t,d,ok?null:e);}
+function mn(t,d){TM++;return itm('m','?',t,d,null);}
+function sc(title,body,note){return '<div class="sec"><div class="sec-h">'+title+'</div>'+body+(note?'<div class="note">'+note+'</div>':'')+'</div>';}
+function upd(){document.getElementById('sum').innerHTML='<div class="si"><span class="sn sp">'+TP+'</span><span>Auto-pass</span></div><div class="si"><span class="sn sf">'+TF+'</span><span>Auto-fail</span></div><div class="si"><span class="sn sm">'+TM+'</span><span>Manual</span></div><div class="si"><span class="sn" style="color:white">'+(TP+TF+TM)+'</span><span>Total</span></div>';}
+
+function runAll(){
+  TP=0;TF=0;TM=0;var h='',mob=window.innerWidth<768;
+  document.getElementById('dev').innerHTML='<b>'+(mob?'Mobile':'Desktop')+'</b> | '+window.innerWidth+'px | '+navigator.userAgent.slice(0,80)+'... | Online: '+navigator.onLine;
+  var s='';
+  s+=at(typeof React!=='undefined','React loaded',typeof React!=='undefined'?'v'+React.version:null,'React CDN failed');
+  s+=at(typeof ReactDOM!=='undefined','ReactDOM loaded',null,'ReactDOM CDN failed');
+  var ls=false;try{localStorage.setItem('_q','1');ls=localStorage.getItem('_q')==='1';localStorage.removeItem('_q');}catch(x){}
+  s+=at(ls,'localStorage works',null,'Blocked (private mode?)');
+  s+=at(typeof fetch!=='undefined','fetch API available',null,'fetch not available');
+  s+=at(window.innerWidth>0,'Window dimensions valid',window.innerWidth+'x'+window.innerHeight);
+  h+=sc('1. Environment',s);
+  s='';
+  s+=mn('Consent screen loads on first visit','Open in fresh/incognito tab');
+  s+=mn('EN/KO toggle switches all text on consent');
+  s+=mn('Agree checkbox enables Continue button','Disabled until checked');
+  s+=mn('Continue goes to Instructions and scrolls to top');
+  s+=mn('Begin Survey shows vignette modal (mobile) or Part A (desktop)');
+  s+=mn('"Back to Instructions" visible on Case 1 Rubric 1 vignette only');
+  s+=mn('"Got it" button at BOTTOM of vignette - must scroll to reach');
+  h+=sc('2. Navigation',s,'Open survey in another tab');
+  s='';
+  s+=mn('Agree/Disagree buttons highlight green/red');
+  s+=mn('Comment textarea appears only after Agree/Disagree selected');
+  s+=mn('Keyboard stays open while typing comment');
+  s+=mn('Comment saved after tapping away - persists on back-nav');
+  s+=mn('All answers preserved when going Back from Part B');
+  s+=mn('Changing one answer does NOT wipe other answers');
+  s+=mn('"Continue to Part B" disabled until all items answered');
+  s+=mn('Tapping Continue early highlights first unanswered item in amber');
+  h+=sc('3. Part A',s,'Test on Case 1 Rubric 1');
+  s='';
+  s+=mn('Two domain sections with items to rank');
+  s+=mn('Drag handle (grip dots) visible on left of each item');
+  s+=mn('Dragging handle reorders items');
+  s+=mn('Touching item text body scrolls page - does NOT reorder');
+  s+=mn('Arrow buttons reorder items');
+  s+=mn('First up-arrow and last down-arrow greyed out');
+  s+=mn('Ranking preserved when navigating away and back');
+  s+=mn('Button label: Next Rubric / Next Case / Finish Survey as appropriate');
+  h+=sc('4. Part B',s);
+  s='';
+  s+=mn('Survey loads on mobile Safari (no blank page)');
+  s+=mn('"View Case" button visible in Part A / Part B');
+  s+=mn('"View Case" NOT visible on consent or instructions');
+  s+=mn('Vignette modal title wraps fully - not truncated');
+  s+=mn('Toggle in modal says "&#54620;&#44397;&#50612;" not "&#54620;"');
+  s+=mn('"Got it" closes modal and returns to survey');
+  s+=mn('Page scrolls normally - item body touch does not reorder');
+  h+=sc('5. Mobile',s,'Test on iPhone/Android');
+  s='';
+  s+=mn('Sticky sidebar visible on left in Part A/B');
+  s+=mn('Full survey title in header - wraps, not cut off');
+  s+=mn('Progress bar advances per rubric completed');
+  s+=mn('Breadcrumb shows Case X of 5 / Rubric Y of 4');
+  h+=sc('6. Desktop',s);
+  s='';
+  s+=mn('Refresh mid-survey restores position and answers');
+  s+=mn('All 20 rubrics completable (5 cases x 4 rubrics)');
+  s+=mn('"Finish Survey" only on Case 5 Rubric 4');
+  s+=mn('Done screen appears after all rubrics complete');
+  s+=mn('Submit sends data to Supabase - check dashboard');
+  s+=mn('Download backup JSON works on Done screen');
+  h+=sc('7. Submission',s,'Check Supabase after submitting');
+  document.getElementById('res').innerHTML=h;
+  upd();
 }
-function auto(ok, text, detail, err) { return mkItem(ok?'pass':'fail', text, detail, ok?null:err); }
-function manual(text, detail) { return mkItem('manual', text, detail, null); }
-function sec(title, html, note) {
-  return '<div class="section"><div class="section-header">'+title+'</div>'+html+
-    (note?'<div class="manual-note">'+note+'</div>':'')+
-    '</div>';
-}
-
-function updateSummary() {
-  document.getElementById('summary').innerHTML =
-    '<div class="sum-item"><span class="sum-num sum-pass">'+totalPass+'</span><span class="sum-label">Auto-pass</span></div>'+
-    '<div class="sum-item"><span class="sum-num sum-fail">'+totalFail+'</span><span class="sum-label">Auto-fail</span></div>'+
-    '<div class="sum-item"><span class="sum-num sum-manual">'+totalManual+'</span><span class="sum-label">Manual checks</span></div>'+
-    '<div class="sum-item"><span class="sum-num" style="color:white">'+(totalPass+totalFail+totalManual)+'</span><span class="sum-label">Total</span></div>';
-}
-
-function runAll() {
-  totalPass=0; totalFail=0; totalManual=0;
-  var html = '';
-  var isMobile = window.innerWidth < 768;
-
-  document.getElementById('device-info').innerHTML =
-    '<b>Device:</b> '+(isMobile?'Mobile':'Desktop')+
-    ' &nbsp;|&nbsp; <b>Width:</b> '+window.innerWidth+'px'+
-    ' &nbsp;|&nbsp; <b>UA:</b> '+navigator.userAgent.slice(0,90)+'...'+
-    ' &nbsp;|&nbsp; <b>Online:</b> '+navigator.onLine;
-
-  // 1. Environment
-  var s = '';
-  s += auto(typeof React!=='undefined', 'React loaded', typeof React!=='undefined'?'v'+React.version:null, 'React CDN failed');
-  s += auto(typeof ReactDOM!=='undefined', 'ReactDOM loaded', null, 'ReactDOM CDN failed');
-  var lsOk=false; try{localStorage.setItem('_qa','1');lsOk=localStorage.getItem('_qa')==='1';localStorage.removeItem('_qa');}catch(e){}
-  s += auto(lsOk, 'localStorage works', null, 'Blocked — private mode?');
-  s += auto(typeof fetch!=='undefined', 'fetch API available', null, 'fetch not available');
-  s += auto(window.innerWidth>0, 'Window dimensions valid', window.innerWidth+'×'+window.innerHeight);
-  html += sec('1. Environment', s);
-
-  // 2. Navigation flow
-  s = '';
-  s += manual('Consent screen loads on first visit', 'Open in fresh/incognito tab');
-  s += manual('EN/KO toggle switches all text on consent screen');
-  s += manual('Agree checkbox enables Continue button', 'Disabled until checked');
-  s += manual('Continue → goes to Instructions, scrolls to top');
-  s += manual('Begin Survey → shows vignette modal (mobile) or Part A (desktop)');
-  s += manual('"Back to Instructions" visible on Case 1 Rubric 1 vignette only');
-  s += manual('"Got it" button at bottom of vignette — must scroll down to reach it');
-  s += manual('Navigating between screens scrolls to top each time');
-  html += sec('2. Navigation flow', s, 'Open survey in another tab and step through');
-
-  // 3. Part A
-  s = '';
-  s += manual('Agree/Disagree buttons highlight green/red on selection');
-  s += manual('Comment textarea appears only after selecting Agree or Disagree');
-  s += manual('Keyboard stays open while typing a comment — does NOT dismiss');
-  s += manual('Comment saved after tapping away — persists on back-navigation');
-  s += manual('All answers preserved when going Back from Part B to Part A');
-  s += manual('Changing one answer on Back does NOT wipe other answers');
-  s += manual('"Continue to Part B" disabled until all items answered');
-  s += manual('Tapping Continue early highlights first unanswered item in amber');
-  html += sec('3. Part A — item rating', s, 'Test on Case 1 Rubric 1');
-
-  // 4. Part B
-  s = '';
-  s += manual('Two domain sections shown with items to rank');
-  s += manual('⠿ drag handle visible on left of each item');
-  s += manual('Dragging ⠿ handle reorders items correctly');
-  s += manual('Touching item text/body scrolls page — does NOT drag');
-  s += manual('↑↓ arrow buttons reorder items');
-  s += manual('First item ▲ and last item ▼ are greyed out');
-  s += manual('Part B order preserved when navigating away and back');
-  s += manual('Button label: "Next Rubric" / "Next Case" / "Finish Survey" as appropriate');
-  html += sec('4. Part B — ranking', s);
-
-  // 5. Mobile
-  s = '';
-  s += manual('Survey loads without blank page on mobile Safari');
-  s += manual('"View Case" floating button visible during Part A / Part B');
-  s += manual('"View Case" button NOT visible on consent or instructions screens');
-  s += manual('Vignette modal shows full wrapping case title — not truncated');
-  s += manual('EN/KO toggle in vignette modal says "한국어" (not "한")');
-  s += manual('EN/KO toggle in vignette modal works correctly');
-  s += manual('"Got it" button closes modal and returns to Part A/B');
-  s += manual('Page scrolls normally — dragging item body does not reorder');
-  html += sec('5. Mobile-specific', s, 'Test on actual iPhone/Android');
-
-  // 6. Desktop
-  s = '';
-  s += manual('Vignette sidebar visible and sticky on left in Part A/B');
-  s += manual('Full survey title visible in header — wraps, not truncated');
-  s += manual('EN/KO toggle in sticky header works on all screens');
-  s += manual('Progress bar advances with each completed rubric');
-  s += manual('Breadcrumb shows correct Case X of 5 › Rubric Y of 4');
-  html += sec('6. Desktop-specific', s);
-
-  // 7. Data & submission
-  s = '';
-  s += manual('Refreshing mid-survey restores position and answers');
-  s += manual('All 20 rubrics completable without error (5 cases × 4 rubrics)');
-  s += manual('"Finish Survey" appears on Case 5 Rubric 4 only');
-  s += manual('Done screen appears after completing all rubrics');
-  s += manual('Submit sends data to Supabase — check dashboard');
-  s += manual('Download backup JSON works on Done screen');
-  html += sec('7. Data & submission', s, 'Check Supabase dashboard after submitting');
-
-  document.getElementById('results').innerHTML = html;
-  updateSummary();
-}
-
 runAll();
 
-// Content integrity — runs after a delay, fetches index.html
-setTimeout(function() {
-  var surveyUrl = window.location.href.replace('survey_test.html', 'index.html');
-
-  fetch(surveyUrl)
-    .then(function(r) { return r.text(); })
-    .then(function(html) {
-      var out = '';
-      var cPass = 0, cFail = 0;
-
-      function ct(ok, text, detail, err) {
-        if(ok) { cPass++; totalPass++; }
-        else { cFail++; totalFail++; }
-        out += '<div class="item"><div class="status '+(ok?'pass':'fail')+'">'+(ok?'✓':'✗')+'</div>'+
-          '<div class="item-text">'+text+
-          (detail?'<div class="item-detail">'+detail+'</div>':'')+
-          (!ok&&err?'<div class="item-error">'+err+'</div>':'')+
-          '</div></div>';
-      }
-
-      // Extract and eval script
-      var s1 = html.indexOf('<script>\n');
-      var s2 = html.lastIndexOf('</script>');
-      if(s1<0||s2<0) { ct(false,'Could not extract app script from index.html',null,'Check index.html structure'); }
-      else {
-        var script = html.slice(s1+9, s2);
-        try {
-          var fn = new Function('React','ReactDOM', script+'\nreturn typeof CASES!=="undefined"?CASES:null;');
-          var CASES = fn(window.React, window.ReactDOM);
-
-          ct(!!CASES, 'CASES data found in index.html', null, 'CASES undefined after eval');
-
-          if(CASES) {
-            ct(CASES.length===5, 'Exactly 5 cases', 'Found: '+CASES.length, 'Expected 5, got '+CASES.length);
-
-            var totalR=0, koreanInEn=0, missingFields=0, dupIds={}, ptsErrors=[];
-            CASES.forEach(function(c) {
-              ct(c.rubrics&&c.rubrics.length===4, 'Case '+c.id+': 4 rubrics',
-                c.en?c.en.slice(0,55)+'...':null, 'Found '+(c.rubrics?c.rubrics.length:0));
-              ct(!!(c.vignette&&c.vignette.rows&&c.vignette.rows.length), 'Case '+c.id+': vignette data present',
-                c.vignette?c.vignette.rows.length+' rows':null, 'Missing vignette');
-
-              (c.rubrics||[]).forEach(function(r) {
-                totalR++;
-                var pts = (r.d1pts||0)+(r.d2pts||0);
-                if(pts!==100) ptsErrors.push('Rubric '+r.id+': '+r.d1pts+'+'+r.d2pts+'='+pts);
-                var items = (r.d1||[]).concat(r.d2||[]);
-                items.forEach(function(item) {
-                  dupIds[item.id] = (dupIds[item.id]||0)+1;
-                  ['en','ko','xEn','xKo','pts'].forEach(function(f){ if(!item[f]) missingFields++; });
-                  if(/[\uAC00-\uD7A3]/.test(item.en||'')||/[\uAC00-\uD7A3]/.test(item.xEn||'')) koreanInEn++;
-                });
+setTimeout(function(){
+  var SCOPEN='<'+'script>';
+  var SCCLOSE='<'+'/'+'script>';
+  var url=window.location.href.replace('survey_test.html','index.html');
+  fetch(url).then(function(r){return r.text();}).then(function(html){
+    var out='',cp=0,cf=0;
+    function c(ok,t,d,e){if(ok){cp++;TP++;}else{cf++;TF++;}out+=itm(ok?'p':'f',ok?'&#10003;':'&#10007;',t,d,ok?null:e);}
+    var s1=html.indexOf(SCOPEN+'\n'),s2=html.lastIndexOf(SCCLOSE);
+    if(s1<0||s2<0){c(false,'Could not extract script from index.html',null,'Check file structure');}
+    else{
+      var scr=html.slice(s1+8,s2);
+      try{
+        var fn=new Function('React','ReactDOM',scr+'\nreturn typeof CASES!=="undefined"?CASES:null;');
+        var CS=fn(window.React,window.ReactDOM);
+        c(!!CS,'CASES data loaded',null,'CASES undefined after eval');
+        if(CS){
+          c(CS.length===5,'5 cases found','Found: '+CS.length,'Expected 5');
+          var tR=0,kEn=0,mF=0,dups={},ptErr=[];
+          CS.forEach(function(ca){
+            c(ca.rubrics&&ca.rubrics.length===4,'Case '+ca.id+': 4 rubrics',ca.en?ca.en.slice(0,55):null,'Found '+(ca.rubrics?ca.rubrics.length:0));
+            c(!!(ca.vignette&&ca.vignette.rows&&ca.vignette.rows.length),'Case '+ca.id+': vignette present',null,'Missing vignette');
+            (ca.rubrics||[]).forEach(function(r){
+              tR++;
+              var ps=(r.d1pts||0)+(r.d2pts||0);
+              if(ps!==100)ptErr.push('Rubric '+r.id+': '+ps);
+              (r.d1||[]).concat(r.d2||[]).forEach(function(it){
+                dups[it.id]=(dups[it.id]||0)+1;
+                ['en','ko','xEn','xKo','pts'].forEach(function(f){if(!it[f])mF++;});
+                if(/[\uAC00-\uD7A3]/.test(it.en||'')||/[\uAC00-\uD7A3]/.test(it.xEn||''))kEn++;
               });
             });
-
-            ct(totalR===20, 'Total 20 rubrics (5×4)', totalR+' found', 'Expected 20');
-            ct(ptsErrors.length===0, 'All rubrics: d1pts+d2pts=100',
-              null, ptsErrors.join('; '));
-            ct(koreanInEn===0, 'No Korean text in any EN item fields', null,
-              koreanInEn+' items have Korean in EN fields');
-            ct(missingFields===0, 'All items have required fields (en,ko,xEn,xKo,pts)', null,
-              missingFields+' missing fields');
-            var dups = Object.keys(dupIds).filter(function(k){return dupIds[k]>1;});
-            ct(dups.length===0, 'No duplicate item IDs', null, 'Duplicates: '+dups.join(', '));
-          }
-        } catch(e) {
-          ct(false, 'Script eval succeeded', null, e.message);
+          });
+          c(tR===20,'20 total rubrics',tR+' found','Expected 20');
+          c(ptErr.length===0,'All rubrics: d1pts+d2pts=100',null,ptErr.join('; '));
+          c(kEn===0,'No Korean in EN fields',null,kEn+' items have Korean in EN fields');
+          c(mF===0,'All items have required fields',null,mF+' missing');
+          var dp=Object.keys(dups).filter(function(k){return dups[k]>1;});
+          c(dp.length===0,'No duplicate item IDs',null,'Dupes: '+dp.join(', '));
         }
-      }
+      }catch(e){c(false,'Script eval',null,e.message);}
+    }
+    out+='<div class="note">Content: '+cp+' passed, '+cf+' failed</div>';
+    document.getElementById('cr').innerHTML=out;
+    upd();
+  }).catch(function(e){
+    document.getElementById('cr').innerHTML=itm('w','!','Could not load index.html: '+e.message,'Make sure both files are on the same GitHub Pages domain',null);
+  });
+},1500);
 
-      out += '<div class="manual-note">Content: '+cPass+' passed, '+cFail+' failed</div>';
-      document.getElementById('content-results').innerHTML = out;
-      updateSummary();
-    })
-    .catch(function(e) {
-      document.getElementById('content-results').innerHTML =
-        '<div class="item"><div class="status warn">!</div>'+
-        '<div class="item-text">Could not load index.html: '+e.message+
-        '<div class="item-detail">Make sure both files are on the same GitHub Pages domain</div></div></div>';
-    });
-}, 1500);
 </script>
 </body></html>
