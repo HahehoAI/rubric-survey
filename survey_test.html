@@ -112,13 +112,15 @@ function runAll(){
   h+=sc('7. Submission',s,'Check Supabase after submitting');
   document.getElementById('res').innerHTML=h;
   upd();
+  runContentCheck();
 }
 runAll();
 
-setTimeout(function(){
+function runContentCheck(){
   var SCOPEN='<'+'script>';
   var SCCLOSE='<'+'/'+'script>';
   var url=window.location.href.replace('survey_test.html','index.html');
+  document.getElementById('cr').innerHTML='<div class="item"><div class="dot m">&#8594;</div><div class="txt">Running content checks...</div></div>';
   fetch(url).then(function(r){return r.text();}).then(function(html){
     var out='',cp=0,cf=0;
     function c(ok,t,d,e){if(ok){cp++;TP++;}else{cf++;TF++;}out+=itm(ok?'p':'f',ok?'&#10003;':'&#10007;',t,d,ok?null:e);}
@@ -162,7 +164,8 @@ setTimeout(function(){
   }).catch(function(e){
     document.getElementById('cr').innerHTML=itm('w','!','Could not load index.html: '+e.message,'Make sure both files are on the same GitHub Pages domain',null);
   });
-},1500);
+}
+runContentCheck();
 
 </script>
 </body></html>
