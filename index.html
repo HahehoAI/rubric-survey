@@ -5,14 +5,6 @@
 <style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif}</style>
 </head>
 <body><div id="root"></div>
-<script>
-window.onerror = function(msg, src, line, col, err) {
-  var d = document.getElementById('root');
-  if(d && (!d.innerHTML || d.innerHTML === '')) {
-    d.innerHTML = '<div style="padding:20px;font-family:monospace;font-size:12px;color:#c00;background:#fff;border:2px solid #c00;margin:20px;border-radius:8px"><b>Load Error (screenshot)</b><br>' + msg + ' L' + line + '</div>';
-  }
-};
-</script>
 <script crossorigin src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
 <script>
@@ -2167,7 +2159,7 @@ function App() {
                    padding:"10px 20px",fontSize:13,fontWeight:600,cursor:"pointer",
                    boxShadow:"0 4px 16px rgba(0,0,0,0.25)",display:"flex",
                    alignItems:"center",gap:6}},
-            "📋 ", t("View Case","사례 보기")
+            "📋 ", T("View Case","사례 보기",lang)
           )
         ),
       h(StickyHeader,{lang,setLang,doneR,totalR,breadcrumb}),
