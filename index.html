@@ -3,11 +3,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Evaluating AI-Generated Rubrics — Pediatric Emergency Cases</title>
 <style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif}</style>
-</head><body><div id="root"></div>
-<script crossorigin src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
-<script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
+</head>
+<body><div id="root"></div>
 <script>
-// Set up error catching BEFORE any app code runs
 window.__appErrors = [];
 window.onerror = function(msg, src, line, col, err) {
   window.__appErrors.push('ERROR L' + line + ': ' + msg);
@@ -21,6 +19,8 @@ window.addEventListener('unhandledrejection', function(e) {
   if(d) d.innerHTML = '<div style="padding:20px;font-family:monospace;font-size:13px;color:#c00;background:#fff;border:2px solid #c00;margin:20px;border-radius:8px"><b>App Error (please screenshot this)</b><br><br>' + window.__appErrors.join('<br>') + '</div>';
 });
 </script>
+<script crossorigin src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
 <script>
 // rubrics_data.js
 // Edit cases/vignettes/rubrics/items here. Run: python3 build.py to rebuild.
@@ -1195,8 +1195,6 @@ const CASES = [
     ],
   },
 ];
-
-// ─── SHARED COMPONENTS
 // ─── SHARED COMPONENTS ───────────────────────────────────────────────────────
 const Card = ({ children, style={} }) =>
   h('div', { style:{ background:white, border:"1px solid "+cardBd, borderRadius:12,
@@ -1220,10 +1218,10 @@ const StickyHeader = ({ lang, setLang, doneR, totalR, breadcrumb }) => {
   const pct = totalR > 0 ? Math.round((doneR / totalR) * 100) : 0;
   return h('div', {style:{position:"sticky", top:0, zIndex:100}},
     // Navy title bar
-    h('div', {style:{background:navy, padding: window.innerWidth < 768 ? "0 14px" : "0 28px", height:50,
+    h('div', {style:{background:navy, padding: "0 14px", height:50,
       display:"flex", alignItems:"center", justifyContent:"space-between",
       boxShadow:"0 1px 0 rgba(255,255,255,0.08)"}},
-      h('span', {style:{color:white, fontSize: window.innerWidth < 768 ? 11 : 14, fontWeight:600,
+      h('span', {style:{color:white, fontSize: 13, fontWeight:600,
         flex:1, marginRight:12, whiteSpace:"nowrap", overflow:"hidden",
         textOverflow:"ellipsis"}},
         T("AI-Generated Rubric Frameworks — Clinical History-Taking Assessment",
@@ -2120,8 +2118,10 @@ function App() {
     }
   }, [ci]);
 
-  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth < 768);
+  const [isMobile, setIsMobile] = useState(false); // set after mount via useEffect
   React.useEffect(() => {
+    // Set initial value after mount (safe - window is available)
+    setIsMobile(window.innerWidth < 768);
     const onResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
@@ -2167,11 +2167,12 @@ function App() {
     )
   );
 }
+
 window.addEventListener('load', function() {
   try {
     ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
   } catch(e) {
-    document.getElementById('root').innerHTML = '<div style="padding:32px;font-family:sans-serif;color:#c00"><h2>Loading error</h2><pre style="white-space:pre-wrap;font-size:12px">'+e.message+'\n'+e.stack+'</pre></div>';
+    document.getElementById('root').innerHTML = '<div style="padding:20px;font-family:monospace;font-size:13px;color:#c00;background:#fff;border:2px solid #c00;margin:20px;border-radius:8px"><b>App Error</b><br><br>' + e.message + '<br>' + (e.stack||'') + '</div>';
   }
 });
 </script></body></html>
