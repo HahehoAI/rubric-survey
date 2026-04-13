@@ -1,3 +1,28 @@
+// ─── ERROR BOUNDARY ──────────────────────────────────────────────────────────
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(err) {
+    return { error: err };
+  }
+  componentDidCatch(err, info) {
+    console.error('React render error:', err, info);
+  }
+  render() {
+    if (this.state.error) {
+      var e = this.state.error;
+      return React.createElement('div', {
+        style: {padding:'20px', margin:'20px', border:'2px solid #c00',
+                borderRadius:'8px', fontFamily:'monospace', fontSize:'13px', color:'#c00',
+                background:'#fff', whiteSpace:'pre-wrap', wordBreak:'break-all'}
+      }, 'Render Error (screenshot this):\n' + e.message + '\n\n' + (e.stack || ''));
+    }
+    return this.props.children;
+  }
+}
+
 // ─── SHARED COMPONENTS ───────────────────────────────────────────────────────
 const Card = ({ children, style={} }) =>
   h('div', { style:{ background:white, border:"1px solid "+cardBd, borderRadius:12,
@@ -14,17 +39,22 @@ const PrimaryBtn = ({ children, onClick, disabled, style:extra={} }) =>
       fontFamily:ffs, transition:"background 0.2s", ...extra }},
     children);
 
-const scrollTop = () => window.scrollTo({top:0, behavior:'smooth'});
+const scrollTop = () => {
+  // iOS Safari needs multiple approaches
+  try { window.scrollTo({top:0, behavior:'smooth'}); } catch(e) {}
+  try { document.documentElement.scrollTop = 0; } catch(e) {}
+  try { document.body.scrollTop = 0; } catch(e) {}
+};
 
 // ─── STICKY HEADER ───────────────────────────────────────────────────────────
 const StickyHeader = ({ lang, setLang, doneR, totalR, breadcrumb }) => {
   const pct = totalR > 0 ? Math.round((doneR / totalR) * 100) : 0;
   return h('div', {style:{position:"sticky", top:0, zIndex:100}},
     // Navy title bar
-    h('div', {style:{background:navy, padding: window.innerWidth < 768 ? "0 14px" : "0 28px", height:50,
+    h('div', {style:{background:navy, padding: "0 14px", height:50,
       display:"flex", alignItems:"center", justifyContent:"space-between",
       boxShadow:"0 1px 0 rgba(255,255,255,0.08)"}},
-      h('span', {style:{color:white, fontSize: window.innerWidth < 768 ? 11 : 14, fontWeight:600,
+      h('span', {style:{color:white, fontSize: 13, fontWeight:600,
         flex:1, marginRight:12, whiteSpace:"nowrap", overflow:"hidden",
         textOverflow:"ellipsis"}},
         T("AI-Generated Rubric Frameworks — Clinical History-Taking Assessment",
@@ -234,22 +264,34 @@ function InstrScreen({ onStart }) {
 // ─── VIGNETTE SIDEBAR ────────────────────────────────────────────────────────
 
 // ─── VIGNETTE MODAL (mobile) ─────────────────────────────────────────────────
-function VignetteModal({ caseData, onClose }) {
+function VignetteModal({ caseData, onClose, onGoBack, lang: langProp, setLang: setLangProp }) {
   const lang = useLang();
   const t = (en,ko) => T(en,ko,lang);
   return h('div',{
     style:{position:"fixed",top:0,right:0,bottom:0,left:0,zIndex:1000,display:"flex",flexDirection:"column",
            background:pageBg},
     },
-    // Header
-    h('div',{style:{background:navy,padding:"14px 18px",display:"flex",
-      alignItems:"center",justifyContent:"space-between",flexShrink:0}},
-      h('p',{style:{fontSize:13,fontWeight:700,color:white,margin:0,lineHeight:1.4,flex:1,marginRight:12}},
-        t(caseData.en, caseData.ko)),
-      h('button',{onClick:onClose,
-        style:{background:"rgba(255,255,255,0.15)",border:"none",borderRadius:6,
-               color:white,fontSize:13,fontWeight:600,padding:"7px 14px",cursor:"pointer",flexShrink:0}},
-        t("Got it, start reviewing →","확인, 검토 시작 →"))
+    // Header: full title wraps, EN/KO toggle top-right, optional back button
+    h('div',{style:{background:navy,padding:"12px 14px",flexShrink:0}},
+      h('div',{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}},
+        h('p',{style:{fontSize:13,fontWeight:700,color:white,margin:0,lineHeight:1.45,flex:1}},
+          t(caseData.en, caseData.ko)),
+        h('div',{style:{display:"flex",gap:4,flexShrink:0,marginTop:2}},
+          ["en","ko"].map(l =>
+            h('button',{key:l, onClick:()=>{ if(setLangProp) setLangProp(l); },
+              style:{padding:"2px 8px",borderRadius:5,border:"1px solid",
+                borderColor: lang===l?"rgba(255,255,255,0.9)":"rgba(255,255,255,0.3)",
+                background: lang===l?"rgba(255,255,255,0.18)":"transparent",
+                color: lang===l?white:"rgba(255,255,255,0.65)",
+                fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:ffs}},
+              l==="en"?"EN":"한"))
+        )
+      ),
+      onGoBack && h('button',{onClick:onGoBack,
+        style:{marginTop:10,background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.25)",
+               borderRadius:6,color:"rgba(255,255,255,0.8)",fontSize:12,padding:"5px 12px",
+               cursor:"pointer",display:"flex",alignItems:"center",gap:4}},
+        "← "+t("Back to instructions","지침으로 돌아가기"))
     ),
     // Content - scrollable
     h('div',{style:{overflowY:"auto",flex:1}},
@@ -295,7 +337,14 @@ function VignetteModal({ caseData, onClose }) {
               h('span',{style:{color:txt}},val))
           })
       )
-    )
+    ),
+    // Footer: sticky "Got it" button at bottom
+    h('div',{style:{background:white,borderTop:"1px solid "+cardBd,padding:"12px 14px",flexShrink:0}},
+      h('button',{onClick:onClose,
+        style:{background:navy,border:"none",borderRadius:8,color:white,
+               fontSize:14,fontWeight:600,padding:"13px",width:"100%",
+               cursor:"pointer",fontFamily:ffs}},
+        t("Got it, start reviewing →","확인, 검토 시작 →")))
   );
 }
 
@@ -442,7 +491,7 @@ function PartAScreen({ caseData, rubric, onNext, onBack, draftAnswers, onDraftCh
         placeholder:t("Optional comment for this item…","이 항목에 대한 선택적 의견…"),
         defaultValue:comments[item.id]||"",
         key:"cmt-"+item.id,
-        onInput:e=>{const v=e.target.value; if(commentTimer.current) clearTimeout(commentTimer.current); commentTimer.current=setTimeout(()=>setComments(c=>({...c,[item.id]:v})),600);},
+        onBlur:e=>{const v=e.target.value; setComments(c=>({...c,[item.id]:v}));},
         style:{width:"100%",padding:"9px 12px",fontSize:14,
           border:"1px solid "+cardBd,borderRadius:8,resize:"vertical",
           fontFamily:ffs,boxSizing:"border-box",minHeight:60,
@@ -645,7 +694,7 @@ function PartBScreen({ caseData, rubric, ci, ri, isLast, onSubmit, partAData, on
           // the actual item
           h('div', {
             ref: el => { itemEls.current[id] = el; },
-            onPointerDown: e => onPointerDown(e, id),
+            onPointerDown: undefined,
             style:{
               display:"flex", alignItems:"flex-start", gap:10,
               padding:"12px 14px",
@@ -658,15 +707,18 @@ function PartBScreen({ caseData, rubric, ci, ri, isLast, onSubmit, partAData, on
               transform: isDragging ? "translate(0,"+dy+"px)" : "none",
               transition: isDragging ? "box-shadow 0.1s" : "transform 0.15s, box-shadow 0.15s",
               opacity: isDragging ? 0.95 : (dragging && !isDragging ? 0.6 : 1),
-              cursor: isDragging ? "grabbing" : "grab",
+              cursor: "default",
               userSelect:"none",
               zIndex: isDragging ? 10 : 1,
               position: "relative",
-              touchAction:"none"
+              touchAction:"auto"
             }},
-            h('div',{style:{display:"flex",flexDirection:"column",alignItems:"center",
-              gap:4,flexShrink:0,paddingTop:4}},
-              h('div',{style:{color:muted,fontSize:16,userSelect:"none",
+            h('div',{
+              onPointerDown: e => onPointerDown(e, id),
+              style:{display:"flex",flexDirection:"column",alignItems:"center",
+              gap:4,flexShrink:0,paddingTop:4,padding:"4px 8px 4px 0",
+              cursor:isDragging?"grabbing":"grab",touchAction:"none"}},
+              h('div',{style:{color:muted,fontSize:18,userSelect:"none",
                 lineHeight:1,letterSpacing:"-1px"}},"⠿"),
               h('span',{style:{fontSize:12,fontWeight:700,color:navyMid,
                 background:navyL,borderRadius:5,padding:"2px 6px",
@@ -921,8 +973,10 @@ function App() {
     }
   }, [ci]);
 
-  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' && window.innerWidth < 768);
+  const [isMobile, setIsMobile] = useState(false); // set after mount via useEffect
   React.useEffect(() => {
+    // Set initial value after mount (safe - window is available)
+    setIsMobile(window.innerWidth < 768);
     const onResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
@@ -936,7 +990,7 @@ function App() {
   return h(LangCtx.Provider,{value:lang},
     h('div',{style:{background:pageBg,minHeight:"100vh",fontFamily:ffs}},
       // Mobile floating "View Case" button — shown when modal is closed and on mobile
-      isMobile && curCase && !showVigModal && step !== "done" && step !== "welcome" &&
+      isMobile && curCase && !showVigModal && step !== "done" && step !== "welcome" && step !== "instr" && step !== "consent" &&
         h('div',{style:{position:"fixed",bottom:24,left:"50%",transform:"translateX(-50%)",zIndex:500}},
           h('button',{
             onClick:()=>setShowVigModal(true),
@@ -944,7 +998,7 @@ function App() {
                    padding:"10px 20px",fontSize:13,fontWeight:600,cursor:"pointer",
                    boxShadow:"0 4px 16px rgba(0,0,0,0.25)",display:"flex",
                    alignItems:"center",gap:6}},
-            "📋 ", t("View Case","사례 보기")
+            "📋 ", T("View Case","사례 보기",lang)
           )
         ),
       h(StickyHeader,{lang,setLang,doneR,totalR,breadcrumb}),
@@ -952,14 +1006,14 @@ function App() {
       step==="instr"   && h(InstrScreen,{onStart:()=>{setStep("partA");scrollTop();}}),
       step==="partA" && curRubric && h('div',{style:slStyle},
         !isMobile && h(VignetteSidebar,{caseData:curCase}),
-        isMobile && showVigModal && curCase && h(VignetteModal,{caseData:curCase, onClose:()=>setShowVigModal(false)}),
+        isMobile && showVigModal && curCase && h(VignetteModal,{caseData:curCase, onClose:()=>setShowVigModal(false), onGoBack: (ci===0&&ri===0) ? ()=>{setShowVigModal(false);setStep('instr');scrollTop();} : null, lang, setLang}),
         h(PartAScreen,{key:"A-"+curRubric.id,caseData:curCase,rubric:curRubric,
           ci,ri,onNext:goPartB,onBack:goBack,
           draftAnswers:partADraft[curRubric.id]||(responses[curRubric.id]?{answers:responses[curRubric.id].partA||{},comments:responses[curRubric.id].comments||{}}:null)||{},
           onDraftChange:(data)=>setPartADraft(d=>({...d,[curRubric.id]:data}))})),
       step==="partB" && curRubric && h('div',{style:slStyle},
         !isMobile && h(VignetteSidebar,{caseData:curCase}),
-        isMobile && showVigModal && curCase && h(VignetteModal,{caseData:curCase, onClose:()=>setShowVigModal(false)}),
+        isMobile && showVigModal && curCase && h(VignetteModal,{caseData:curCase, onClose:()=>setShowVigModal(false), onGoBack: (ci===0&&ri===0) ? ()=>{setShowVigModal(false);setStep('instr');scrollTop();} : null, lang, setLang}),
         h(PartBScreen,{key:"B-"+curRubric.id,caseData:curCase,rubric:curRubric,
           ci,ri,isLast:doneR+1>=totalR,onSubmit:submitRubric,partAData,onBack:()=>{setStep("partA");scrollTop();},
           bDraft:partBDraft[curRubric.id]||(responses[curRubric.id]?{d1Order:responses[curRubric.id].d1Order,d2Order:responses[curRubric.id].d2Order,finalCmt:responses[curRubric.id].finalCmt||''}:null),
