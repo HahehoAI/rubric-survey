@@ -51,12 +51,11 @@ const StickyHeader = ({ lang, setLang, doneR, totalR, breadcrumb }) => {
   const pct = totalR > 0 ? Math.round((doneR / totalR) * 100) : 0;
   return h('div', {style:{position:"sticky", top:0, zIndex:100}},
     // Navy title bar
-    h('div', {style:{background:navy, padding: "0 14px", height:50,
+    h('div', {style:{background:navy, minHeight:50, padding:"8px 14px",
       display:"flex", alignItems:"center", justifyContent:"space-between",
       boxShadow:"0 1px 0 rgba(255,255,255,0.08)"}},
       h('span', {style:{color:white, fontSize: 13, fontWeight:600,
-        flex:1, marginRight:12, whiteSpace:"nowrap", overflow:"hidden",
-        textOverflow:"ellipsis"}},
+        flex:1, marginRight:12, lineHeight:1.35}},
         T("AI-Generated Rubric Frameworks — Clinical History-Taking Assessment",
           "임상 병력 청취 평가 — AI 생성 루브릭 프레임워크", lang)),
       h('div', {style:{display:"flex", gap:4}},
@@ -284,14 +283,14 @@ function VignetteModal({ caseData, onClose, onGoBack, lang: langProp, setLang: s
                 background: lang===l?"rgba(255,255,255,0.18)":"transparent",
                 color: lang===l?white:"rgba(255,255,255,0.65)",
                 fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:ffs}},
-              l==="en"?"EN":"한"))
+              l==="en"?"EN":"한국어"))
         )
       ),
       onGoBack && h('button',{onClick:onGoBack,
         style:{marginTop:10,background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.25)",
                borderRadius:6,color:"rgba(255,255,255,0.8)",fontSize:12,padding:"5px 12px",
                cursor:"pointer",display:"flex",alignItems:"center",gap:4}},
-        "← "+t("Back to instructions","지침으로 돌아가기"))
+        "← "+t("Back to Instructions","지침으로 돌아가기"))
     ),
     // Content - scrollable
     h('div',{style:{overflowY:"auto",flex:1}},
