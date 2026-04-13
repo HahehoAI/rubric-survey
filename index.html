@@ -6,18 +6,12 @@
 </head>
 <body><div id="root"></div>
 <script>
-window.__appErrors = [];
 window.onerror = function(msg, src, line, col, err) {
-  window.__appErrors.push('ERROR L' + line + ': ' + msg);
   var d = document.getElementById('root');
-  if(d) d.innerHTML = '<div style="padding:20px;font-family:monospace;font-size:13px;color:#c00;background:#fff;border:2px solid #c00;margin:20px;border-radius:8px"><b>App Error (please screenshot this)</b><br><br>' + window.__appErrors.join('<br>') + '</div>';
+  if(d && (!d.innerHTML || d.innerHTML === '')) {
+    d.innerHTML = '<div style="padding:20px;font-family:monospace;font-size:12px;color:#c00;background:#fff;border:2px solid #c00;margin:20px;border-radius:8px"><b>Load Error (screenshot)</b><br>' + msg + ' L' + line + '</div>';
+  }
 };
-window.addEventListener('unhandledrejection', function(e) {
-  var msg = e.reason && (e.reason.message || String(e.reason)) || 'unknown';
-  window.__appErrors.push('PROMISE: ' + msg);
-  var d = document.getElementById('root');
-  if(d) d.innerHTML = '<div style="padding:20px;font-family:monospace;font-size:13px;color:#c00;background:#fff;border:2px solid #c00;margin:20px;border-radius:8px"><b>App Error (please screenshot this)</b><br><br>' + window.__appErrors.join('<br>') + '</div>';
-});
 </script>
 <script crossorigin src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -1195,6 +1189,31 @@ const CASES = [
     ],
   },
 ];
+// ─── ERROR BOUNDARY ──────────────────────────────────────────────────────────
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(err) {
+    return { error: err };
+  }
+  componentDidCatch(err, info) {
+    console.error('React render error:', err, info);
+  }
+  render() {
+    if (this.state.error) {
+      var e = this.state.error;
+      return React.createElement('div', {
+        style: {padding:'20px', margin:'20px', border:'2px solid #c00',
+                borderRadius:'8px', fontFamily:'monospace', fontSize:'13px', color:'#c00',
+                background:'#fff', whiteSpace:'pre-wrap', wordBreak:'break-all'}
+      }, 'Render Error (screenshot this):\n' + e.message + '\n\n' + (e.stack || ''));
+    }
+    return this.props.children;
+  }
+}
+
 // ─── SHARED COMPONENTS ───────────────────────────────────────────────────────
 const Card = ({ children, style={} }) =>
   h('div', { style:{ background:white, border:"1px solid "+cardBd, borderRadius:12,
@@ -1211,7 +1230,12 @@ const PrimaryBtn = ({ children, onClick, disabled, style:extra={} }) =>
       fontFamily:ffs, transition:"background 0.2s", ...extra }},
     children);
 
-const scrollTop = () => window.scrollTo({top:0, behavior:'smooth'});
+const scrollTop = () => {
+  // iOS Safari needs multiple approaches
+  try { window.scrollTo({top:0, behavior:'smooth'}); } catch(e) {}
+  try { document.documentElement.scrollTop = 0; } catch(e) {}
+  try { document.body.scrollTop = 0; } catch(e) {}
+};
 
 // ─── STICKY HEADER ───────────────────────────────────────────────────────────
 const StickyHeader = ({ lang, setLang, doneR, totalR, breadcrumb }) => {
@@ -2170,9 +2194,10 @@ function App() {
 
 window.addEventListener('load', function() {
   try {
-    ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+    var app = React.createElement(ErrorBoundary, null, React.createElement(App));
+    ReactDOM.createRoot(document.getElementById('root')).render(app);
   } catch(e) {
-    document.getElementById('root').innerHTML = '<div style="padding:20px;font-family:monospace;font-size:13px;color:#c00;background:#fff;border:2px solid #c00;margin:20px;border-radius:8px"><b>App Error</b><br><br>' + e.message + '<br>' + (e.stack||'') + '</div>';
+    document.getElementById('root').innerHTML = '<div style="padding:20px;font-family:monospace;font-size:12px;color:#c00;background:#fff;border:2px solid #c00;margin:20px;border-radius:8px"><b>Mount Error (screenshot)</b><br>' + e.message + '</div>';
   }
 });
 </script></body></html>
