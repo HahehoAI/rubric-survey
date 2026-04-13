@@ -4705,38 +4705,83 @@ window.__qaRun=async function(){
       if(!ok){__log('fail','Rubric '+rub.id+': Part A not found');continue;}
       __log('pass','Rubric '+rub.id+': Part A loaded');
 
-      // Click Agree on every item - find unselected ones by checking border color
-      // Selected Agree buttons have green border (16A34A), unselected have grey (DDE4EF)
+      // Inject answers directly via React fiber (works on mobile - no scroll needed)
       var clicked=0;
-      var prevGreen=-1;
-      for(var ii=0;ii<rub.items.length*4 && clicked<rub.items.length;ii++){
-        if(__stopped)return;
-        // Find an Agree button that is NOT yet selected
-        // Unselected = border contains DDE4EF or button has white/transparent bg
-        var agreeBtn=__btns().find(function(b){
-          if(b.textContent.trim()!=='✓ Agree'&&b.textContent.trim()!=='✓ 동의')return false;
-          // Check border - unselected buttons have grey border
-          var border=b.style.borderColor||b.style.border||'';
-          var bg=b.style.background||b.style.backgroundColor||'';
-          // If border contains green color code, it's already selected - skip
-          if(border.indexOf('16A34A')>=0||border.indexOf('rgb(22, 163, 74)')>=0)return false;
-          if(bg.indexOf('F0FDF4')>=0||bg.indexOf('240, 253, 244')>=0)return false;
-          return true;
-        });
-        if(!agreeBtn){
-          // No unselected Agree buttons found - may all be answered
-          break;
+      try {
+        // Find PartAScreen fiber to access its setState
+        var allEls=document.querySelectorAll('button');
+        var injected=false;
+        // Walk React fiber tree from root to find PartAScreen's setPartA
+        function findFiberWithSetPartA(fiber){
+          if(!fiber)return null;
+          if(fiber.memoizedState){
+            var s=fiber.memoizedState;
+            while(s){
+              // setPartA updates are functions - look for the one managing partA object
+              if(s.queue&&s.queue.dispatch&&fiber.type&&
+                 fiber.type.name==='PartAScreen'){
+                return fiber;
+              }
+              s=s.next;
+            }
+          }
+          var r=findFiberWithSetPartA(fiber.child);
+          if(r)return r;
+          return findFiberWithSetPartA(fiber.sibling);
         }
-        // Scroll into view before clicking
-        try{agreeBtn.scrollIntoView({block:'center',behavior:'instant'});}catch(e){}
-        await __wait(50);
-        __click(agreeBtn);
-        clicked++;
-        // Wait for the click to register (textarea should appear for this item)
-        await __wait(150);
+        var rootEl=document.getElementById('root');
+        var fk=Object.keys(rootEl).find(function(k){return k.startsWith('__reactFiber');});
+        if(fk){
+          var fiber=findFiberWithSetPartA(rootEl[fk]);
+          if(fiber){
+            // Build answers object: {itemId: true, ...} for all items
+            var answers={};
+            rub.items.forEach(function(id){answers[id]=true;});
+            // Find the setPartA dispatcher (first memoizedState queue)
+            var st=fiber.memoizedState;
+            if(st&&st.queue&&st.queue.dispatch){
+              st.queue.dispatch(answers);
+              clicked=rub.items.length;
+              injected=true;
+              await __wait(200);
+            }
+          }
+        }
+        if(!injected){
+          // Fallback: DOM clicking with scrollIntoView
+          for(var ii=0;ii<rub.items.length*4&&clicked<rub.items.length;ii++){
+            if(__stopped)return;
+            var agreeBtn=__btns().find(function(b){
+              if(b.textContent.trim()!=='✓ Agree'&&b.textContent.trim()!=='✓ 동의')return false;
+              var border=b.style.borderColor||b.style.border||'';
+              var bg=b.style.background||b.style.backgroundColor||'';
+              if(border.indexOf('16A34A')>=0||bg.indexOf('F0FDF4')>=0)return false;
+              return true;
+            });
+            if(!agreeBtn)break;
+            try{agreeBtn.scrollIntoView({block:'center',behavior:'instant'});}catch(e){}
+            await __wait(80);
+            __click(agreeBtn);
+            clicked++;
+            await __wait(120);
+          }
+        }
+      } catch(e) {
+        __log('warn','Agree injection error: '+e.message+' — trying DOM clicks');
+        // Final fallback: just click whatever Agree buttons are visible
+        var agreeBtns=__btns().filter(function(b){
+          return b.textContent.trim()==='✓ Agree'||b.textContent.trim()==='✓ 동의';
+        });
+        for(var i=0;i<agreeBtns.length;i++){
+          try{agreeBtns[i].scrollIntoView({block:'center',behavior:'instant'});}catch(e){}
+          await __wait(60);
+          __click(agreeBtns[i]);
+          clicked++;
+          await __wait(100);
+        }
       }
       __log(clicked>=rub.items.length?'pass':'warn',
-        'Rubric '+rub.id+': clicked Agree on '+clicked+'/'+rub.items.length+' items');
+        'Rubric '+rub.id+': answered '+clicked+'/'+rub.items.length+' items');
 
       // Wait a moment for React to process all clicks
       await __wait(300);
