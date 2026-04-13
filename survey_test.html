@@ -123,7 +123,7 @@ function runContentCheck(){
   document.getElementById('cr').innerHTML='<div class="item"><div class="dot m">&#8594;</div><div class="txt">Running content checks...</div></div>';
   fetch(url).then(function(r){return r.text();}).then(function(html){
     var out='',cp=0,cf=0;
-    function c(ok,t,d,e){if(ok){cp++;TP++;}else{cf++;TF++;}out+=itm(ok?'p':'f',ok?'&#10003;':'&#10007;',t,d,ok?null:e);}
+    function c(ok,t,d,e){if(ok){cp++;}else{cf++;}out+=itm(ok?'p':'f',ok?'&#10003;':'&#10007;',t,d,ok?null:e);}
     var s1=html.indexOf(SCOPEN+'\n'),s2=html.lastIndexOf(SCCLOSE);
     if(s1<0||s2<0){c(false,'Could not extract script from index.html',null,'Check file structure');}
     else{
@@ -158,9 +158,10 @@ function runContentCheck(){
         }
       }catch(e){c(false,'Script eval',null,e.message);}
     }
-    out+='<div class="note">Content: '+cp+' passed, '+cf+' failed</div>';
+    var ch=document.getElementById('cr').parentNode.querySelector('.sec-h');
+    if(ch)ch.textContent='9. Content integrity (auto) — '+cp+' passed, '+cf+' failed';
+    out+='<div class="note">Checks run against the live index.html on GitHub</div>';
     document.getElementById('cr').innerHTML=out;
-    upd();
   }).catch(function(e){
     document.getElementById('cr').innerHTML=itm('w','!','Could not load index.html: '+e.message,'Make sure both files are on the same GitHub Pages domain',null);
   });
