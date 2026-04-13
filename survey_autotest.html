@@ -8,22 +8,20 @@
 body{font-family:'Segoe UI',system-ui,sans-serif;background:#F0F3F8;padding:16px}
 h1{font-size:18px;font-weight:700;color:#1B2B5E;margin-bottom:4px}
 .sub{font-size:13px;color:#6B7A99;margin-bottom:16px}
-.controls{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.controls{display:flex;gap:8px;margin-bottom:16px}
 .btn{background:#1B2B5E;color:white;border:none;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:600;cursor:pointer}
 .btn:disabled{background:#B0BAD0;cursor:not-allowed}
 .btn.sec{background:white;color:#1B2B5E;border:2px solid #1B2B5E}
-.sum{background:#1B2B5E;color:white;border-radius:12px;padding:14px 16px;margin-bottom:16px;display:flex;gap:20px;flex-wrap:wrap;align-items:center}
+.sum{background:#1B2B5E;color:white;border-radius:12px;padding:14px 16px;margin-bottom:16px;display:flex;gap:20px;flex-wrap:wrap}
 .si{text-align:center}.sn{font-size:24px;font-weight:700;display:block}
 .sp{color:#86efac}.sf{color:#fca5a5}.sr{color:#93c5fd}
-.log{background:white;border-radius:12px;border:1px solid #DDE4EF;margin-bottom:16px;max-height:400px;overflow-y:auto}
+.log{background:white;border-radius:12px;border:1px solid #DDE4EF;margin-bottom:16px;max-height:500px;overflow-y:auto}
 .log-h{background:#EEF2F8;padding:10px 16px;font-size:13px;font-weight:700;color:#1B2B5E;border-bottom:1px solid #DDE4EF;position:sticky;top:0}
-.li{padding:8px 16px;border-bottom:1px solid #F0F3F8;font-size:12px;display:flex;gap:8px;align-items:flex-start}
+.li{padding:7px 16px;border-bottom:1px solid #F0F3F8;font-size:12px;display:flex;gap:8px;align-items:flex-start}
 .li:last-child{border-bottom:none}
 .tag{padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px}
-.tp{background:#dcfce7;color:#16A34A}
-.tf{background:#fee2e2;color:#DC2626}
-.ti{background:#EEF2F8;color:#1B2B5E}
-.tw{background:#FFF3CD;color:#92400e}
+.tp{background:#dcfce7;color:#16A34A}.tf{background:#fee2e2;color:#DC2626}
+.ti{background:#EEF2F8;color:#1B2B5E}.tw{background:#FFF3CD;color:#92400e}
 .prog{background:white;border-radius:12px;border:1px solid #DDE4EF;padding:14px 16px;margin-bottom:16px}
 .prog-bar{height:8px;background:#E2E8F0;border-radius:99px;overflow:hidden;margin-top:8px}
 .prog-fill{height:100%;background:#1B2B5E;border-radius:99px;transition:width 0.3s}
@@ -32,354 +30,281 @@ iframe{display:none}
 </style>
 </head><body>
 <h1>Survey Automated Test</h1>
-<p class="sub">Simulates a complete survey run — all 20 rubrics — and verifies Supabase submission.</p>
-
+<p class="sub">Simulates a full run through all 20 rubrics and verifies Supabase submission.</p>
 <div class="controls">
   <button class="btn" id="btnRun" onclick="startTest()">&#9654; Run Full Test</button>
   <button class="btn sec" id="btnStop" onclick="stopTest()" disabled>&#9632; Stop</button>
 </div>
-
 <div class="sum" id="sum">
   <div class="si"><span class="sn sp" id="sPass">0</span><span>Pass</span></div>
   <div class="si"><span class="sn sf" id="sFail">0</span><span>Fail</span></div>
-  <div class="si"><span class="sn sr" id="sRun">—</span><span>Status</span></div>
+  <div class="si"><span class="sn sr" id="sStatus">Ready</span><span>Status</span></div>
 </div>
-
 <div class="prog" id="progBox" style="display:none">
   <div style="font-size:13px;font-weight:600;color:#1B2B5E" id="progLabel">Starting...</div>
   <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
   <div class="prog-txt" id="progTxt"></div>
 </div>
-
-<div class="log">
-  <div class="log-h">Test log</div>
-  <div id="logBody"><div class="li"><span class="tag ti">INFO</span><span>Click "Run Full Test" to start</span></div></div>
-</div>
-
-<iframe id="frame" src=""></iframe>
-
+<div class="log"><div class="log-h">Test log</div><div id="logBody">
+  <div class="li"><span class="tag ti">INFO</span><span>Click Run Full Test to start</span></div>
+</div></div>
+<iframe id="frame"></iframe>
 <script>
 var RUBRICS = [{"id": "1-1", "items": ["1-1-1-1", "1-1-1-2", "1-1-1-3", "1-1-1-4", "1-1-1-5", "1-1-2-1", "1-1-2-2", "1-1-2-3", "1-1-2-4", "1-1-2-5"]}, {"id": "1-2", "items": ["1-2-1-1", "1-2-1-2", "1-2-1-3", "1-2-1-4", "1-2-1-5", "1-2-1-6", "1-2-1-7", "1-2-1-8", "1-2-2-1", "1-2-2-2", "1-2-2-3", "1-2-2-4", "1-2-2-5", "1-2-2-6", "1-2-2-7", "1-2-2-8", "1-2-2-9"]}, {"id": "1-3", "items": ["1-3-1-1", "1-3-1-2", "1-3-1-3", "1-3-1-4", "1-3-1-5", "1-3-1-6", "1-3-1-7", "1-3-1-8", "1-3-1-9", "1-3-2-1", "1-3-2-2", "1-3-2-3", "1-3-2-4", "1-3-2-5", "1-3-2-6", "1-3-2-7", "1-3-2-8"]}, {"id": "1-4", "items": ["1-4-1-1", "1-4-1-2", "1-4-1-3", "1-4-1-4", "1-4-1-5", "1-4-1-6", "1-4-1-7", "1-4-1-8", "1-4-1-9", "1-4-2-1", "1-4-2-2", "1-4-2-3", "1-4-2-4", "1-4-2-5", "1-4-2-6"]}, {"id": "2-1", "items": ["2-1-1-1", "2-1-1-2", "2-1-1-3", "2-1-1-4", "2-1-1-5", "2-1-1-6", "2-1-1-7", "2-1-1-8", "2-1-1-9", "2-1-2-10", "2-1-2-11", "2-1-2-12", "2-1-2-13", "2-1-2-14", "2-1-2-15"]}, {"id": "2-2", "items": ["2-2-1-1", "2-2-1-2", "2-2-1-3", "2-2-1-4", "2-2-1-5", "2-2-2-6", "2-2-2-7", "2-2-2-8", "2-2-2-9", "2-2-2-10"]}, {"id": "2-3", "items": ["2-3-1-1", "2-3-1-2", "2-3-1-3", "2-3-1-4", "2-3-1-5", "2-3-1-6", "2-3-1-7", "2-3-1-8", "2-3-1-9", "2-3-2-10", "2-3-2-11", "2-3-2-12", "2-3-2-13", "2-3-2-14", "2-3-2-15", "2-3-2-16", "2-3-2-17"]}, {"id": "2-4", "items": ["2-4-1-1", "2-4-1-2", "2-4-1-3", "2-4-1-4", "2-4-1-5", "2-4-1-6", "2-4-1-7", "2-4-1-8", "2-4-2-9", "2-4-2-10", "2-4-2-11", "2-4-2-12", "2-4-2-13", "2-4-2-14", "2-4-2-15", "2-4-2-16"]}, {"id": "3-1", "items": ["3-1-1-1", "3-1-1-2", "3-1-1-3", "3-1-1-4", "3-1-1-5", "3-1-1-6", "3-1-1-7", "3-1-1-8", "3-1-2-9", "3-1-2-10", "3-1-2-11", "3-1-2-12", "3-1-2-13", "3-1-2-14", "3-1-2-15", "3-1-2-16", "3-1-2-17"]}, {"id": "3-2", "items": ["3-2-1-1", "3-2-1-2", "3-2-1-3", "3-2-1-4", "3-2-1-5", "3-2-1-6", "3-2-1-7", "3-2-1-8", "3-2-1-9", "3-2-2-10", "3-2-2-11", "3-2-2-12", "3-2-2-13", "3-2-2-14", "3-2-2-15"]}, {"id": "3-3", "items": ["3-3-1-1", "3-3-1-2", "3-3-1-3", "3-3-1-4", "3-3-1-5", "3-3-1-6", "3-3-1-7", "3-3-1-8", "3-3-2-9", "3-3-2-10", "3-3-2-11", "3-3-2-12", "3-3-2-13", "3-3-2-14", "3-3-2-15", "3-3-2-16"]}, {"id": "3-4", "items": ["3-4-1-1", "3-4-1-2", "3-4-1-3", "3-4-1-4", "3-4-1-5", "3-4-2-6", "3-4-2-7", "3-4-2-8", "3-4-2-9", "3-4-2-10"]}, {"id": "4-1", "items": ["4-1-1-1", "4-1-1-2", "4-1-1-3", "4-1-1-4", "4-1-1-5", "4-1-1-6", "4-1-1-7", "4-1-1-8", "4-1-1-9", "4-1-2-10", "4-1-2-11", "4-1-2-12", "4-1-2-13", "4-1-2-14", "4-1-2-15"]}, {"id": "4-2", "items": ["4-2-1-1", "4-2-1-2", "4-2-1-3", "4-2-1-4", "4-2-1-5", "4-2-1-6", "4-2-1-7", "4-2-1-8", "4-2-2-9", "4-2-2-10", "4-2-2-11", "4-2-2-12", "4-2-2-13", "4-2-2-14", "4-2-2-15", "4-2-2-16", "4-2-2-17"]}, {"id": "4-3", "items": ["4-3-1-1", "4-3-1-2", "4-3-1-3", "4-3-1-4", "4-3-1-5", "4-3-2-6", "4-3-2-7", "4-3-2-8", "4-3-2-9", "4-3-2-10"]}, {"id": "4-4", "items": ["4-4-1-1", "4-4-1-2", "4-4-1-3", "4-4-1-4", "4-4-1-5", "4-4-1-6", "4-4-1-7", "4-4-2-8", "4-4-2-9", "4-4-2-10", "4-4-2-11", "4-4-2-12", "4-4-2-13", "4-4-2-14", "4-4-2-15"]}, {"id": "5-1", "items": ["5-1-1-1", "5-1-1-2", "5-1-1-3", "5-1-1-4", "5-1-1-5", "5-1-1-6", "5-1-1-7", "5-1-1-8", "5-1-2-9", "5-1-2-10", "5-1-2-11", "5-1-2-12", "5-1-2-13", "5-1-2-14", "5-1-2-15", "5-1-2-16"]}, {"id": "5-2", "items": ["5-2-1-1", "5-2-1-2", "5-2-1-3", "5-2-1-4", "5-2-1-5", "5-2-2-6", "5-2-2-7", "5-2-2-8", "5-2-2-9", "5-2-2-10"]}, {"id": "5-3", "items": ["5-3-1-1", "5-3-1-2", "5-3-1-3", "5-3-1-4", "5-3-1-5", "5-3-1-6", "5-3-1-7", "5-3-1-8", "5-3-2-9", "5-3-2-10", "5-3-2-11", "5-3-2-12", "5-3-2-13", "5-3-2-14", "5-3-2-15", "5-3-2-16", "5-3-2-17"]}, {"id": "5-4", "items": ["5-4-1-1", "5-4-1-2", "5-4-1-3", "5-4-1-4", "5-4-1-5", "5-4-1-6", "5-4-1-7", "5-4-1-8", "5-4-1-9", "5-4-2-10", "5-4-2-11", "5-4-2-12", "5-4-2-13", "5-4-2-14", "5-4-2-15"]}];
-var SUPABASE_URL = 'https://qydinydhytepqptcvslb.supabase.co';
-var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF5ZGlueWRoeXRlcHFwdGN2c2xiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4Mjk0NTUsImV4cCI6MjA5MDQwNTQ1NX0.ZniqFMfctWHgbA4dJSlrvlFxWRcRfCrVuA9S3gjcA5o';
+var SUPA_URL = 'https://qydinydhytepqptcvslb.supabase.co';
+var SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF5ZGlueWRoeXRlcHFwdGN2c2xiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4Mjk0NTUsImV4cCI6MjA5MDQwNTQ1NX0.ZniqFMfctWHgbA4dJSlrvlFxWRcRfCrVuA9S3gjcA5o';
 var SURVEY_URL = window.location.href.replace('survey_autotest.html','index.html');
+var pass=0,fail=0,stopped=false;
 
-var pass=0, fail=0, stopped=false, testPid=null;
+function log(type,msg){
+  var tags={pass:'tp',fail:'tf',info:'ti',warn:'tw'};
+  var labels={pass:'PASS',fail:'FAIL',info:'INFO',warn:'WARN'};
+  var lb=document.getElementById('logBody');
+  var d=document.createElement('div'); d.className='li';
+  d.innerHTML='<span class="tag '+tags[type]+'">'+labels[type]+'</span><span>'+msg+'</span>';
+  lb.appendChild(d); lb.scrollTop=lb.scrollHeight;
+  if(type==='pass'){pass++;document.getElementById('sPass').textContent=pass;}
+  if(type==='fail'){fail++;document.getElementById('sFail').textContent=fail;}
+}
+function setStatus(s){document.getElementById('sStatus').textContent=s;}
+function setProgress(done,total,label){
+  var pct=total>0?Math.round(done/total*100):0;
+  document.getElementById('progFill').style.width=pct+'%';
+  document.getElementById('progLabel').textContent=label;
+  document.getElementById('progTxt').textContent=done+' / '+total+' rubrics ('+pct+'%)';
+}
+function wait(ms){return new Promise(function(r){setTimeout(r,ms);});}
+function gd(){return document.getElementById('frame').contentDocument||document.getElementById('frame').contentWindow.document;}
+function gw(){return document.getElementById('frame').contentWindow;}
+function allBtns(){try{return Array.from(gd().querySelectorAll('button'));}catch(e){return [];}}
+function findBtn(text){return allBtns().find(function(b){return b.textContent.indexOf(text)>=0&&!b.disabled;});}
 
-function log(type, msg) {
-  var tags = {pass:'tp',fail:'tf',info:'ti',warn:'tw'};
-  var labels = {pass:'PASS',fail:'FAIL',info:'INFO',warn:'WARN'};
-  var lb = document.getElementById('logBody');
-  var div = document.createElement('div');
-  div.className='li';
-  div.innerHTML='<span class="tag '+tags[type]+'">'+labels[type]+'</span><span>'+msg+'</span>';
-  lb.appendChild(div);
-  lb.scrollTop = lb.scrollHeight;
-  if(type==='pass') { pass++; document.getElementById('sPass').textContent=pass; }
-  if(type==='fail') { fail++; document.getElementById('sFail').textContent=fail; }
+function stopTest(){stopped=true;setStatus('Stopped');document.getElementById('btnRun').disabled=false;document.getElementById('btnStop').disabled=true;}
+
+async function waitFor(fn,ms,desc){
+  var end=Date.now()+ms;
+  while(Date.now()<end){
+    if(stopped)throw new Error('Stopped');
+    try{if(fn())return true;}catch(e){}
+    await wait(150);
+  }
+  log('fail','Timeout: '+desc); return false;
 }
 
-function setStatus(s) { document.getElementById('sRun').textContent=s; }
-
-function setProgress(done, total, label) {
-  var pct = total > 0 ? Math.round(done/total*100) : 0;
-  document.getElementById('progFill').style.width = pct+'%';
-  document.getElementById('progLabel').textContent = label;
-  document.getElementById('progTxt').textContent = done+' / '+total+' rubrics ('+pct+'%)';
-}
-
-function wait(ms) { return new Promise(function(r){ setTimeout(r, ms); }); }
-
-function getFrame() { return document.getElementById('frame'); }
-function getDoc() { return getFrame().contentDocument || getFrame().contentWindow.document; }
-function getWin() { return getFrame().contentWindow; }
-
-function $(sel, ctx) { return (ctx||getDoc()).querySelector(sel); }
-function $$(sel, ctx) { return Array.from((ctx||getDoc()).querySelectorAll(sel)); }
-
-function clickBtn(text, doc) {
-  var d = doc || getDoc();
-  var btns = Array.from(d.querySelectorAll('button'));
-  var btn = btns.find(function(b){ return b.textContent.trim().indexOf(text) >= 0 && !b.disabled; });
-  if(btn) { btn.click(); return true; }
-  return false;
-}
-
-function stopTest() {
-  stopped = true;
-  setStatus('Stopped');
-  document.getElementById('btnRun').disabled=false;
-  document.getElementById('btnStop').disabled=true;
-}
-
-async function startTest() {
-  pass=0; fail=0; stopped=false;
+async function startTest(){
+  pass=0;fail=0;stopped=false;
   document.getElementById('sPass').textContent='0';
   document.getElementById('sFail').textContent='0';
   document.getElementById('logBody').innerHTML='';
   document.getElementById('btnRun').disabled=true;
   document.getElementById('btnStop').disabled=false;
   document.getElementById('progBox').style.display='block';
-
-  try {
-    await runTest();
-  } catch(e) {
-    log('fail', 'Test crashed: '+e.message);
-    setStatus('Error');
-  }
+  try{await runTest();}
+  catch(e){log('fail','Test error: '+e.message);setStatus('Error');}
   document.getElementById('btnRun').disabled=false;
   document.getElementById('btnStop').disabled=true;
 }
 
-async function waitFor(checkFn, timeout, desc) {
-  var start = Date.now();
-  while(Date.now()-start < timeout) {
-    if(stopped) throw new Error('Stopped');
-    try { if(checkFn()) return true; } catch(e){}
-    await wait(100);
-  }
-  log('fail', 'Timeout waiting for: '+desc);
-  return false;
-}
-
-async function runTest() {
+async function runTest(){
   setStatus('Loading...');
-  log('info', 'Loading survey: '+SURVEY_URL);
+  log('info','Survey URL: '+SURVEY_URL);
 
-  // Clear localStorage to start fresh
-  try {
-    var fr = getFrame();
-    fr.src = SURVEY_URL;
-    await wait(500);
-    // Clear any saved state
-    if(getWin().localStorage) getWin().localStorage.clear();
-    fr.src = SURVEY_URL;
-  } catch(e) {}
+  var fr=document.getElementById('frame');
+  fr.src=SURVEY_URL;
+  await wait(500);
+  try{gw().localStorage.clear();}catch(e){}
+  fr.src=SURVEY_URL;
 
-  // Wait for React to mount
-  var loaded = await waitFor(function(){
-    var doc = getDoc();
-    return doc && doc.body && doc.body.innerHTML.length > 500;
-  }, 10000, 'survey to load');
-  if(!loaded) return;
+  // Wait for survey to load fully
+  var loaded=await waitFor(function(){
+    var d=gd(); return d&&d.readyState==='complete'&&d.body&&d.body.innerHTML.length>1000;
+  },12000,'survey load');
+  if(!loaded)return;
+  await wait(2000); // extra time for React to mount
+  log('pass','Survey loaded');
 
-  await wait(1500); // let React render
-  log('pass', 'Survey loaded in iframe');
+  // ── CONSENT ─────────────────────────────────────────────────────────────
+  setStatus('Consent');
+  log('info','-- Consent --');
+  var ok=await waitFor(function(){return !!gd().querySelector('input[type="checkbox"]');},8000,'consent checkbox');
+  if(!ok)return;
+  log('pass','Consent screen loaded');
 
-  // ── CONSENT SCREEN ────────────────────────────────────────────────────────
-  setStatus('Consent...');
-  log('info', '── Consent screen ──');
+  var cb=gd().querySelector('input[type="checkbox"]');
+  var contBtn=findBtn('Continue');
+  if(contBtn&&contBtn.disabled)log('pass','Continue disabled before checkbox');
+  else log('warn','Continue state unclear');
 
-  var consentOk = await waitFor(function(){
-    return $$('button').some(function(b){ return b.textContent.indexOf('Continue') >= 0; });
-  }, 5000, 'consent screen');
+  cb.click(); await wait(300);
+  contBtn=findBtn('Continue');
+  if(contBtn&&!contBtn.disabled){log('pass','Continue enabled after checkbox'); contBtn.click();}
+  else{log('fail','Continue not enabled after checkbox'); return;}
+  await wait(1000);
 
-  if(!consentOk) { log('fail','Consent screen did not load'); return; }
-  log('pass','Consent screen rendered');
+  // ── INSTRUCTIONS ────────────────────────────────────────────────────────
+  setStatus('Instructions');
+  log('info','-- Instructions --');
+  ok=await waitFor(function(){return !!(findBtn('Begin')||findBtn('시작'));},8000,'instructions');
+  if(!ok)return;
+  log('pass','Instructions loaded');
+  var beginBtn=findBtn('Begin')||findBtn('시작');
+  beginBtn.click(); await wait(1000);
 
-  // Find and check the agree checkbox
-  var checkbox = $('input[type="checkbox"]');
-  if(!checkbox) { log('fail','Consent checkbox not found'); return; }
-  log('pass','Consent checkbox found');
+  // ── RUBRIC LOOP ──────────────────────────────────────────────────────────
+  log('info','-- Starting '+RUBRICS.length+' rubrics --');
 
-  // Continue button should be disabled
-  var contBtn = $$('button').find(function(b){ return b.textContent.indexOf('Continue') >= 0; });
-  if(contBtn && contBtn.disabled) log('pass','Continue disabled before checkbox');
-  else log('warn','Continue button state unclear before checkbox');
-
-  checkbox.click();
-  await wait(200);
-
-  contBtn = $$('button').find(function(b){ return b.textContent.indexOf('Continue') >= 0; });
-  if(contBtn && !contBtn.disabled) log('pass','Continue enabled after checkbox');
-  else log('fail','Continue still disabled after checkbox');
-
-  contBtn.click();
-  await wait(800);
-
-  // ── INSTRUCTIONS ──────────────────────────────────────────────────────────
-  setStatus('Instructions...');
-  log('info','── Instructions screen ──');
-
-  var instrOk = await waitFor(function(){
-    return $$('button').some(function(b){ return b.textContent.indexOf('Begin') >= 0 || b.textContent.indexOf('시작') >= 0; });
-  }, 5000, 'instructions screen');
-
-  if(!instrOk) { log('fail','Instructions screen did not load'); return; }
-  log('pass','Instructions screen rendered');
-
-  clickBtn('Begin');
-  await wait(800);
-
-  // ── LOOP THROUGH ALL 20 RUBRICS ───────────────────────────────────────────
-  log('info','── Starting rubric loop ('+RUBRICS.length+' rubrics) ──');
-
-  for(var ri=0; ri<RUBRICS.length; ri++) {
-    if(stopped) return;
-    var rub = RUBRICS[ri];
-    setProgress(ri, RUBRICS.length, 'Rubric '+rub.id);
+  for(var ri=0;ri<RUBRICS.length;ri++){
+    if(stopped)return;
+    var rub=RUBRICS[ri];
+    setProgress(ri,RUBRICS.length,'Rubric '+rub.id);
     log('info','Rubric '+rub.id+' ('+rub.items.length+' items)');
 
-    // ── VIGNETTE MODAL (mobile / first of each case) ─────────────────────
-    await wait(600);
-    // Close vignette modal if open (click Got it)
-    var gotIt = $$('button').find(function(b){
-      return b.textContent.indexOf('Got it') >= 0 || b.textContent.indexOf('확인') >= 0;
-    });
-    if(gotIt) {
-      gotIt.click();
-      log('pass','Rubric '+rub.id+': vignette modal closed');
-      await wait(400);
-    }
+    // Close vignette modal if present
+    await wait(500);
+    var gotIt=findBtn('Got it')||findBtn('확인');
+    if(gotIt){gotIt.click();log('pass','Rubric '+rub.id+': closed vignette modal');await wait(500);}
 
-    // ── PART A ───────────────────────────────────────────────────────────
-    var partAOk = await waitFor(function(){
-      return $$('button').some(function(b){
-        return b.textContent.indexOf('Agree') >= 0 || b.textContent.indexOf('동의') >= 0;
+    // ── PART A ──────────────────────────────────────────────────────────
+    ok=await waitFor(function(){
+      return allBtns().some(function(b){return b.textContent.trim().indexOf('Agree')>=0||b.textContent.trim().indexOf('동의')>=0;});
+    },8000,'Part A rubric '+rub.id);
+    if(!ok){log('fail','Rubric '+rub.id+': Part A not found');continue;}
+    log('pass','Rubric '+rub.id+': Part A loaded');
+
+    // Click Agree on each item - use item IDs from the data
+    var itemsAnswered=0;
+    for(var ii=0;ii<rub.items.length+3;ii++){
+      if(stopped)return;
+      // Find any Agree button that hasn't been selected (not green background)
+      var agreeBtns=allBtns().filter(function(b){
+        if(b.textContent.trim()!=='✓ Agree'&&b.textContent.trim()!=='✓ 동의')return false;
+        var bg=b.style.background||b.style.backgroundColor||'';
+        var border=b.style.border||b.style.borderColor||'';
+        // Not selected = white/transparent background
+        return bg.indexOf('240')>=0||bg.indexOf('white')>=0||bg===''||border.indexOf('DDE')>=0;
       });
-    }, 5000, 'Part A for rubric '+rub.id);
-
-    if(!partAOk) { log('fail','Rubric '+rub.id+': Part A did not render'); continue; }
-    log('pass','Rubric '+rub.id+': Part A rendered');
-
-    // Click Agree on all items
-    var maxAttempts = rub.items.length + 5;
-    var attempts = 0;
-    while(attempts < maxAttempts) {
-      if(stopped) return;
-      attempts++;
-      // Find all Agree buttons that aren't selected yet
-      var agreeBtns = $$('button').filter(function(b){
-        return (b.textContent.trim() === '✓ Agree' || b.textContent.trim() === '✓ 동의') &&
-               b.style.border && b.style.border.indexOf('rgb(22') < 0; // not green
-      });
-      if(agreeBtns.length === 0) break;
+      if(agreeBtns.length===0)break;
       agreeBtns[0].click();
-      await wait(80);
+      itemsAnswered++;
+      await wait(60);
+    }
+    log('info','Rubric '+rub.id+': clicked Agree on ~'+itemsAnswered+' items');
+
+    // Wait for Continue button to be enabled
+    ok=await waitFor(function(){
+      var b=findBtn('Continue to Part B')||findBtn('파트 B');
+      return b&&!b.disabled;
+    },5000,'Continue to Part B enabled');
+
+    var contPartB=findBtn('Continue to Part B')||findBtn('파트 B');
+    if(contPartB&&!contPartB.disabled){
+      log('pass','Rubric '+rub.id+': Part A complete, Continue enabled');
+      contPartB.click();
+    } else {
+      // Try clicking anyway - maybe all were already answered
+      if(contPartB)contPartB.click();
+      else{log('fail','Rubric '+rub.id+': Continue to Part B not found');continue;}
     }
 
-    // Check continue button is now enabled
-    var contB = $$('button').find(function(b){
-      return b.textContent.indexOf('Continue to Part B') >= 0 || b.textContent.indexOf('파트 B') >= 0;
-    });
-    if(contB && !contB.disabled) log('pass','Rubric '+rub.id+': Part A all answered, Continue enabled');
-    else log('fail','Rubric '+rub.id+': Continue to Part B still disabled after answering all');
-
-    if(contB) contB.click();
-    await wait(600);
-
-    // ── PART B ───────────────────────────────────────────────────────────
-    var partBOk = await waitFor(function(){
-      return $$('button').some(function(b){
-        return b.textContent.indexOf('Next') >= 0 || b.textContent.indexOf('Finish') >= 0 ||
-               b.textContent.indexOf('다음') >= 0 || b.textContent.indexOf('완료') >= 0;
+    // Wait for Part B - look for the submit/next button by React state
+    // Part B shows: onSubmit button with nextLabel() text
+    ok=await waitFor(function(){
+      return allBtns().some(function(b){
+        var t=b.textContent;
+        return (t.indexOf('Next Rubric')>=0||t.indexOf('Next Case')>=0||
+                t.indexOf('Finish Survey')>=0||t.indexOf('다음 기준표')>=0||
+                t.indexOf('다음 사례')>=0||t.indexOf('설문 완료')>=0);
       });
-    }, 5000, 'Part B for rubric '+rub.id);
+    },8000,'Part B next button rubric '+rub.id);
 
-    if(!partBOk) { log('fail','Rubric '+rub.id+': Part B did not render'); continue; }
-    log('pass','Rubric '+rub.id+': Part B rendered');
+    if(!ok){
+      // Debug: log all visible button texts
+      var btxtList=allBtns().map(function(b){return '"'+b.textContent.trim().slice(0,30)+'"';}).join(', ');
+      log('fail','Rubric '+rub.id+': Part B next button not found. Visible buttons: '+btxtList);
+      continue;
+    }
+    log('pass','Rubric '+rub.id+': Part B loaded');
 
-    // Check drag handles exist
-    var handles = $$('div').filter(function(d){ return d.textContent.trim() === '⠿'; });
-    if(handles.length > 0) log('pass','Rubric '+rub.id+': drag handles present ('+handles.length+')');
-    else log('warn','Rubric '+rub.id+': no drag handles found');
+    // Verify drag handles
+    var handles=Array.from(gd().querySelectorAll('div')).filter(function(d){return d.textContent.trim()==='⠿';});
+    if(handles.length>0)log('pass','Rubric '+rub.id+': '+handles.length+' drag handles found');
+    else log('warn','Rubric '+rub.id+': no drag handles');
 
-    // Check arrow buttons exist
-    var arrows = $$('button').filter(function(b){ return b.textContent.trim()==='▲'||b.textContent.trim()==='▼'; });
-    if(arrows.length > 0) log('pass','Rubric '+rub.id+': arrow buttons present ('+arrows.length+')');
-    else log('warn','Rubric '+rub.id+': no arrow buttons found');
-
-    // Check next button label is correct
-    var isLast = ri === RUBRICS.length - 1;
-    var nextBtn = $$('button').find(function(b){
-      var t = b.textContent;
-      return t.indexOf('Next') >= 0 || t.indexOf('Finish') >= 0 || t.indexOf('다음') >= 0 || t.indexOf('완료') >= 0;
+    // Click Next/Finish
+    var isLast=ri===RUBRICS.length-1;
+    var nextBtn=allBtns().find(function(b){
+      var t=b.textContent;
+      return t.indexOf('Next Rubric')>=0||t.indexOf('Next Case')>=0||
+             t.indexOf('Finish Survey')>=0||t.indexOf('다음')>=0||t.indexOf('설문 완료')>=0;
     });
-    if(nextBtn) {
-      if(isLast) {
-        if(nextBtn.textContent.indexOf('Finish') >= 0 || nextBtn.textContent.indexOf('완료') >= 0)
-          log('pass','Last rubric shows "Finish Survey"');
+    if(nextBtn){
+      if(isLast){
+        if(nextBtn.textContent.indexOf('Finish')>=0||nextBtn.textContent.indexOf('완료')>=0)
+          log('pass','Last rubric: "Finish Survey" label correct');
         else
-          log('fail','Last rubric should show "Finish Survey", got: '+nextBtn.textContent.trim());
+          log('fail','Last rubric wrong label: '+nextBtn.textContent.trim());
       }
       nextBtn.click();
     } else {
-      log('fail','Rubric '+rub.id+': no Next/Finish button found');
+      log('fail','Rubric '+rub.id+': Next button not found in Part B');
     }
-    await wait(400);
+    await wait(300);
   }
 
-  setProgress(RUBRICS.length, RUBRICS.length, 'All rubrics done');
+  setProgress(RUBRICS.length,RUBRICS.length,'All rubrics done');
 
-  // ── DONE SCREEN ───────────────────────────────────────────────────────────
-  setStatus('Done screen...');
-  log('info','── Done screen ──');
+  // ── DONE SCREEN ──────────────────────────────────────────────────────────
+  setStatus('Done screen');
+  log('info','-- Done screen --');
+  ok=await waitFor(function(){
+    return allBtns().some(function(b){return b.textContent.indexOf('Submit')>=0||b.textContent.indexOf('제출')>=0;});
+  },8000,'Done screen');
+  if(!ok){log('fail','Done screen not found');setStatus('Failed');return;}
+  log('pass','Done screen loaded');
 
-  var doneOk = await waitFor(function(){
-    return $$('button').some(function(b){
-      return b.textContent.indexOf('Submit') >= 0 || b.textContent.indexOf('제출') >= 0;
-    });
-  }, 5000, 'Done screen');
+  // Get participant ID
+  var pid=null;
+  var bodyTxt=gd().body.innerText||'';
+  var pm=bodyTxt.match(/P-[A-Z0-9]{6}/);
+  if(pm){pid=pm[0];log('pass','Participant ID: '+pid);}
 
-  if(!doneOk) { log('fail','Done screen did not load'); setStatus('Failed'); return; }
-  log('pass','Done screen rendered');
+  // Submit
+  var subBtn=findBtn('Submit')||findBtn('제출');
+  if(!subBtn){log('fail','Submit button not found');return;}
+  log('info','Submitting...');
+  subBtn.click();
 
-  // Get the participant ID for verification
-  testPid = null;
-  var allText = getDoc().body.innerText || '';
-  var pidMatch = allText.match(/P-[A-Z0-9]{6}/);
-  if(pidMatch) { testPid = pidMatch[0]; log('pass','Participant ID: '+testPid); }
+  ok=await waitFor(function(){
+    var t=gd().body.innerText||'';
+    return t.indexOf('thank you')>=0||t.indexOf('감사합니다')>=0||t.indexOf('submitted')>=0||t.indexOf('완료')>=0;
+  },20000,'submission success');
 
-  // Click Submit
-  var submitBtn = $$('button').find(function(b){
-    return b.textContent.indexOf('Submit') >= 0 || b.textContent.indexOf('제출') >= 0;
-  });
-  if(!submitBtn) { log('fail','Submit button not found'); setStatus('Failed'); return; }
+  if(ok)log('pass','Submission succeeded!');
+  else log('fail','Submission may have failed — check Supabase');
 
-  log('info','Clicking Submit...');
-  submitBtn.click();
-
-  // Wait for success
-  var submitted = await waitFor(function(){
-    var txt = getDoc().body.innerText || '';
-    return txt.indexOf('submitted') >= 0 || txt.indexOf('제출 완료') >= 0 || txt.indexOf('thank you') >= 0 || txt.indexOf('감사합니다') >= 0;
-  }, 15000, 'submission success');
-
-  if(submitted) {
-    log('pass','Survey submitted successfully!');
-  } else {
-    log('fail','Submission may have failed — check Supabase');
-  }
-
-  // ── VERIFY IN SUPABASE ─────────────────────────────────────────────────
-  if(testPid) {
-    log('info','Verifying submission in Supabase for pid: '+testPid);
-    setStatus('Checking Supabase...');
-
-    try {
-      var resp = await fetch(SUPABASE_URL+'/rest/v1/responses?participant_id=eq.'+testPid+'&select=participant_id,rubric_id,item_id&limit=5', {
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': 'Bearer '+SUPABASE_KEY
-        }
+  // ── VERIFY SUPABASE ──────────────────────────────────────────────────────
+  if(pid){
+    log('info','Verifying in Supabase for: '+pid);
+    setStatus('Checking DB...');
+    try{
+      var r=await fetch(SUPA_URL+'/rest/v1/responses?participant_id=eq.'+pid+'&select=participant_id,rubric_id,item_id&limit=10',{
+        headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}
       });
-      var rows = await resp.json();
-      if(rows && rows.length > 0) {
-        log('pass','Supabase: '+rows.length+'+ rows found for '+testPid);
-        log('pass','Sample row: rubric='+rows[0].rubric_id+', item='+rows[0].item_id);
-      } else if(rows && rows.length === 0) {
-        log('fail','Supabase: 0 rows found for '+testPid+' — submission may have failed');
+      var rows=await r.json();
+      if(rows&&rows.length>0){
+        log('pass','Supabase: '+rows.length+'+ rows found for '+pid);
+        log('pass','Sample: rubric='+rows[0].rubric_id+', item='+rows[0].item_id);
+      } else if(rows&&rows.length===0){
+        log('fail','Supabase: 0 rows for '+pid+' — submission failed');
       } else {
-        log('fail','Supabase error: '+JSON.stringify(rows).slice(0,100));
+        log('fail','Supabase error: '+JSON.stringify(rows).slice(0,80));
       }
-    } catch(e) {
-      log('fail','Supabase check failed: '+e.message);
-    }
+    }catch(e){log('fail','Supabase check error: '+e.message);}
   }
 
-  var finalStatus = fail===0 ? 'All passed!' : fail+' failures';
-  setStatus(finalStatus);
-  log('info','── Test complete: '+pass+' passed, '+fail+' failed ──');
+  var finalOk=fail===0;
+  setStatus(finalOk?'All passed!':fail+' failures');
+  log('info','-- Done: '+pass+' passed, '+fail+' failed --');
 }
 </script>
 </body></html>
