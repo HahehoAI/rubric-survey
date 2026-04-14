@@ -4820,6 +4820,291 @@ window.__qaRun=async function(){
       }
       __log('pass','Rubric '+rub.id+': Part B loaded');
 
+    // ═══════════════════════════════════════════════════════════════════
+    // EDGE CASE TESTS — run on rubric 1-1 before proceeding
+    // ═══════════════════════════════════════════════════════════════════
+    if(ri===0){
+      __log('info','── Edge case tests (Rubric 1-1) ──');
+
+      // ── EC1: LANGUAGE TOGGLE ────────────────────────────────────────
+      __log('info','EC1: Language toggle');
+      var koBtn=__find('한국어');
+      if(koBtn){
+        __click(koBtn); await __wait(400);
+        // Check if a Korean button text appears
+        var hasKorean=__btns().some(function(b){
+          return b.textContent.indexOf('다음')>=0||b.textContent.indexOf('동의')>=0||
+                 b.textContent.indexOf('비동의')>=0;
+        });
+        __log(hasKorean?'pass':'fail','EC1: Korean mode activated');
+        // Switch back to English
+        var enBtn=__find('EN');
+        if(enBtn){__click(enBtn); await __wait(400);}
+        var backToEn=__btns().some(function(b){
+          return b.textContent.indexOf('Agree')>=0||b.textContent.indexOf('Continue')>=0;
+        });
+        __log(backToEn?'pass':'fail','EC1: Switched back to English');
+      } else {__log('fail','EC1: Korean toggle button not found');}
+
+      // ── EC2: BACK NAVIGATION — answers persist ───────────────────────
+      __log('info','EC2: Back navigation');
+      // Currently on Part B of rubric 1-1. Click Back to go to Part A.
+      var backBtn=__find('Back')||__find('이전');
+      if(backBtn){
+        __click(backBtn); await __wait(800);
+        // Verify Part A is showing
+        var onPartA=__btns().some(function(b){
+          return b.textContent.indexOf('Continue to Part B')>=0||b.textContent.indexOf('파트 B')>=0;
+        });
+        __log(onPartA?'pass':'fail','EC2: Back navigated to Part A');
+        if(onPartA){
+          // Verify answers are still there (green Agree buttons)
+          var greenBtns=__btns().filter(function(b){
+            if(b.textContent.trim()!=='✓ Agree'&&b.textContent.trim()!=='✓ 동의')return false;
+            var bg=b.style.background||b.style.backgroundColor||'';
+            var border=b.style.borderColor||b.style.border||'';
+            return bg.indexOf('F0FDF4')>=0||bg.indexOf('240, 253, 244')>=0||
+                   border.indexOf('16A34A')>=0||border.indexOf('rgb(22, 163')>=0;
+          });
+          __log(greenBtns.length>0?'pass':'fail',
+            'EC2: Answers persisted after Back ('+greenBtns.length+' green items)');
+
+          // ── EC3: COMMENT ENTRY ─────────────────────────────────────
+          __log('info','EC3: Comment entry');
+          var textarea=document.querySelector('textarea');
+          if(textarea){
+            textarea.focus();
+            // Simulate typing by setting value and dispatching input event
+            var testComment='AutoTest comment '+Date.now();
+            var nativeInputValueSetter=Object.getOwnPropertyDescriptor(
+              window.HTMLTextAreaElement.prototype,'value').set;
+            nativeInputValueSetter.call(textarea,testComment);
+            textarea.dispatchEvent(new Event('input',{bubbles:true}));
+            textarea.dispatchEvent(new Event('blur',{bubbles:true}));
+            await __wait(400);
+            __log('pass','EC3: Comment typed in textarea');
+          } else {
+            __log('warn','EC3: No textarea visible (need an answered item first)');
+          }
+
+          // ── EC4: CHANGE ONE ANSWER — others must persist ────────────
+          __log('info','EC4: Change one answer — others persist');
+          // Count currently green items before change
+          var greenBefore=__btns().filter(function(b){
+            if(b.textContent.trim()!=='✓ Agree'&&b.textContent.trim()!=='✓ 동의')return false;
+            var bg=b.style.background||'';
+            var border=b.style.borderColor||b.style.border||'';
+            return bg.indexOf('F0FDF4')>=0||border.indexOf('16A34A')>=0||
+                   border.indexOf('rgb(22, 163')>=0;
+          }).length;
+
+          // Click Disagree on first item to change its answer
+          var disagreeBtn=__btns().find(function(b){
+            return b.textContent.trim()==='✗ Disagree'||b.textContent.trim()==='✗ 비동의';
+          });
+          if(disagreeBtn){
+            __click(disagreeBtn); await __wait(300);
+            // Green count should still be greenBefore-1 (only one changed)
+            var greenAfter=__btns().filter(function(b){
+              if(b.textContent.trim()!=='✓ Agree'&&b.textContent.trim()!=='✓ 동의')return false;
+              var bg=b.style.background||'';
+              var border=b.style.borderColor||b.style.border||'';
+              return bg.indexOf('F0FDF4')>=0||border.indexOf('16A34A')>=0||
+                     border.indexOf('rgb(22, 163')>=0;
+            }).length;
+            __log(greenAfter===greenBefore-1?'pass':'fail',
+              'EC4: Changed 1 answer, other '+greenAfter+' still green (expected '+(greenBefore-1)+')');
+            // Fix it back to Agree
+            var firstAgree=__btns().find(function(b){
+              return b.textContent.trim()==='✓ Agree'||b.textContent.trim()==='✓ 동의';
+            });
+            if(firstAgree){__click(firstAgree); await __wait(200);}
+          } else {
+            __log('warn','EC4: No Disagree button visible');
+          }
+
+          // Go back to Part B (click Continue)
+          var c2b=__find('Continue to Part B')||__find('파트 B');
+          if(c2b){__click(c2b); await __wait(800);}
+
+          // Wait for Part B to reload
+          await __waitFor(function(){
+            return __btns().some(function(b){
+              var t=b.textContent;
+              return t.indexOf('Next Rubric')>=0||t.indexOf('Next Case')>=0||
+                     t.indexOf('Finish Survey')>=0||t.indexOf('다음')>=0;
+            });
+          },8000,'Part B reload after back nav');
+        }
+      } else {__log('warn','EC2: No Back button found on Part B');}
+
+      // ── EC5: PART B ARROW BUTTONS ───────────────────────────────────
+      __log('info','EC5: Part B arrow buttons');
+      // Find arrow buttons
+      var upBtns=__btns().filter(function(b){return b.textContent.trim()==='▲';});
+      var downBtns=__btns().filter(function(b){return b.textContent.trim()==='▼';});
+      __log(upBtns.length>0&&downBtns.length>0?'pass':'fail',
+        'EC5: Arrow buttons present ('+upBtns.length+' up, '+downBtns.length+' down)');
+
+      if(upBtns.length>1){
+        // First item's ▲ should be disabled
+        __log(upBtns[0].disabled?'pass':'fail','EC5: First item ▲ is disabled');
+        // Last item's ▼ should be disabled
+        __log(downBtns[downBtns.length-1].disabled?'pass':'fail','EC5: Last item ▼ is disabled');
+
+        // Click ▲ on second item (index 1) — it should move up
+        // Get order label before click
+        var rankBefore=Array.from(document.querySelectorAll('span')).filter(function(s){
+          return s.textContent.startsWith('#');
+        }).map(function(s){return s.textContent;});
+
+        __click(upBtns[1]); await __wait(400);
+
+        var rankAfter=Array.from(document.querySelectorAll('span')).filter(function(s){
+          return s.textContent.startsWith('#');
+        }).map(function(s){return s.textContent;});
+
+        var reordered=rankBefore.join(',')!==rankAfter.join(',');
+        __log(reordered?'pass':'fail',
+          'EC5: ▲ click reordered items ('+rankBefore.slice(0,3).join(',')+' → '+rankAfter.slice(0,3).join(',')+')');
+      }
+
+      // ── EC6: VIEW CASE BUTTON (mobile only) ─────────────────────────
+      __log('info','EC6: View Case button');
+      var isMob=window.innerWidth<768;
+      if(isMob){
+        var vcBtn=Array.from(document.querySelectorAll('button,div')).find(function(el){
+          return el.textContent.indexOf('View Case')>=0||el.textContent.indexOf('사례 보기')>=0;
+        });
+        __log(vcBtn?'pass':'fail','EC6: View Case button visible on mobile');
+      } else {
+        __log('pass','EC6: Desktop — View Case button not expected (sidebar shown instead)');
+      }
+
+
+      // ── EC7: COMMENT PERSISTS AFTER NEXT → BACK ───────────────────
+      __log('info','EC7: Comment persists after Next→Back');
+      // We need to be on Part B right now. Go back to Part A first.
+      var backBtn2=__find('Back')||__find('이전');
+      if(backBtn2){
+        __click(backBtn2); await __wait(800);
+        var onPartA2=__btns().some(function(b){
+          return b.textContent.indexOf('Continue to Part B')>=0;
+        });
+        if(onPartA2){
+          // Type a comment in the first visible textarea
+          var ta=document.querySelector('textarea');
+          if(ta){
+            var testCmt='EC7-test-'+Date.now();
+            var setter=Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype,'value').set;
+            setter.call(ta,testCmt);
+            ta.dispatchEvent(new Event('input',{bubbles:true}));
+            ta.dispatchEvent(new Event('blur',{bubbles:true}));
+            await __wait(500);
+            __log('pass','EC7: Comment typed: '+testCmt.slice(0,20));
+
+            // Click Continue to Part B
+            var c2b2=__find('Continue to Part B')||__find('파트 B');
+            if(c2b2){
+              __click(c2b2);
+              await __waitFor(function(){
+                return __btns().some(function(b){
+                  return b.textContent.indexOf('Next Rubric')>=0||b.textContent.indexOf('Next Case')>=0||
+                         b.textContent.indexOf('Finish Survey')>=0;
+                });
+              },8000,'Part B after comment test');
+              await __wait(300);
+
+              // Go back to Part A again
+              var backBtn3=__find('Back')||__find('이전');
+              if(backBtn3){
+                __click(backBtn3); await __wait(800);
+                // Check if comment is still there
+                var ta2=document.querySelector('textarea');
+                var commentStillThere=ta2&&ta2.value.indexOf('EC7-test')>=0;
+                __log(commentStillThere?'pass':'fail',
+                  'EC7: Comment persisted after Next→Back (found: '+(ta2?ta2.value.slice(0,20):'no textarea')+')');
+                // Go forward to Part B again to continue test
+                var c2b3=__find('Continue to Part B')||__find('파트 B');
+                if(c2b3){
+                  __click(c2b3);
+                  await __waitFor(function(){
+                    return __btns().some(function(b){
+                      return b.textContent.indexOf('Next Rubric')>=0||b.textContent.indexOf('Finish Survey')>=0;
+                    });
+                  },8000,'Part B restored');
+                }
+              }
+            }
+          } else {
+            __log('warn','EC7: No textarea found (item may not be answered)');
+            // Go back to Part B
+            var c2b4=__find('Continue to Part B')||__find('파트 B');
+            if(c2b4){__click(c2b4); await __wait(800);}
+          }
+        }
+      } else {__log('warn','EC7: No Back button on Part B');}
+
+      // ── EC8: VIGNETTE MODAL OPEN/CLOSE (mobile) ────────────────────
+      __log('info','EC8: Vignette modal');
+      var isMob2=window.innerWidth<768;
+      if(isMob2){
+        var vcBtn2=Array.from(document.querySelectorAll('button,div')).find(function(el){
+          return el.textContent.trim().indexOf('View Case')>=0||
+                 el.textContent.trim().indexOf('사례 보기')>=0;
+        });
+        if(vcBtn2){
+          __click(vcBtn2); await __wait(600);
+          // Check modal is open (Got it button visible)
+          var gotItVisible=__find('Got it')||__find('확인');
+          __log(gotItVisible?'pass':'fail','EC8: Vignette modal opened');
+          if(gotItVisible){
+            __click(gotItVisible); await __wait(500);
+            // Check modal is closed (Got it gone, View Case back)
+            var modalClosed=!(__find('Got it')||__find('확인'));
+            __log(modalClosed?'pass':'fail','EC8: Vignette modal closed');
+            var vcBack=Array.from(document.querySelectorAll('button,div')).find(function(el){
+              return el.textContent.trim().indexOf('View Case')>=0||
+                     el.textContent.trim().indexOf('사례 보기')>=0;
+            });
+            __log(vcBack?'pass':'fail','EC8: View Case button reappeared after close');
+          }
+        } else {__log('warn','EC8: View Case button not found on mobile');}
+      } else {
+        __log('pass','EC8: Desktop — vignette in sidebar, modal not applicable');
+      }
+
+      // ── EC9: PART B SPECIFIC POSITION AFTER ARROW ─────────────────
+      __log('info','EC9: Arrow moves to exact position');
+      // Get current item labels (#1, #2, #3...)
+      function getRankLabels(){
+        return Array.from(document.querySelectorAll('span')).filter(function(s){
+          return /^#\d+$/.test(s.textContent.trim());
+        }).map(function(s){return s.textContent.trim();});
+      }
+      var ranksBefore=getRankLabels();
+      if(ranksBefore.length>=2){
+        // Click ▼ on first item → it should move to position 2
+        var downBtns2=__btns().filter(function(b){return b.textContent.trim()==='▼';});
+        if(downBtns2.length>0&&!downBtns2[0].disabled){
+          __click(downBtns2[0]); await __wait(400);
+          var ranksAfter=getRankLabels();
+          // The item that was #1 should now be #2 (labels reorder)
+          // Actually the labels stay as position numbers - the items move
+          // Verify something changed
+          var orderChanged=ranksBefore.join(',')!==ranksAfter.join(',');
+          __log(orderChanged?'pass':'fail',
+            'EC9: ▼ on first item changed order ('+ranksBefore.slice(0,3).join(',')+'→'+ranksAfter.slice(0,3).join(',')+')');
+          // Click ▲ to restore
+          var upBtns2=__btns().filter(function(b){return b.textContent.trim()==='▲';});
+          if(upBtns2.length>1){__click(upBtns2[1]); await __wait(300);}
+        } else {__log('warn','EC9: No moveable items found');}
+      } else {__log('warn','EC9: Not enough ranked items visible');}
+
+      __log('info','── Edge cases complete ──');
+    }
+    // ═══════════════════════════════════════════════════════════════════
+
       // Check drag handles
       var handles=Array.from(document.querySelectorAll('div')).filter(function(d){return d.textContent.trim()==='⠿';});
       if(handles.length>0)__log('pass','Rubric '+rub.id+': '+handles.length+' drag handles');
@@ -4877,9 +5162,25 @@ window.__qaRun=async function(){
           headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}
         });
         var rows=await r.json();
-        if(rows&&rows.length>0){__log('pass','Supabase: '+rows.length+'+ rows found');__log('pass','Sample: rubric='+rows[0].rubric_id+', item='+rows[0].item_id);}
-        else if(rows&&rows.length===0){__log('fail','Supabase: 0 rows — submission failed');}
-        else{__log('fail','Supabase error: '+JSON.stringify(rows).slice(0,60));}
+        var EXPECTED_ROWS=580; // 290 items × 2 (agreement + ranking rows each)
+      if(rows&&rows.length>0){
+        __log('pass','Supabase: '+rows.length+' rows found for '+pid);
+        __log('pass','Sample: rubric='+rows[0].rubric_id+', item='+rows[0].item_id);
+        // Fetch total count
+        try{
+          var countResp=await fetch(SUPA_URL+'/rest/v1/responses?participant_id=eq.'+pid+'&select=item_id',{
+            headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Prefer':'count=exact'}
+          });
+          var countHdr=countResp.headers.get('content-range');
+          if(countHdr){
+            var total=parseInt(countHdr.split('/')[1]);
+            __log(total===EXPECTED_ROWS?'pass':'fail',
+              'Supabase row count: '+total+' (expected '+EXPECTED_ROWS+')');
+          }
+        }catch(e){__log('warn','Could not get exact count: '+e.message);}
+      }
+      else if(rows&&rows.length===0){__log('fail','Supabase: 0 rows — submission failed');}
+      else{__log('fail','Supabase error: '+JSON.stringify(rows).slice(0,60));}
       }catch(e){__log('fail','Supabase: '+e.message);}
     }
 
