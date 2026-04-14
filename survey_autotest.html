@@ -4748,30 +4748,30 @@ window.__qaRun=async function(){
           }
         }
         if(!injected){
-          // Fallback: find unanswered item containers by background color
-          // Unanswered items have white background; answered have green/red bg
+          // Fallback: find unanswered Agree buttons by walking UP to item container
+          // Structure: item-div > agree-disagree-flex > AGREE BUTTON
+          // item-div bg = white (unanswered), green (#F0FDF4), or red (#FEF2F2)
           for(var ii=0;ii<rub.items.length*3&&clicked<rub.items.length;ii++){
             if(__stopped)return;
-            // Find a container div that is WHITE (unanswered) and has an Agree button inside
-            var unansweredItem=null;
-            var allDivs=Array.from(document.querySelectorAll('div'));
-            for(var di=0;di<allDivs.length;di++){
-              var dv=allDivs[di];
-              var bg=dv.style.background||dv.style.backgroundColor||'';
-              // White background = unanswered item container
-              if(bg!=='white'&&bg!=='rgb(255, 255, 255)'&&bg!=='#FFFFFF')continue;
-              // Must contain an Agree button
-              var ab=dv.querySelector('button');
-              if(!ab)continue;
-              if(ab.textContent.trim()!=='✓ Agree'&&ab.textContent.trim()!=='✓ 동의')continue;
-              // Must not already be answered (check parent container)
-              unansweredItem=ab;
-              break;
+            var foundBtn=null;
+            var agreeBtns=Array.from(document.querySelectorAll('button')).filter(function(b){
+              return b.textContent.trim()==='✓ Agree'||b.textContent.trim()==='✓ 동의';
+            });
+            for(var bi=0;bi<agreeBtns.length;bi++){
+              var btn=agreeBtns[bi];
+              // Walk up 2 levels: button -> flex-div -> item-container
+              var itemDiv=btn.parentElement&&btn.parentElement.parentElement;
+              if(!itemDiv)continue;
+              var bg=itemDiv.style.background||itemDiv.style.backgroundColor||'';
+              // White = unanswered. Skip green (#F0FDF4) and red (#FEF2F2)
+              var isAnswered=bg.indexOf('F0FDF4')>=0||bg.indexOf('FEF2F2')>=0||
+                             bg.indexOf('240, 253')>=0||bg.indexOf('254, 242')>=0;
+              if(!isAnswered){foundBtn=btn; break;}
             }
-            if(!unansweredItem)break;
-            try{unansweredItem.scrollIntoView({block:'center',behavior:'instant'});}catch(e){}
+            if(!foundBtn)break;
+            try{foundBtn.scrollIntoView({block:'center',behavior:'instant'});}catch(e){}
             await __wait(60);
-            __click(unansweredItem);
+            __click(foundBtn);
             clicked++;
             await __wait(150);
           }
