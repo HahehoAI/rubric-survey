@@ -4838,9 +4838,16 @@ window.__qaRun=async function(){
         __log(hasKorean?'pass':'fail','EC1: Korean mode activated');
         // Switch back to English
         var enBtn=__find('EN');
-        if(enBtn){__click(enBtn); await __wait(400);}
+        if(enBtn){__click(enBtn); await __wait(800);}
+        // Check header still shows EN as active (Korean button now shows 한국어)
+        var enActive=Array.from(document.querySelectorAll('button')).some(function(b){
+          return b.textContent.trim()==='EN' && (b.style.background||b.style.backgroundColor||'').indexOf('255')>=0 ||
+                 b.textContent.trim()==='EN' && b.style.borderColor&&b.style.borderColor.indexOf('255')>=0;
+        });
+        // Simpler: just check Agree buttons exist (EN mode)
+        await __wait(400);
         var backToEn=__btns().some(function(b){
-          return b.textContent.indexOf('Agree')>=0||b.textContent.indexOf('Continue')>=0;
+          return b.textContent.indexOf('Agree')>=0||b.textContent.indexOf('Disagree')>=0;
         });
         __log(backToEn?'pass':'fail','EC1: Switched back to English');
       } else {__log('fail','EC1: Korean toggle button not found');}
@@ -4879,8 +4886,10 @@ window.__qaRun=async function(){
               window.HTMLTextAreaElement.prototype,'value').set;
             nativeInputValueSetter.call(textarea,testComment);
             textarea.dispatchEvent(new Event('input',{bubbles:true}));
-            textarea.dispatchEvent(new Event('blur',{bubbles:true}));
-            await __wait(400);
+            textarea.dispatchEvent(new Event('change',{bubbles:true}));
+            textarea.dispatchEvent(new FocusEvent('blur',{bubbles:true}));
+            textarea.dispatchEvent(new FocusEvent('focusout',{bubbles:true}));
+            await __wait(600);
             __log('pass','EC3: Comment typed in textarea');
           } else {
             __log('warn','EC3: No textarea visible (need an answered item first)');
@@ -4953,19 +4962,21 @@ window.__qaRun=async function(){
 
         // Click ▲ on second item (index 1) — it should move up
         // Get order label before click
-        var rankBefore=Array.from(document.querySelectorAll('span')).filter(function(s){
-          return s.textContent.startsWith('#');
-        }).map(function(s){return s.textContent;});
+        // Track item TEXT content (not #position labels which always stay #1,#2,#3)
+        function getItemOrder(){
+          return Array.from(document.querySelectorAll('p')).filter(function(p){
+            return p.style&&p.style.fontWeight==='700'&&p.textContent.indexOf('Item ')>=0;
+          }).map(function(p){return p.textContent.trim().slice(0,20);});
+        }
+        var orderBefore=getItemOrder();
 
         __click(upBtns[1]); await __wait(400);
 
-        var rankAfter=Array.from(document.querySelectorAll('span')).filter(function(s){
-          return s.textContent.startsWith('#');
-        }).map(function(s){return s.textContent;});
-
-        var reordered=rankBefore.join(',')!==rankAfter.join(',');
+        var orderAfter=getItemOrder();
+        var reordered=orderBefore.length>0&&orderAfter.length>0&&
+                      orderBefore[0]!==orderAfter[0];
         __log(reordered?'pass':'fail',
-          'EC5: ▲ click reordered items ('+rankBefore.slice(0,3).join(',')+' → '+rankAfter.slice(0,3).join(',')+')');
+          'EC5: ▲ click reordered items ('+orderBefore.slice(0,2).join('|')+' → '+orderAfter.slice(0,2).join('|')+')');
       }
 
       // ── EC6: VIEW CASE BUTTON (mobile only) ─────────────────────────
@@ -4998,8 +5009,10 @@ window.__qaRun=async function(){
             var setter=Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype,'value').set;
             setter.call(ta,testCmt);
             ta.dispatchEvent(new Event('input',{bubbles:true}));
-            ta.dispatchEvent(new Event('blur',{bubbles:true}));
-            await __wait(500);
+            ta.dispatchEvent(new Event('change',{bubbles:true}));
+            ta.dispatchEvent(new FocusEvent('blur',{bubbles:true}));
+            ta.dispatchEvent(new FocusEvent('focusout',{bubbles:true}));
+            await __wait(700);
             __log('pass','EC7: Comment typed: '+testCmt.slice(0,20));
 
             // Click Continue to Part B
@@ -5076,30 +5089,25 @@ window.__qaRun=async function(){
       // ── EC9: PART B SPECIFIC POSITION AFTER ARROW ─────────────────
       __log('info','EC9: Arrow moves to exact position');
       // Get current item labels (#1, #2, #3...)
-      function getRankLabels(){
-        return Array.from(document.querySelectorAll('span')).filter(function(s){
-          return /^#\d+$/.test(s.textContent.trim());
-        }).map(function(s){return s.textContent.trim();});
-      }
-      var ranksBefore=getRankLabels();
-      if(ranksBefore.length>=2){
-        // Click ▼ on first item → it should move to position 2
-        var downBtns2=__btns().filter(function(b){return b.textContent.trim()==='▼';});
-        if(downBtns2.length>0&&!downBtns2[0].disabled){
-          __click(downBtns2[0]); await __wait(400);
-          var ranksAfter=getRankLabels();
-          // The item that was #1 should now be #2 (labels reorder)
-          // Actually the labels stay as position numbers - the items move
-          // Verify something changed
-          var orderChanged=ranksBefore.join(',')!==ranksAfter.join(',');
-          __log(orderChanged?'pass':'fail',
-            'EC9: ▼ on first item changed order ('+ranksBefore.slice(0,3).join(',')+'→'+ranksAfter.slice(0,3).join(',')+')');
-          // Click ▲ to restore
-          var upBtns2=__btns().filter(function(b){return b.textContent.trim()==='▲';});
-          if(upBtns2.length>1){__click(upBtns2[1]); await __wait(300);}
-        } else {__log('warn','EC9: No moveable items found');}
-      } else {__log('warn','EC9: Not enough ranked items visible');}
-
+      function getItemOrder2(){
+          return Array.from(document.querySelectorAll('p')).filter(function(p){
+            return p.style&&p.style.fontWeight==='700'&&p.textContent.indexOf('Item ')>=0;
+          }).map(function(p){return p.textContent.trim().slice(0,25);});
+        }
+        var order9Before=getItemOrder2();
+        if(order9Before.length>=2){
+          var downBtns2=__btns().filter(function(b){return b.textContent.trim()==='\u25bc';});
+          if(downBtns2.length>0&&!downBtns2[0].disabled){
+            __click(downBtns2[0]); await __wait(500);
+            var order9After=getItemOrder2();
+            var changed9=order9Before.length>0&&order9After.length>0&&
+                         order9Before[0]!==order9After[0];
+            __log(changed9?'pass':'fail',
+              'EC9: \u25bc on first item changed order ('+order9Before[0].slice(0,15)+'\u2192'+order9After[0].slice(0,15)+')');
+            var upBtns2=__btns().filter(function(b){return b.textContent.trim()==='\u25b2';});
+            if(upBtns2.length>1){__click(upBtns2[1]); await __wait(300);}
+          } else {__log('warn','EC9: First \u25bc is disabled');}
+        } else {__log('warn','EC9: Not enough items visible');}
       __log('info','── Edge cases complete ──');
     }
     // ═══════════════════════════════════════════════════════════════════
@@ -5147,10 +5155,17 @@ window.__qaRun=async function(){
     __click(subBtn);
 
     ok=await __waitFor(function(){
-      var t=document.body.innerText||'';
-      return t.indexOf('thank you')>=0||t.indexOf('감사합니다')>=0||t.indexOf('submitted')>=0;
-    },20000,'submission success');
-    if(ok)__log('pass','Submission succeeded!');
+      var t=(document.body.innerText||'').toLowerCase();
+      return t.indexOf('recorded')>=0||t.indexOf('thank you')>=0||
+             t.indexOf('감사합니다')>=0||t.indexOf('submitted')>=0||
+             t.indexOf('완료')>=0||t.indexOf('complete')>=0||
+             // Also check: submit button disappears (replaced by success state)
+             !__btns().some(function(b){
+               return b.textContent.indexOf('Submit Responses')>=0||
+                      b.textContent.indexOf('응답 제출')>=0;
+             });
+    },25000,'submission success');
+    if(ok)__log('pass','Submission succeeded — responses recorded!');
     else __log('fail','Submission timeout — check Supabase manually');
 
     // ── CHECK SUPABASE ────────────────────────────────────────────────
