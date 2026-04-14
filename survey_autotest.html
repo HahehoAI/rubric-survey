@@ -4748,37 +4748,36 @@ window.__qaRun=async function(){
           }
         }
         if(!injected){
-          // Fallback: DOM clicking with scrollIntoView
-          for(var ii=0;ii<rub.items.length*4&&clicked<rub.items.length;ii++){
+          // Fallback: find unanswered item containers by background color
+          // Unanswered items have white background; answered have green/red bg
+          for(var ii=0;ii<rub.items.length*3&&clicked<rub.items.length;ii++){
             if(__stopped)return;
-            var agreeBtn=__btns().find(function(b){
-              if(b.textContent.trim()!=='✓ Agree'&&b.textContent.trim()!=='✓ 동의')return false;
-              var border=b.style.borderColor||b.style.border||'';
-              var bg=b.style.background||b.style.backgroundColor||'';
-              if(border.indexOf('16A34A')>=0||bg.indexOf('F0FDF4')>=0)return false;
-              return true;
-            });
-            if(!agreeBtn)break;
-            try{agreeBtn.scrollIntoView({block:'center',behavior:'instant'});}catch(e){}
-            await __wait(80);
-            __click(agreeBtn);
+            // Find a container div that is WHITE (unanswered) and has an Agree button inside
+            var unansweredItem=null;
+            var allDivs=Array.from(document.querySelectorAll('div'));
+            for(var di=0;di<allDivs.length;di++){
+              var dv=allDivs[di];
+              var bg=dv.style.background||dv.style.backgroundColor||'';
+              // White background = unanswered item container
+              if(bg!=='white'&&bg!=='rgb(255, 255, 255)'&&bg!=='#FFFFFF')continue;
+              // Must contain an Agree button
+              var ab=dv.querySelector('button');
+              if(!ab)continue;
+              if(ab.textContent.trim()!=='✓ Agree'&&ab.textContent.trim()!=='✓ 동의')continue;
+              // Must not already be answered (check parent container)
+              unansweredItem=ab;
+              break;
+            }
+            if(!unansweredItem)break;
+            try{unansweredItem.scrollIntoView({block:'center',behavior:'instant'});}catch(e){}
+            await __wait(60);
+            __click(unansweredItem);
             clicked++;
-            await __wait(120);
+            await __wait(150);
           }
         }
       } catch(e) {
-        __log('warn','Agree injection error: '+e.message+' — trying DOM clicks');
-        // Final fallback: just click whatever Agree buttons are visible
-        var agreeBtns=__btns().filter(function(b){
-          return b.textContent.trim()==='✓ Agree'||b.textContent.trim()==='✓ 동의';
-        });
-        for(var i=0;i<agreeBtns.length;i++){
-          try{agreeBtns[i].scrollIntoView({block:'center',behavior:'instant'});}catch(e){}
-          await __wait(60);
-          __click(agreeBtns[i]);
-          clicked++;
-          await __wait(100);
-        }
+        __log('warn','Agree injection: '+e.message);
       }
       __log(clicked>=rub.items.length?'pass':'warn',
         'Rubric '+rub.id+': answered '+clicked+'/'+rub.items.length+' items');
