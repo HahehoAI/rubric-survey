@@ -4846,10 +4846,18 @@ window.__qaRun=async function(){
         });
         // Simpler: just check Agree buttons exist (EN mode)
         await __wait(400);
+        // On Part B — check for English Part B elements (arrows or Next button)
         var backToEn=__btns().some(function(b){
-          return b.textContent.indexOf('Agree')>=0||b.textContent.indexOf('Disagree')>=0;
+          var t=b.textContent;
+          return t.indexOf('Next Rubric')>=0||t.indexOf('Next Case')>=0||
+                 t.indexOf('Finish Survey')>=0||t.indexOf('Back')>=0||
+                 t==='▲'||t==='▼';
         });
-        __log(backToEn?'pass':'fail','EC1: Switched back to English');
+        // Also verify Korean buttons are gone from content
+        var noKorean=!__btns().some(function(b){
+          return b.textContent.indexOf('다음 기준표')>=0||b.textContent.indexOf('비동의')>=0;
+        });
+        __log(backToEn&&noKorean?'pass':'fail','EC1: Switched back to English');
       } else {__log('fail','EC1: Korean toggle button not found');}
 
       // ── EC2: BACK NAVIGATION — answers persist ───────────────────────
@@ -5171,6 +5179,7 @@ window.__qaRun=async function(){
     // ── CHECK SUPABASE ────────────────────────────────────────────────
     if(pid){
       __log('info','Checking Supabase for: '+pid);
+      await __wait(3000); // wait for DB rows to commit
       try{
         var r=await fetch(SUPA_URL+'/rest/v1/responses?participant_id=eq.'+pid+'&select=participant_id,rubric_id,item_id&limit=10',{
           headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}
