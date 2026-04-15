@@ -5069,12 +5069,31 @@ window.__qaRun=async function(){
       __log('info','EC8: Vignette modal');
       var isMob2=window.innerWidth<768;
       if(isMob2){
-        var vcBtn2=Array.from(document.querySelectorAll('button,div')).find(function(el){
-          return el.textContent.trim().indexOf('View Case')>=0||
-                 el.textContent.trim().indexOf('사례 보기')>=0;
-        });
+        // The View Case button is fixed at bottom of screen
+        // Search specifically for button containing the clipboard emoji
+        var vcBtn2=null;
+        var allEls2=Array.from(document.querySelectorAll('button'));
+        for(var ei=0;ei<allEls2.length;ei++){
+          var t2=allEls2[ei].textContent||'';
+          if(t2.indexOf('View Case')>=0||t2.indexOf('사례 보기')>=0||t2.indexOf('\uD83D\uDCCB')>=0){
+            vcBtn2=allEls2[ei]; break;
+          }
+        }
+        // Also try the wrapper div
+        if(!vcBtn2){
+          var allDivs2=Array.from(document.querySelectorAll('div'));
+          for(var di2=0;di2<allDivs2.length;di2++){
+            var dt=allDivs2[di2].textContent||'';
+            if((dt.indexOf('View Case')>=0||dt.indexOf('사례 보기')>=0)&&
+               allDivs2[di2].children.length<=3){
+              vcBtn2=allDivs2[di2]; break;
+            }
+          }
+        }
         if(vcBtn2){
-          __click(vcBtn2); await __wait(600);
+          try{vcBtn2.scrollIntoView({block:'center'});}catch(e){}
+          await __wait(300);
+          __click(vcBtn2); await __wait(800);
           // Check modal is open (Got it button visible)
           var gotItVisible=__find('Got it')||__find('확인');
           __log(gotItVisible?'pass':'fail','EC8: Vignette modal opened');
