@@ -1517,14 +1517,68 @@ function CountryDropdown({ value, onChange, lang }) {
         h('button',{type:"button",
           onClick:()=>{onChange("na");setOpen(false);setSearch("");},
           style:{display:"block",width:"100%",padding:"10px 14px",fontSize:14,
-            background:value==="na"?navyL:"#FAFBFC", color:muted, border:"none",
+            background:value==="na"?navyL:white, color:txt, border:"none",
             borderTop:"1px solid "+cardBd, textAlign:"left",cursor:"pointer",
-            fontFamily:ffs, fontStyle:"italic"}},
+            fontFamily:ffs, fontWeight:value==="na"?600:400}},
           t("Prefer not to answer","응답하지 않음"))
       )
     )
   );
 }
+
+// ─── Demographics helper components (defined at module scope to preserve input focus on re-render) ───
+// RadioGroup with optional inline text input under each option (e.g., "Other (please specify)")
+// textInputs: { [optionValue]: { value, onChange, placeholder } }
+const DemoRadioGroup = ({ name, value, onChange, options, textInputs, lang }) => {
+  const t = (en,ko) => T(en,ko,lang);
+  return h('div',{style:{display:"flex",flexDirection:"column",gap:8}},
+    options.map(opt => {
+      const selected = value===opt.value;
+      const inputCfg = textInputs && textInputs[opt.value];
+      return h('div',{key:opt.value,
+        style:{border:"1px solid "+(selected?navy:cardBd),
+          borderRadius:8,
+          background:selected?navyL:white,
+          transition:"border-color 0.15s, background 0.15s",
+          overflow:"hidden"}},
+        h('label',{style:{display:"flex",alignItems:"flex-start",gap:10,
+          padding:"10px 14px",cursor:"pointer"}},
+          h('input',{type:"radio",name,checked:selected,
+            onChange:()=>onChange(opt.value),
+            style:{marginTop:2,width:16,height:16,cursor:"pointer",accentColor:navy,flexShrink:0}}),
+          h('span',{style:{fontSize:14,color:txt,lineHeight:1.5,
+            fontWeight:selected?600:400}},
+            t(opt.en, opt.ko))
+        ),
+        selected && inputCfg && h('div',{style:{padding:"0 14px 12px",
+          marginLeft:30}},
+          h('input',{type:"text",value:inputCfg.value,
+            onChange:e=>inputCfg.onChange(e.target.value),
+            placeholder:inputCfg.placeholder,
+            style:{width:"100%",padding:"9px 12px",fontSize:14,
+              border:"1px solid "+navyMid,
+              background:white,
+              borderRadius:6,fontFamily:ffs,outline:"none",
+              boxShadow:"0 0 0 2px rgba(45,74,138,0.10)"}})
+        )
+      );
+    })
+  );
+};
+
+const DemoFieldLabel = ({ num, en, ko, lang }) => {
+  const t = (en2,ko2) => T(en2,ko2,lang);
+  return h('div',{style:{marginBottom:14}},
+    h('span',{style:{display:"inline-block",fontSize:11,fontWeight:700,
+      color:white,background:navy,padding:"3px 8px",borderRadius:4,
+      marginRight:8,letterSpacing:"0.04em"}},"Q"+num),
+    h('span',{style:{fontSize:15,fontWeight:600,color:navy}},t(en,ko)),
+    h('span',{style:{fontSize:12,color:red,marginLeft:6,fontWeight:600}},"*")
+  );
+};
+
+const DemoSection = ({ children, style }) =>
+  h('div',{style:{padding:"22px 28px",borderTop:"1px solid "+cardBd,...(style||{})}},children);
 
 function DemographicsScreen({ onContinue, initialData }) {
   const lang = useLang();
@@ -1547,37 +1601,6 @@ function DemographicsScreen({ onContinue, initialData }) {
     return true;
   };
 
-  const RadioGroup = ({ name, value, onChange, options }) =>
-    h('div',{style:{display:"flex",flexDirection:"column",gap:8}},
-      options.map(opt =>
-        h('label',{key:opt.value,style:{display:"flex",alignItems:"flex-start",gap:10,
-          padding:"10px 14px",border:"1px solid "+(value===opt.value?navy:cardBd),
-          borderRadius:8,cursor:"pointer",
-          background:value===opt.value?navyL:white,
-          transition:"all 0.15s"}},
-          h('input',{type:"radio",name,checked:value===opt.value,
-            onChange:()=>onChange(opt.value),
-            style:{marginTop:2,width:16,height:16,cursor:"pointer",accentColor:navy,flexShrink:0}}),
-          h('span',{style:{fontSize:14,color:txt,lineHeight:1.5,
-            fontWeight:value===opt.value?600:400,
-            fontStyle:opt.value==="na"?"italic":"normal"}},
-            t(opt.en, opt.ko))
-        )
-      )
-    );
-
-  const FieldLabel = ({ num, en, ko }) =>
-    h('div',{style:{marginBottom:14}},
-      h('span',{style:{display:"inline-block",fontSize:11,fontWeight:700,
-        color:white,background:navy,padding:"3px 8px",borderRadius:4,
-        marginRight:8,letterSpacing:"0.04em"}},"Q"+num),
-      h('span',{style:{fontSize:15,fontWeight:600,color:navy}},t(en,ko)),
-      h('span',{style:{fontSize:12,color:red,marginLeft:6,fontWeight:600}},"*")
-    );
-
-  const Section = ({ children, style }) =>
-    h('div',{style:{padding:"22px 28px",borderTop:"1px solid "+cardBd,...style}},children);
-
   return h(PageWrap, null,
     h('div',{style:{textAlign:"center",marginBottom:28}},
       h('h1',{style:{fontSize:24,fontWeight:700,color:navy,fontFamily:ffs,marginBottom:10}},
@@ -1589,9 +1612,9 @@ function DemographicsScreen({ onContinue, initialData }) {
 
     h(Card, {style:{overflow:"visible"}},
       // Q1 — Years of experience
-      h(Section,{style:{borderTop:"none",paddingTop:24}},
-        h(FieldLabel,{num:1,en:"How many years of clinical experience do you have?",ko:"임상 경력은 몇 년이십니까?"}),
-        h(RadioGroup,{name:"exp",value:data.exp,onChange:v=>update("exp",v),
+      h(DemoSection,{style:{borderTop:"none",paddingTop:24}},
+        h(DemoFieldLabel,{num:1,en:"How many years of clinical experience do you have?",ko:"임상 경력은 몇 년이십니까?",lang}),
+        h(DemoRadioGroup,{lang,name:"exp",value:data.exp,onChange:v=>update("exp",v),
           options:[
             {value:"0-5",en:"0–5 years",ko:"0–5년"},
             {value:"6-10",en:"6–10 years",ko:"6–10년"},
@@ -1603,21 +1626,21 @@ function DemographicsScreen({ onContinue, initialData }) {
       ),
 
       // Q2 — Country of current practice
-      h(Section,null,
-        h(FieldLabel,{num:2,en:"In which country do you currently practice?",ko:"현재 어느 국가에서 진료하고 계십니까?"}),
+      h(DemoSection,null,
+        h(DemoFieldLabel,{num:2,en:"In which country do you currently practice?",ko:"현재 어느 국가에서 진료하고 계십니까?",lang}),
         h(CountryDropdown,{value:data.country_practice,onChange:v=>update("country_practice",v),lang})
       ),
 
       // Q3 — Country of medical training
-      h(Section,null,
-        h(FieldLabel,{num:3,en:"In which country did you complete your medical training?",ko:"어느 국가에서 의학 교육을 마치셨습니까?"}),
+      h(DemoSection,null,
+        h(DemoFieldLabel,{num:3,en:"In which country did you complete your medical training?",ko:"어느 국가에서 의학 교육을 마치셨습니까?",lang}),
         h(CountryDropdown,{value:data.country_training,onChange:v=>update("country_training",v),lang})
       ),
 
       // Q4 — Primary clinical setting
-      h(Section,null,
-        h(FieldLabel,{num:4,en:"What is your primary clinical setting?",ko:"귀하의 주된 진료 환경은 어디입니까?"}),
-        h(RadioGroup,{name:"setting",value:data.setting,onChange:v=>update("setting",v),
+      h(DemoSection,null,
+        h(DemoFieldLabel,{num:4,en:"What is your primary clinical setting?",ko:"귀하의 주된 진료 환경은 어디입니까?",lang}),
+        h(DemoRadioGroup,{lang,name:"setting",value:data.setting,onChange:v=>update("setting",v),
           options:[
             {value:"ed",en:"Emergency department / urgent care",ko:"응급실 / 응급진료센터"},
             {value:"outpatient",en:"Outpatient clinic",ko:"외래 진료"},
@@ -1625,44 +1648,48 @@ function DemographicsScreen({ onContinue, initialData }) {
             {value:"icu",en:"PICU / NICU",ko:"소아·신생아 중환자실 (PICU / NICU)"},
             {value:"other",en:"Other (please specify)",ko:"기타 (직접 입력)"},
             {value:"na",en:"Prefer not to answer",ko:"응답하지 않음"}
-          ]
-        }),
-        data.setting==="other" && h('input',{type:"text",value:data.setting_other,
-          onChange:e=>update("setting_other",e.target.value),
-          placeholder:t("Please specify","직접 입력해 주세요"),
-          style:{marginTop:10,width:"100%",padding:"10px 14px",fontSize:14,
-            border:"1px solid "+cardBd,borderRadius:8,fontFamily:ffs,outline:"none"}})
+          ],
+          textInputs: {
+            other: {
+              value: data.setting_other,
+              onChange: v => update("setting_other", v),
+              placeholder: t("Please specify","직접 입력해 주세요")
+            }
+          }
+        })
       ),
 
       // Q5 — Primary clinical specialty
-      h(Section,null,
-        h(FieldLabel,{num:5,en:"Which best describes your primary clinical specialty?",ko:"귀하의 주된 임상 전공을 가장 잘 설명하는 것은 무엇입니까?"}),
-        h(RadioGroup,{name:"specialty",value:data.specialty,onChange:v=>update("specialty",v),
+      h(DemoSection,null,
+        h(DemoFieldLabel,{num:5,en:"Which best describes your primary clinical specialty?",ko:"귀하의 주된 임상 전공을 가장 잘 설명하는 것은 무엇입니까?",lang}),
+        h(DemoRadioGroup,{lang,name:"specialty",value:data.specialty,onChange:v=>update("specialty",v),
           options:[
             {value:"general",en:"General pediatrics",ko:"일반 소아과"},
             {value:"subspecialty",en:"Pediatric subspecialty (please specify)",ko:"소아 세부 전공 (직접 입력)"},
             {value:"other",en:"Other (please specify)",ko:"기타 (직접 입력)"},
             {value:"na",en:"Prefer not to answer",ko:"응답하지 않음"}
-          ]
-        }),
-        data.specialty==="subspecialty" && h('input',{type:"text",value:data.specialty_sub,
-          onChange:e=>update("specialty_sub",e.target.value),
-          placeholder:t("e.g., pediatric cardiology, oncology, neurology","예: 소아 심장학, 종양학, 신경학"),
-          style:{marginTop:10,width:"100%",padding:"10px 14px",fontSize:14,
-            border:"1px solid "+cardBd,borderRadius:8,fontFamily:ffs,outline:"none"}}),
-        data.specialty==="other" && h('input',{type:"text",value:data.specialty_other,
-          onChange:e=>update("specialty_other",e.target.value),
-          placeholder:t("Please specify","직접 입력해 주세요"),
-          style:{marginTop:10,width:"100%",padding:"10px 14px",fontSize:14,
-            border:"1px solid "+cardBd,borderRadius:8,fontFamily:ffs,outline:"none"}})
+          ],
+          textInputs: {
+            subspecialty: {
+              value: data.specialty_sub,
+              onChange: v => update("specialty_sub", v),
+              placeholder: t("e.g., pediatric cardiology, oncology, neurology","예: 소아 심장학, 종양학, 신경학")
+            },
+            other: {
+              value: data.specialty_other,
+              onChange: v => update("specialty_other", v),
+              placeholder: t("Please specify","직접 입력해 주세요")
+            }
+          }
+        })
       ),
 
       // Q6 — Prior AI tool use
-      h(Section,null,
-        h(FieldLabel,{num:6,
+      h(DemoSection,null,
+        h(DemoFieldLabel,{num:6,lang,
           en:"How often have you used AI chatbots / generative AI tools (e.g., ChatGPT, Claude, etc.) for clinical or teaching/assessment tasks?",
           ko:"임상 또는 교육/평가 업무에 AI 챗봇/생성형 AI 도구(예: ChatGPT, Claude 등)를 얼마나 자주 사용하셨습니까?"}),
-        h(RadioGroup,{name:"ai_use",value:data.ai_use,onChange:v=>update("ai_use",v),
+        h(DemoRadioGroup,{lang,name:"ai_use",value:data.ai_use,onChange:v=>update("ai_use",v),
           options:[
             {value:"never",en:"Never",ko:"사용한 적 없음"},
             {value:"rarely",en:"Rarely",ko:"드물게"},
