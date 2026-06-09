@@ -3,26 +3,24 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Evaluating AI-Generated Rubrics — Pediatric Emergency Cases</title>
 <style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif}</style>
-</head><body><div id="root"></div>
-<script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+</head>
+<body><div id="root"></div>
+<script crossorigin src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
 <script>
 // rubrics_data.js
-// Edit cases/vignettes/rubrics/items here. Run: python3 build.py to rebuild.
+// Edit via Content Editor. Run: python3 build.py to rebuild.
 
 const h = React.createElement;
 const { useState, useCallback, createContext, useContext } = React;
 
-// ─── SUPABASE ────────────────────────────────────────────────────────────────
 const SUPABASE_URL = "https://qydinydhytepqptcvslb.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF5ZGlueWRoeXRlcHFwdGN2c2xiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4Mjk0NTUsImV4cCI6MjA5MDQwNTQ1NX0.ZniqFMfctWHgbA4dJSlrvlFxWRcRfCrVuA9S3gjcA5o";
 
-// ─── LANGUAGE CONTEXT ────────────────────────────────────────────────────────
 const LangCtx = createContext("en");
 const useLang = () => useContext(LangCtx);
 const T = (en, ko, lang) => lang === "ko" ? ko : en;
 
-// ─── DESIGN TOKENS ───────────────────────────────────────────────────────────
 const navy    = "#1B2B5E";
 const navyMid = "#2D4A8A";
 const navyL   = "#EEF2F8";
@@ -44,8 +42,6 @@ const amberBd = "#FCD34D";
 const ff      = "'Segoe UI',system-ui,-apple-system,sans-serif";
 const ffs     = ff;
 
-
-// ─── SURVEY CONTENT ──────────────────────────────────────────────────────────
 const CASES = [
   {
     id: 1,
@@ -590,7 +586,31 @@ const CASES = [
   },
 ];
 
-// ─── SHARED COMPONENTS
+// ─── ERROR BOUNDARY ──────────────────────────────────────────────────────────
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(err) {
+    return { error: err };
+  }
+  componentDidCatch(err, info) {
+    console.error('React render error:', err, info);
+  }
+  render() {
+    if (this.state.error) {
+      var e = this.state.error;
+      return React.createElement('div', {
+        style: {padding:'20px', margin:'20px', border:'2px solid #c00',
+                borderRadius:'8px', fontFamily:'monospace', fontSize:'13px', color:'#c00',
+                background:'#fff', whiteSpace:'pre-wrap', wordBreak:'break-all'}
+      }, 'Render Error (screenshot this):\n' + e.message + '\n\n' + (e.stack || ''));
+    }
+    return this.props.children;
+  }
+}
+
 // ─── SHARED COMPONENTS ───────────────────────────────────────────────────────
 const Card = ({ children, style={} }) =>
   h('div', { style:{ background:white, border:"1px solid "+cardBd, borderRadius:12,
@@ -607,21 +627,25 @@ const PrimaryBtn = ({ children, onClick, disabled, style:extra={} }) =>
       fontFamily:ffs, transition:"background 0.2s", ...extra }},
     children);
 
-const scrollTop = () => window.scrollTo({top:0, behavior:'smooth'});
+const scrollTop = () => {
+  // iOS Safari needs multiple approaches
+  try { window.scrollTo({top:0, behavior:'smooth'}); } catch(e) {}
+  try { document.documentElement.scrollTop = 0; } catch(e) {}
+  try { document.body.scrollTop = 0; } catch(e) {}
+};
 
 // ─── STICKY HEADER ───────────────────────────────────────────────────────────
 const StickyHeader = ({ lang, setLang, doneR, totalR, breadcrumb }) => {
   const pct = totalR > 0 ? Math.round((doneR / totalR) * 100) : 0;
   return h('div', {style:{position:"sticky", top:0, zIndex:100}},
     // Navy title bar
-    h('div', {style:{background:navy, padding:"0 28px", height:50,
+    h('div', {style:{background:navy, minHeight:50, padding:"8px 14px",
       display:"flex", alignItems:"center", justifyContent:"space-between",
       boxShadow:"0 1px 0 rgba(255,255,255,0.08)"}},
-      h('span', {style:{color:white, fontSize:14, fontWeight:600,
-        flex:1, marginRight:12, whiteSpace:"nowrap", overflow:"hidden",
-        textOverflow:"ellipsis"}},
-        T("Evaluating AI-Generated Rubrics — Pediatric EM",
-          "소아 응급의학 AI 생성 루브릭 평가", lang)),
+      h('span', {style:{color:white, fontSize: 13, fontWeight:600,
+        flex:1, marginRight:12, lineHeight:1.35}},
+        T("AI-Generated Rubric Frameworks — Clinical History-Taking Assessment",
+          "임상 병력 청취 평가 — AI 생성 루브릭 프레임워크", lang)),
       h('div', {style:{display:"flex", gap:4}},
         ["en","ko"].map(l =>
           h('button', {key:l, onClick:()=>setLang(l),
@@ -771,8 +795,6 @@ function ConsentScreen({ onAgree }) {
   );
 }
 
-// ─── DEMOGRAPHICS SCREEN ─────────────────────────────────────────────────────
-// Country list: pinned (KR/US/VN) at top, then alphabetical. ISO codes used as values.
 const COUNTRY_LIST = [
   {code:"KR", en:"Korea, Republic of", ko:"대한민국", pinned:true},
   {code:"US", en:"United States", ko:"미국", pinned:true},
@@ -1121,7 +1143,7 @@ function DemographicsScreen({ onContinue, initialData }) {
 }
 
 // ─── INSTRUCTIONS SCREEN ─────────────────────────────────────────────────────
-function InstrScreen({ onStart }) {
+function InstrScreen({ onStart, onBack }) {
   const lang = useLang();
   const t = (en,ko) => T(en,ko,lang);
   const steps = [
@@ -1169,11 +1191,104 @@ function InstrScreen({ onStart }) {
           h('ul',{style:{fontSize:14,color:"#78350f",margin:0,paddingLeft:18,lineHeight:1.8}},
             h('li',null,t("There are no right or wrong answers. Variation between clinicians is expected — measuring that variation is precisely what this research aims to do. Please respond based on your honest professional judgment.","정답이나 오답은 없습니다. 의료진 간의 차이는 예상되며, 그 변이를 측정하는 것이 바로 본 연구의 목적입니다. 귀하의 솔직한 전문가적 판단에 따라 응답해 주십시오.")),
             h('li',null,t("Each item includes the AI's reasoning for why it was included. This is for reference only — you are not required to agree with it.","각 항목에는 해당 항목이 포함된 AI의 근거가 포함되어 있습니다. 이는 참고용이며 동의할 필요는 없습니다.")))))),
-    h(PrimaryBtn,{onClick:()=>{scrollTop();onStart();}},t("Begin Survey →","설문 시작 →"))
+    h('div',{style:{display:"flex",gap:12,alignItems:"center"}},
+      onBack && h('button',{onClick:()=>{scrollTop();onBack();},
+        style:{padding:"12px 22px",fontSize:14,fontWeight:600,
+          border:"1px solid "+navyBd,borderRadius:8,background:white,
+          color:navy,cursor:"pointer",fontFamily:ffs,flexShrink:0}},
+        "← "+t("Back","뒤로")),
+      h('div',{style:{flex:1}},
+        h(PrimaryBtn,{onClick:()=>{scrollTop();onStart();}},t("Begin Survey →","설문 시작 →"))))
   );
 }
 
 // ─── VIGNETTE SIDEBAR ────────────────────────────────────────────────────────
+
+// ─── VIGNETTE MODAL (mobile) ─────────────────────────────────────────────────
+function VignetteModal({ caseData, onClose, onGoBack, lang: langProp, setLang: setLangProp }) {
+  const lang = useLang();
+  const t = (en,ko) => T(en,ko,lang);
+  return h('div',{
+    style:{position:"fixed",top:0,right:0,bottom:0,left:0,zIndex:1000,display:"flex",flexDirection:"column",
+           background:pageBg},
+    },
+    // Header: full title wraps, EN/KO toggle top-right, optional back button
+    h('div',{style:{background:navy,padding:"12px 14px",flexShrink:0}},
+      h('div',{style:{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}},
+        h('p',{style:{fontSize:13,fontWeight:700,color:white,margin:0,lineHeight:1.45,flex:1}},
+          t(caseData.en, caseData.ko)),
+        h('div',{style:{display:"flex",gap:4,flexShrink:0,marginTop:2}},
+          ["en","ko"].map(l =>
+            h('button',{key:l, onClick:()=>{ if(setLangProp) setLangProp(l); },
+              style:{padding:"2px 8px",borderRadius:5,border:"1px solid",
+                borderColor: lang===l?"rgba(255,255,255,0.9)":"rgba(255,255,255,0.3)",
+                background: lang===l?"rgba(255,255,255,0.18)":"transparent",
+                color: lang===l?white:"rgba(255,255,255,0.65)",
+                fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:ffs}},
+              l==="en"?"EN":"한국어"))
+        )
+      ),
+      onGoBack && h('button',{onClick:onGoBack,
+        style:{marginTop:10,background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.25)",
+               borderRadius:6,color:"rgba(255,255,255,0.8)",fontSize:12,padding:"5px 12px",
+               cursor:"pointer",display:"flex",alignItems:"center",gap:4}},
+        "← "+t("Back to Instructions","지침으로 돌아가기"))
+    ),
+    // Content - scrollable
+    h('div',{style:{overflowY:"auto",flex:1}},
+      caseData.vignette.rows.map((r,i) =>
+        h('div',{key:i,style:{padding:"10px 18px",borderBottom:"1px solid "+cardBd}},
+          h('p',{style:{fontSize:12,fontWeight:700,color:muted,textTransform:"uppercase",
+            letterSpacing:"0.04em",margin:"0 0 2px"}}, t(r.en,r.ko)),
+          h('p',{style:{fontSize:13,color:txt,lineHeight:1.6,margin:0}}, t(r.val_en,r.val_ko)))
+      ),
+      h('div',{style:{padding:"10px 18px",borderBottom:"1px solid "+cardBd}},
+        h('p',{style:{fontSize:12,fontWeight:700,color:muted,textTransform:"uppercase",
+          letterSpacing:"0.04em",margin:"0 0 6px"}}, t("Vital Signs","활력 징후")),
+        caseData.vignette.vitals.map((v,i) =>
+          h('div',{key:i,style:{display:"flex",justifyContent:"space-between",
+            alignItems:"flex-start",fontSize:13,padding:"3px 0",
+            borderTop:i>0?"1px solid "+cardBd:"none"}},
+            h('span',{style:{color:muted,flexShrink:0,marginRight:8}},t(v.en,v.ko)),
+            h('span',{style:{color:txt,fontWeight:500,textAlign:"right"}},t(v.val_en,v.val_ko)))
+        )
+      ),
+      h('div',{style:{padding:"10px 18px",borderBottom:caseData.vignette.labs?"1px solid "+cardBd:"none"}},
+        h('p',{style:{fontSize:12,fontWeight:700,color:muted,textTransform:"uppercase",
+          letterSpacing:"0.04em",margin:"0 0 6px"}}, t("Physical Exam","신체 검진")),
+        caseData.vignette.exam.map((e,i) =>
+          h('div',{key:i,style:{fontSize:13,padding:"3px 0",
+            borderTop:i>0?"1px solid "+cardBd:"none",lineHeight:1.5}},
+            h('span',{style:{color:muted,fontWeight:600}},t(e.en,e.ko)+": "),
+            h('span',{style:{color:txt}},t(e.val_en,e.val_ko)))
+        )
+      ),
+      caseData.vignette.labs && caseData.vignette.labs.length > 0 &&
+      h('div',{style:{padding:"10px 18px"}},
+        h('p',{style:{fontSize:12,fontWeight:700,color:muted,textTransform:"uppercase",
+          letterSpacing:"0.04em",margin:"0 0 6px"}}, t("Relevant Lab/Studies","관련 검사 결과")),
+        t(caseData.vignette.labs[0].val_en, caseData.vignette.labs[0].val_ko)
+          .split("\n").filter(Boolean).map((line,i) => {
+            const colon = line.indexOf(": ");
+            const lbl = colon > -1 ? line.slice(0, colon) : line;
+            const val = colon > -1 ? line.slice(colon+2) : "";
+            return h('div',{key:i,style:{fontSize:13,padding:"3px 0",
+              borderTop:i>0?"1px solid "+cardBd:"none",lineHeight:1.5}},
+              h('span',{style:{color:muted,fontWeight:600}},lbl+(val?": ":"")),
+              h('span',{style:{color:txt}},val))
+          })
+      )
+    ),
+    // Footer: sticky "Got it" button at bottom
+    h('div',{style:{background:white,borderTop:"1px solid "+cardBd,padding:"12px 14px",flexShrink:0}},
+      h('button',{onClick:onClose,
+        style:{background:navy,border:"none",borderRadius:8,color:white,
+               fontSize:14,fontWeight:600,padding:"13px",width:"100%",
+               cursor:"pointer",fontFamily:ffs}},
+        t("Got it, start reviewing →","확인, 검토 시작 →")))
+  );
+}
+
 function VignetteSidebar({ caseData }) {
   const lang = useLang();
   const t = (en,ko) => T(en,ko,lang);
@@ -1205,7 +1320,7 @@ function VignetteSidebar({ caseData }) {
               h('span',{style:{color:txt,fontWeight:500,textAlign:"right"}},t(v.val_en,v.val_ko)))
           )
         ),
-        h('div',{style:{padding:"9px 16px"}},
+        h('div',{style:{padding:"9px 16px",borderBottom:"1px solid "+cardBd}},
           h('p',{style:{fontSize:12,fontWeight:700,color:muted,
             textTransform:"uppercase",letterSpacing:"0.04em",margin:"0 0 6px"}},
             t("Physical Exam","신체 검진")),
@@ -1215,6 +1330,22 @@ function VignetteSidebar({ caseData }) {
               h('span',{style:{color:muted,fontWeight:600}},t(e.en,e.ko)+": "),
               h('span',{style:{color:txt}},t(e.val_en,e.val_ko)))
           )
+        ),
+        caseData.vignette.labs && caseData.vignette.labs.length > 0 &&
+        h('div',{style:{padding:"9px 16px"}},
+          h('p',{style:{fontSize:12,fontWeight:700,color:muted,
+            textTransform:"uppercase",letterSpacing:"0.04em",margin:"0 0 6px"}},
+            t("Relevant Lab/Studies","관련 검사 결과")),
+          t(caseData.vignette.labs[0].val_en, caseData.vignette.labs[0].val_ko)
+            .split("\n").filter(Boolean).map((line,i) => {
+              const colon = line.indexOf(": ");
+              const lbl = colon > -1 ? line.slice(0, colon) : line;
+              const val = colon > -1 ? line.slice(colon+2) : "";
+              return h('div',{key:i,style:{fontSize:13,padding:"3px 0",
+                borderTop:i>0?"1px solid "+cardBd:"none",lineHeight:1.5}},
+                h('span',{style:{color:muted,fontWeight:600}},lbl+(val?": ":"")),
+                h('span',{style:{color:txt}},val))
+            })
         )
       )
     )
@@ -1222,18 +1353,25 @@ function VignetteSidebar({ caseData }) {
 }
 
 // ─── PART A SCREEN ───────────────────────────────────────────────────────────
-function PartAScreen({ caseData, rubric, onNext, onBack }) {
+function PartAScreen({ caseData, rubric, onNext, onBack, draftAnswers, onDraftChange }) {
   const lang = useLang();
   const t = (en,ko) => T(en,ko,lang);
-  const [partA, setPartA] = useState({});
-  const [comments, setComments] = useState({});
+  const [partA, setPartA] = useState(()=>draftAnswers.answers||{});
+  const [comments, setComments] = useState(()=>draftAnswers.comments||{});
 
   const allItems = [...rubric.d1, ...rubric.d2];
   const totalItems = allItems.length;
   const answeredItems = Object.keys(partA).length;
   const allAnswered = answeredItems === totalItems;
   const itemRefs = React.useRef({});
+  const commentTimer = React.useRef(null);
   const [highlightId, setHighlightId] = useState(null);
+
+
+  // Save full draft (answers + comments) to parent on every change
+  React.useEffect(() => {
+    onDraftChange({answers: partA, comments});
+  }, [partA, comments]);
 
   const goToFirst = () => {
     const firstMissing = allItems.find(item => partA[item.id] === undefined);
@@ -1250,7 +1388,9 @@ function PartAScreen({ caseData, rubric, onNext, onBack }) {
     // Split on first colon: "Item N. Name: description" → bold name + normal body
     const colonIdx = raw.indexOf(": ");
     const lbl = colonIdx > -1 ? raw.slice(0, colonIdx) : raw;
-    const body = colonIdx > -1 ? raw.slice(colonIdx+2) : "";
+    const bodyRaw = colonIdx > -1 ? raw.slice(colonIdx+2) : "";
+    const ptsLabel = lang==="ko" ? " — " + item.pts + "점" : " — " + item.pts + " points";
+    const body = bodyRaw ? bodyRaw + ptsLabel : ptsLabel.trim();
     const isHighlighted = highlightId === item.id;
     return h('div',{ref: el => { itemRefs.current[item.id] = el; },
       style:{
@@ -1276,13 +1416,13 @@ function PartAScreen({ caseData, rubric, onNext, onBack }) {
         h('p',{style:{fontSize:13,color:ans===true?"#14532d":ans===false?"#4c0519":"#374151",
           lineHeight:1.65,margin:0}},t(item.xEn,item.xKo))),
       h('div',{style:{display:"flex",gap:10,marginBottom:ans!==undefined?12:0}},
-        h('button',{onClick:()=>setPartA(p=>({...p,[item.id]:true})),
+        h('button',{onClick:()=>{setPartA(p=>({...p,[item.id]:true}))},
           style:{flex:1,padding:"11px 0",borderRadius:8,fontSize:14,fontWeight:600,
             border:"2px solid "+(ans===true?green:cardBd),
             background:ans===true?greenBg:white,color:ans===true?green:muted,
             cursor:"pointer",transition:"all 0.15s"}},
           "✓ "+t("Agree","동의")),
-        h('button',{onClick:()=>setPartA(p=>({...p,[item.id]:false})),
+        h('button',{onClick:()=>{setPartA(p=>({...p,[item.id]:false}))},
           style:{flex:1,padding:"11px 0",borderRadius:8,fontSize:14,fontWeight:600,
             border:"2px solid "+(ans===false?red:cardBd),
             background:ans===false?redBg:white,color:ans===false?red:muted,
@@ -1290,8 +1430,9 @@ function PartAScreen({ caseData, rubric, onNext, onBack }) {
           "✗ "+t("Disagree","비동의"))),
       ans!==undefined && h('textarea',{
         placeholder:t("Optional comment for this item…","이 항목에 대한 선택적 의견…"),
-        value:comments[item.id]||"",
-        onChange:e=>setComments(c=>({...c,[item.id]:e.target.value})),
+        defaultValue:comments[item.id]||"",
+        key:"cmt-"+item.id,
+        onBlur:e=>{const v=e.target.value; setComments(c=>({...c,[item.id]:v}));},
         style:{width:"100%",padding:"9px 12px",fontSize:14,
           border:"1px solid "+cardBd,borderRadius:8,resize:"vertical",
           fontFamily:ffs,boxSizing:"border-box",minHeight:60,
@@ -1339,8 +1480,8 @@ function PartAScreen({ caseData, rubric, onNext, onBack }) {
             t(rubric.threshold_en||rubric.rationale_en,
               rubric.threshold_ko||rubric.rationale_ko)))
     ),
-    h(Domain,{items:rubric.d1,label:d1label,desc:'',pts:rubric.d1pts}),
-    h(Domain,{items:rubric.d2,label:d2label,desc:'',pts:rubric.d2pts}),
+    h(Domain,{items:rubric.d1,label:d1label,desc:t(rubric.d1desc_en||'',rubric.d1desc_ko||''),pts:rubric.d1pts}),
+    h(Domain,{items:rubric.d2,label:d2label,desc:t(rubric.d2desc_en||'',rubric.d2desc_ko||''),pts:rubric.d2pts}),
     h('div',{style:{display:"flex",gap:12,alignItems:"center"}},
       onBack && h('button',{onClick:onBack,
         style:{padding:"14px 20px",borderRadius:10,border:"2px solid "+navy,
@@ -1355,12 +1496,26 @@ function PartAScreen({ caseData, rubric, onNext, onBack }) {
 }
 
 // ─── PART B SCREEN ───────────────────────────────────────────────────────────
-function PartBScreen({ caseData, rubric, ci, ri, isLast, onSubmit, partAData, onBack }) {
+function PartBScreen({ caseData, rubric, ci, ri, isLast, onSubmit, partAData, onBack, bDraft, onBDraftChange }) {
   const lang = useLang();
   const t = (en,ko) => T(en,ko,lang);
-  const [d1Order, setD1Order] = useState(()=>[...rubric.d1].sort((a,b)=>b.pts-a.pts).map(i=>i.id));
-  const [d2Order, setD2Order] = useState(()=>[...rubric.d2].sort((a,b)=>b.pts-a.pts).map(i=>i.id));
-  const [finalCmt, setFinalCmt] = useState("");
+  const [d1Order, setD1Order_] = useState(()=>(bDraft && bDraft.d1Order)||[...rubric.d1].sort((a,b)=>b.pts-a.pts).map(i=>i.id));
+  const [d2Order, setD2Order_] = useState(()=>(bDraft && bDraft.d2Order)||[...rubric.d2].sort((a,b)=>b.pts-a.pts).map(i=>i.id));
+  const [finalCmt, setFinalCmt_] = useState((bDraft && bDraft.finalCmt)||"");
+  // Wrapped setters that also persist draft immediately (no useEffect = no re-render cascade)
+  const d1OrderRef  = React.useRef(d1Order);
+  const bCommentTimer = React.useRef(null);
+  const d2OrderRef  = React.useRef(d2Order);
+  const finalCmtRef = React.useRef(finalCmt);
+  const setD1Order = React.useCallback((valOrFn)=>{
+    setD1Order_(prev=>{ const next=typeof valOrFn==='function'?valOrFn(prev):valOrFn; d1OrderRef.current=next; onBDraftChange(next,d2OrderRef.current,finalCmtRef.current); return next; });
+  },[onBDraftChange]);
+  const setD2Order = React.useCallback((valOrFn)=>{
+    setD2Order_(prev=>{ const next=typeof valOrFn==='function'?valOrFn(prev):valOrFn; d2OrderRef.current=next; onBDraftChange(d1OrderRef.current,next,finalCmtRef.current); return next; });
+  },[onBDraftChange]);
+  const setFinalCmt = React.useCallback((val)=>{
+    setFinalCmt_(val); finalCmtRef.current=val; onBDraftChange(d1OrderRef.current,d2OrderRef.current,val);
+  },[onBDraftChange]);
   const moveItem = (order, setOrder, idx, dir) => {
     const next=[...order]; const to=idx+dir;
     if(to<0||to>=next.length) return;
@@ -1423,7 +1578,7 @@ function PartBScreen({ caseData, rubric, ci, ri, isLast, onSubmit, partAData, on
       const onMove = (e) => {
         const drag = draggingRef.current;
         if(!drag) return;
-        const clientY = e.clientY !== undefined ? e.clientY : e.touches?.[0]?.clientY;
+        const clientY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] && e.touches[0].clientY);
         if(clientY === undefined) return;
         const updated = {...drag, currentY: clientY};
         draggingRef.current = updated;
@@ -1480,7 +1635,7 @@ function PartBScreen({ caseData, rubric, ci, ri, isLast, onSubmit, partAData, on
           // the actual item
           h('div', {
             ref: el => { itemEls.current[id] = el; },
-            onPointerDown: e => onPointerDown(e, id),
+            onPointerDown: undefined,
             style:{
               display:"flex", alignItems:"flex-start", gap:10,
               padding:"12px 14px",
@@ -1493,15 +1648,18 @@ function PartBScreen({ caseData, rubric, ci, ri, isLast, onSubmit, partAData, on
               transform: isDragging ? "translate(0,"+dy+"px)" : "none",
               transition: isDragging ? "box-shadow 0.1s" : "transform 0.15s, box-shadow 0.15s",
               opacity: isDragging ? 0.95 : (dragging && !isDragging ? 0.6 : 1),
-              cursor: isDragging ? "grabbing" : "grab",
+              cursor: "default",
               userSelect:"none",
               zIndex: isDragging ? 10 : 1,
               position: "relative",
-              touchAction:"none"
+              touchAction:"auto"
             }},
-            h('div',{style:{display:"flex",flexDirection:"column",alignItems:"center",
-              gap:4,flexShrink:0,paddingTop:4}},
-              h('div',{style:{color:muted,fontSize:16,userSelect:"none",
+            h('div',{
+              onPointerDown: e => onPointerDown(e, id),
+              style:{display:"flex",flexDirection:"column",alignItems:"center",
+              gap:4,flexShrink:0,paddingTop:4,padding:"4px 8px 4px 0",
+              cursor:isDragging?"grabbing":"grab",touchAction:"none"}},
+              h('div',{style:{color:muted,fontSize:18,userSelect:"none",
                 lineHeight:1,letterSpacing:"-1px"}},"⠿"),
               h('span',{style:{fontSize:12,fontWeight:700,color:navyMid,
                 background:navyL,borderRadius:5,padding:"2px 6px",
@@ -1557,7 +1715,7 @@ function PartBScreen({ caseData, rubric, ci, ri, isLast, onSubmit, partAData, on
         t("Overall Comment (optional)","전반적인 의견 (선택사항)")),
       h('textarea',{
         placeholder:t("Any comments or suggestions for this rubric?","이 루브릭에 대한 의견이나 제안이 있으신가요?"),
-        value:finalCmt,onChange:e=>setFinalCmt(e.target.value),
+        defaultValue:finalCmt,key:"finalcmt",onInput:e=>{const v=e.target.value; finalCmtRef.current=v; if(bCommentTimer.current) clearTimeout(bCommentTimer.current); bCommentTimer.current=setTimeout(()=>{setFinalCmt_(v); onBDraftChange(d1OrderRef.current,d2OrderRef.current,v);},600);},
         style:{width:"100%",padding:"12px 14px",fontSize:14,
           border:"1px solid "+cardBd,borderRadius:8,resize:"vertical",
           fontFamily:ffs,boxSizing:"border-box",minHeight:80}})
@@ -1706,13 +1864,15 @@ function App() {
   // ── Restore from localStorage if available ──────────────────────────────
   const saved = (() => { try { const s=localStorage.getItem(LS_KEY); return s?JSON.parse(s):null; } catch(e){return null;} })();
 
-  const [lang, setLang] = useState(saved?.lang || "en");
-  const [step, setStep] = useState(saved?.step || "consent");
-  const [ci, setCi] = useState(saved?.ci || 0);
-  const [ri, setRi] = useState(saved?.ri || 0);
-  const [partAData, setPartAData] = useState(saved?.partAData || null);
-  const [responses, setResponses] = useState(saved?.responses || {});
-  const [demographics, setDemographics] = useState(saved?.demographics || null);
+  const [lang, setLang] = useState((saved && saved.lang) || "en");
+  const [step, setStep] = useState((saved && saved.step) || "consent");
+  const [ci, setCi] = useState((saved && saved.ci) || 0);
+  const [ri, setRi] = useState((saved && saved.ri) || 0);
+  const [partAData, setPartAData] = useState((saved && saved.partAData) || null);
+  const [partADraft, setPartADraft] = useState((saved && saved.partADraft) || {});
+  const [partBDraft, setPartBDraft] = useState((saved && saved.partBDraft) || {});
+  const [responses, setResponses] = useState((saved && saved.responses) || {});
+  const [demographics, setDemographics] = useState((saved && saved.demographics) || null);
 
   const totalR = CASES.reduce((s,c)=>s+c.rubrics.length,0);
   const doneR  = CASES.slice(0,ci).reduce((s,c)=>s+c.rubrics.length,0)+ri;
@@ -1723,7 +1883,7 @@ function App() {
   React.useEffect(() => {
     if (step === "consent") return; // don't save before they start
     try {
-      localStorage.setItem(LS_KEY, JSON.stringify({lang,step,ci,ri,partAData,responses,demographics}));
+      localStorage.setItem(LS_KEY, JSON.stringify({lang,step,ci,ri,partAData,partADraft,partBDraft,responses,demographics}));
     } catch(e) {}
   }, [lang, step, ci, ri, partAData, responses, demographics]);
 
@@ -1736,6 +1896,8 @@ function App() {
   },[ci,ri]);
   const submitRubric = useCallback((id,data)=>{
     setResponses(r=>({...r,[id]:data}));
+    setPartADraft(d=>{ const n={...d}; delete n[id]; return n; });
+    setPartBDraft(d=>{ const n={...d}; delete n[id]; return n; });
     const nr=ri+1;
     if(nr<curCase.rubrics.length){ setRi(nr); setStep("partA"); }
     else { const nc=ci+1; if(nc<CASES.length){setCi(nc);setRi(0);setStep("partA");}else setStep("done"); }
@@ -1752,27 +1914,81 @@ function App() {
             "기준표 "+(ri+1)+"/"+curCase.rubrics.length, lang)))
     : null;
 
-  const SL = ({children}) => h('div',{style:{maxWidth:1140,margin:"0 auto",
-    padding:"28px 24px 80px",display:"flex",gap:24,alignItems:"flex-start"}},
-    h(VignetteSidebar,{caseData:curCase}), children);
+  // Track which cases have had their vignette auto-shown
+  const seenCasesRef = React.useRef(new Set());
+  const [showVigModal, setShowVigModal] = React.useState(false);
+
+  // Auto-open modal for first rubric of each new case (mobile only)
+  React.useEffect(()=>{
+    if(typeof window !== 'undefined' && window.innerWidth < 768) {
+      if(!seenCasesRef.current.has(ci)) {
+        seenCasesRef.current.add(ci);
+        setShowVigModal(true);
+      }
+    }
+  }, [ci]);
+
+  const [isMobile, setIsMobile] = useState(false); // set after mount via useEffect
+  React.useEffect(() => {
+    // Set initial value after mount (safe - window is available)
+    setIsMobile(window.innerWidth < 768);
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  // SL: layout shell — rendered inline (NOT as a nested component) to avoid remount
+  const slStyle = {maxWidth:1140, margin:"0 auto",
+    padding: isMobile ? "12px 14px 100px" : "28px 24px 80px",
+    display:"flex", gap:24, alignItems:"flex-start"};
 
   return h(LangCtx.Provider,{value:lang},
     h('div',{style:{background:pageBg,minHeight:"100vh",fontFamily:ffs}},
+      // Mobile floating "View Case" button — shown when modal is closed and on mobile
+      isMobile && curCase && !showVigModal && step !== "done" && step !== "welcome" && step !== "instr" && step !== "consent" && step !== "demographics" &&
+        h('div',{style:{position:"fixed",bottom:24,left:"50%",transform:"translateX(-50%)",zIndex:500}},
+          h('button',{
+            onClick:()=>setShowVigModal(true),
+            style:{background:navy,color:white,border:"none",borderRadius:20,
+                   padding:"10px 20px",fontSize:13,fontWeight:600,cursor:"pointer",
+                   boxShadow:"0 4px 16px rgba(0,0,0,0.25)",display:"flex",
+                   alignItems:"center",gap:6}},
+            "📋 ", T("View Case","사례 보기",lang)
+          )
+        ),
       h(StickyHeader,{lang,setLang,doneR,totalR,breadcrumb}),
       step==="consent" && h(ConsentScreen,{onAgree:()=>{setStep("demographics");scrollTop();}}),
       step==="demographics" && h(DemographicsScreen,{
         initialData: demographics,
         onContinue:(d)=>{setDemographics(d);setStep("instr");scrollTop();}}),
-      step==="instr"   && h(InstrScreen,{onStart:()=>{setStep("partA");scrollTop();}}),
-      step==="partA" && curRubric && h(SL,null,
+      step==="instr"   && h(InstrScreen,{
+        onStart:()=>{setStep("partA");scrollTop();},
+        onBack:()=>{setStep("demographics");scrollTop();}}),
+      step==="partA" && curRubric && h('div',{style:slStyle},
+        !isMobile && h(VignetteSidebar,{caseData:curCase}),
+        isMobile && showVigModal && curCase && h(VignetteModal,{caseData:curCase, onClose:()=>setShowVigModal(false), onGoBack: (ci===0&&ri===0) ? ()=>{setShowVigModal(false);setStep('instr');scrollTop();} : null, lang, setLang}),
         h(PartAScreen,{key:"A-"+curRubric.id,caseData:curCase,rubric:curRubric,
-          ci,ri,onNext:goPartB,onBack:goBack})),
-      step==="partB" && curRubric && h(SL,null,
+          ci,ri,onNext:goPartB,onBack:goBack,
+          draftAnswers:partADraft[curRubric.id]||(responses[curRubric.id]?{answers:responses[curRubric.id].partA||{},comments:responses[curRubric.id].comments||{}}:null)||{},
+          onDraftChange:(data)=>setPartADraft(d=>({...d,[curRubric.id]:data}))})),
+      step==="partB" && curRubric && h('div',{style:slStyle},
+        !isMobile && h(VignetteSidebar,{caseData:curCase}),
+        isMobile && showVigModal && curCase && h(VignetteModal,{caseData:curCase, onClose:()=>setShowVigModal(false), onGoBack: (ci===0&&ri===0) ? ()=>{setShowVigModal(false);setStep('instr');scrollTop();} : null, lang, setLang}),
         h(PartBScreen,{key:"B-"+curRubric.id,caseData:curCase,rubric:curRubric,
-          ci,ri,isLast:doneR+1>=totalR,onSubmit:submitRubric,partAData,onBack:()=>{setStep("partA");scrollTop();}})),
+          ci,ri,isLast:doneR+1>=totalR,onSubmit:submitRubric,partAData,onBack:()=>{setStep("partA");scrollTop();},
+          bDraft:partBDraft[curRubric.id]||(responses[curRubric.id]?{d1Order:responses[curRubric.id].d1Order,d2Order:responses[curRubric.id].d2Order,finalCmt:responses[curRubric.id].finalCmt||''}:null),
+          onBDraftChange:(d1,d2,cmt)=>setPartBDraft(d=>({...d,[curRubric.id]:{d1Order:d1,d2Order:d2,finalCmt:cmt}}))})),
       step==="done" && h(DoneScreen,{responses,demographics,onBack:()=>{setStep("partB");scrollTop();}})
     )
   );
 }
-ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+
+window.addEventListener('load', function() {
+  try {
+    var app = React.createElement(ErrorBoundary, null, React.createElement(App));
+    ReactDOM.createRoot(document.getElementById('root')).render(app);
+  } catch(e) {
+    document.getElementById('root').innerHTML = '<div style="padding:20px;font-family:monospace;font-size:12px;color:#c00;background:#fff;border:2px solid #c00;margin:20px;border-radius:8px"><b>Mount Error</b><br>' + e.message + '</div>';
+  }
+});
 </script></body></html>
