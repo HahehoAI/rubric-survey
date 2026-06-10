@@ -2152,44 +2152,68 @@ window.__qaRun=async function(){
       __log('info','-- Demographics --');
       __log('pass','Demographics screen detected');
 
-      // Inject demographics state via React fiber (avoids needing to click each radio)
-      function __findDemoFiber(fiber){
-        if(!fiber)return null;
-        if(fiber.type&&fiber.type.name==='DemographicsScreen')return fiber;
-        var r=__findDemoFiber(fiber.child);
-        if(r)return r;
-        return __findDemoFiber(fiber.sibling);
-      }
-      var rootEl=document.getElementById('root');
-      var fk=Object.keys(rootEl).find(function(k){return k.startsWith('__reactFiber');});
-      var injected=false;
-      if(fk){
-        var demoFiber=__findDemoFiber(rootEl[fk]);
-        if(demoFiber){
-          var st=demoFiber.memoizedState;
-          if(st&&st.queue&&st.queue.dispatch){
-            st.queue.dispatch({
-              exp:'6-10', country_practice:'KR', country_training:'KR',
-              setting:'ed', setting_other:'',
-              specialty:'general', specialty_sub:'', specialty_other:'',
-              ai_use:'sometimes'
-            });
-            injected=true;
-            __log('pass','Demographics: state injected via fiber');
-            await __wait(500);
-          }
+      // Helper: click first radio of a named group
+      async function __clickRadio(name){
+        var r=document.querySelector('input[type="radio"][name="'+name+'"]');
+        if(r){
+          // Find label (radio is inside <label>) and click it - more reliable than radio itself
+          var lbl=r.closest('label')||r;
+          __click(lbl);
+          await __wait(80);
+          return true;
         }
+        return false;
       }
-      if(!injected){
-        __log('warn','Demographics: fiber injection failed, trying UI clicks');
-        // Fallback: click first radio of each group
-        var radios=Array.from(document.querySelectorAll('input[type="radio"]'));
-        var seen={};
-        radios.forEach(function(r){
-          if(!seen[r.name]){seen[r.name]=true; __click(r);}
+
+      // Helper: select Korea in the next unset country dropdown
+      async function __selectKorea(){
+        // Find a country dropdown still showing "Select a country..." or KO equivalent
+        var allBtns=Array.from(document.querySelectorAll('button'));
+        var trigger=allBtns.find(function(b){
+          var t=b.textContent;
+          return (t.indexOf('Select a country')>=0||t.indexOf('국가를 선택')>=0);
         });
-        await __wait(500);
+        if(!trigger) return false;
+        __click(trigger);
+        await __wait(250);
+        // Find "Korea, Republic of" button - it's the first pinned option
+        var koreaBtn=Array.from(document.querySelectorAll('button')).find(function(b){
+          var t=b.textContent.trim();
+          return t==='Korea, Republic of'||t==='대한민국';
+        });
+        if(koreaBtn){
+          __click(koreaBtn);
+          await __wait(200);
+          return true;
+        }
+        return false;
       }
+
+      // Q1: years of experience — click first option
+      var q1=await __clickRadio('exp');
+      __log(q1?'pass':'fail','Demographics Q1 (experience): radio clicked');
+
+      // Q2: country of practice — Korea
+      var q2=await __selectKorea();
+      __log(q2?'pass':'fail','Demographics Q2 (country of practice): Korea selected');
+
+      // Q3: country of training — Korea (next still-unset dropdown)
+      var q3=await __selectKorea();
+      __log(q3?'pass':'fail','Demographics Q3 (country of training): Korea selected');
+
+      // Q4: clinical setting — first option
+      var q4=await __clickRadio('setting');
+      __log(q4?'pass':'fail','Demographics Q4 (setting): radio clicked');
+
+      // Q5: specialty — first option (General pediatrics)
+      var q5=await __clickRadio('specialty');
+      __log(q5?'pass':'fail','Demographics Q5 (specialty): radio clicked');
+
+      // Q6: AI use — first option
+      var q6=await __clickRadio('ai_use');
+      __log(q6?'pass':'fail','Demographics Q6 (AI use): radio clicked');
+
+      await __wait(400);
 
       // Click Continue
       var contBtn=__find('Continue')||__find('계속');
