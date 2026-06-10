@@ -184,7 +184,10 @@ const CASES = [
         { en:"Abdomen", ko:"복부", val_en:"Soft, nondistended; mild diffuse tenderness; bowel sounds hyperactive", val_ko:"부드럽고 팝만 없음; 전반적 경미 압통; 장음 증가" },
         { en:"Skin", ko:"피부", val_en:"Warm; mild decreased turgor; no rash; no petechiae/purpura", val_ko:"따뜻함; 피부 긴장도 약간 감소; 발진 없음; 점상출혈/자반 없음" },
         { en:"Neuro", ko:"신경", val_en:"Interactive; normal tone; no focal deficit", val_ko:"상호작용 가능; 근긴장도 정상; 국소 신경학적 결손 없음" }
-      ]},
+      ],
+      labs:[
+        { en:"Relevant Lab/Studies Findings", ko:"관련 검사 결과", val_en:"CBC: WBC 11.0 ×10³/µL (5.0–14.0) — normal; Hgb 12.2 g/dL (11.0–14.0); Platelets 320 ×10³/µL (150–400).\nBasic Metabolic Panel: Na 134 mmol/L (135–145) — low; K 3.6 mmol/L (3.5–5.0); Cl 98 mmol/L (98–107); CO₂ (HCO₃⁻) 16 mmol/L (22–28) — low; BUN 24 mg/dL (7–18) — high; Creatinine 0.40 mg/dL (0.20–0.50).\nVenous blood gas: pH 7.34 (7.35–7.45) — slightly low; pCO₂ 36 mmHg (35–45); HCO₃⁻ 18 mmol/L (22–26) — low.\nSerum Glucose: 74 mg/dL (70–140).\nUrinalysis: Specific gravity 1.030 (1.005–1.030) — high end; ketones 1+ (negative); nitrite negative; leukocyte esterase negative.\nRapid influenza/RSV testing: Not indicated; no respiratory symptoms.\nStool studies: Not obtained in absence of red flags (bloody stool, travel, prolonged course).", val_ko:"CBC: WBC 11.0 ×10³/µL (5.0–14.0) — 정상; Hgb 12.2 g/dL (11.0–14.0); 혈소판 320 ×10³/µL (150–400). 기본 대사 패널: Na 134 mmol/L (135–145) — 낮음; K 3.6 mmol/L (3.5–5.0); Cl 98 mmol/L (98–107); CO₂ (HCO₃⁻) 16 mmol/L (22–28) — 낮음; BUN 24 mg/dL (7–18) — 높음; Creatinine 0.40 mg/dL (0.20–0.50). 정맥 혈액 가스: pH 7.34 (7.35–7.45) — 약간 낮음; pCO₂ 36 mmHg (35–45); HCO₃⁻ 18 mmol/L (22–26) — 낮음. 혈청 포도당: 74 mg/dL (70–140). 소변 검사: 비중 1.030 (1.005–1.030) — 상한선; 케톤 1+ (정상 음성); 아질산염 음성; 백혈구 에스테라아제 음성. 인플루엔자/RSV 신속 검사: 시행하지 않음 — 호흡기 증상 없음. 대변 검사: 적색 경고 소견(혈변, 여행력, 장기간 지속 등) 없으므로 시행하지 않음." }
+      ],},
     rubrics: [
       {
         id:"2-1", label_en:"Rubric 1", label_ko:"기준표 1", d1pts:40, d2pts:60,
@@ -290,6 +293,9 @@ const CASES = [
         { en:"Respiratory", ko:"호흡기", val_en:"Nasal flaring; intercostal and subcostal retractions; diffuse wheezes and fine crackles bilaterally; prolonged expiratory phase", val_ko:"비익 확장; 늑간 및 늑하 함몰; 양측에서 전반적인 천명과 미세 수포음; 호기 연장" },
         { en:"Cardiovascular", ko:"심혈관", val_en:"Tachycardic; good peripheral pulses; no murmur", val_ko:"빈맥; 말초 맥박 양호; 심잡음 없음" },
         { en:"Skin", ko:"피부", val_en:"Warm, well perfused; capillary refill approx 2-3 seconds", val_ko:"따뜻하고 말초 관류 양호; 모세혈관 재충만 약 2–3초" },
+      ],
+      labs:[
+        { en:"Relevant Lab/Studies Findings", ko:"관련 검사 결과", val_en:"Rapid RSV antigen (nasopharyngeal): Positive (negative).\nRapid influenza A/B: Negative (negative).\nCBC: WBC 9.0 ×10³/µL (6.0–17.5) — normal; Hgb 11.4 g/dL (10.5–13.5); Platelets 410 ×10³/µL (150–450).\nBasic Metabolic Panel: Within age-appropriate limits (Na 138 mmol/L [135–145], K 4.3 mmol/L [3.5–5.5], CO₂ 23 mmol/L [22–28]).\nVenous blood gas: pH 7.33 (7.35–7.45) — slightly low; pCO₂ 48 mmHg (35–45) — mildly high; HCO₃⁻ 24 mmol/L (22–26).\nChest radiograph: Hyperinflation with peribronchial cuffing; no focal consolidation; cardiac silhouette normal.\nStool studies: Not obtained in absence of red flags (bloody stool, travel, prolonged course).", val_ko:"RSV 신속 항원 검사(비인두): 양성 (정상: 음성). 인플루엔자 A/B 신속 검사: 음성 (정상: 음성). CBC: WBC 9.0 ×10³/µL (6.0–17.5) — 정상; Hgb 11.4 g/dL (10.5–13.5); 혈소판 410 ×10³/µL (150–450). 기본 대사 패널: 연령에 적절한 범위 내 (Na 138 mmol/L [135–145], K 4.3 mmol/L [3.5–5.5], CO₂ 23 mmol/L [22–28]). 정맥 혈액 가스: pH 7.33 (7.35–7.45) — 약간 낮음; pCO₂ 48 mmHg (35–45) — 약간 높음; HCO₃⁻ 24 mmol/L (22–26). 흉부 X선: 과팽창 및 기관지 주위 음영(peribronchial cuffing); 국소 폐경화 없음; 심장 음영 정상. 대변 검사: 위험 신호가 없어 시행하지 않음." }
       ],
     },
     rubrics: [
@@ -399,6 +405,9 @@ const CASES = [
         { en:"Respiratory", ko:"호흡기", val_en:"Clear to auscultation; no retractions/wheeze", val_ko:"청진 시 깨끗함; 함몰 호흡이나 천명 없음" },
         { en:"Skin", ko:"피부", val_en:"No petechiae or purpura", val_ko:"점상출혈이나 자반 없음" },
       ],
+      labs:[
+        { en:"Relevant Lab/Studies Findings", ko:"관련 검사 결과", val_en:"Point-of-care glucose: 98 mg/dL (70–140).\nBasic Metabolic Panel: Na 137 mmol/L (135–145); K 4.2 mmol/L (3.5–5.5); CO₂ 22 mmol/L (22–28) — normal.\nCBC: WBC 12.1 ×10³/µL (6.0–17.5) — mild leukocytosis; Hgb 11.8 g/dL (10.5–13.5); Platelets 360 ×10³/µL (150–450).\nUrinalysis: Negative leukocyte esterase/nitrite; no ketonuria.\nRapid viral testing: Influenza A/B negative (negative); RSV negative (negative).\nNeuroimaging/LP: Not indicated for a simple febrile seizure in a well-appearing, immunized child without meningeal signs or focal neurological deficits.", val_ko:"현장 혈당 검사: 98 mg/dL (70–140). 기본 대사 패널: Na 137 mmol/L (135–145); K 4.2 mmol/L (3.5–5.5); CO₂ 22 mmol/L (22–28) — 정상. CBC: WBC 12.1 ×10³/µL (6.0–17.5) — 경미한 백혈구 증가; Hgb 11.8 g/dL (10.5–13.5); 혈소판 360 ×10³/µL (150–450). 소변 검사: 백혈구 에스테라제/아질산염 음성; 케톤뇨 없음. 신속 바이러스 검사: 인플루엔자 A/B 음성 (음성); RSV 음성 (음성). 신경영상/요추천자: 수막 자극 징후나 국소 신경학적 결손이 없는, 예방접종 완료된 건강한 아동의 단순 열성 경련에서는 시행하지 않음." }
+      ],
     },
     rubrics: [
       {
@@ -506,6 +515,9 @@ const CASES = [
         { en:"Cardiovascular", ko:"심혈관", val_en:"Regular rhythm, no murmur", val_ko:"규칙적 리듬, 심잡음 없음" },
         { en:"GU", ko:"비뇨생식기", val_en:"No CVA tenderness", val_ko:"늑골척추각 압통 없음" },
         { en:"Neuro/Skin", ko:"신경/피부", val_en:"No focal deficits; skin warm, no rash", val_ko:"국소 신경학적 이상 없음; 피부 따뜻하며 발진 없음" },
+      ],
+      labs:[
+        { en:"Relevant Lab/Studies Findings", ko:"관련 검사 결과", val_en:"CBC: WBC 15.2 ×10³/µL (4.5–13.0) — high; Neutrophils 80% (40–70%) — high; Hgb 12.8 g/dL (11.5–15.5); Platelets 310 ×10³/µL (150–400).\nCRP: 3.2 mg/dL (<0.5) — elevated.\nBasic Metabolic Panel: Na 137 mmol/L (135–145); K 4.1 mmol/L (3.5–5.0); CO₂ 22 mmol/L (22–28).\nUrinalysis: Negative leukocyte esterase and nitrites; no hematuria.\nβ-hCG (serum): Negative (non-pregnant).\nRight-lower-quadrant ultrasound: Noncompressible blind-ended tubular structure 7.9 mm in diameter with wall hyperemia and periappendiceal fat stranding; appendicolith present — consistent with acute appendicitis.", val_ko:"CBC: WBC 15.2 ×10³/µL (4.5–13.0) — 증가; 호중구 80% (40–70%) — 증가; Hgb 12.8 g/dL (11.5–15.5); 혈소판 310 ×10³/µL (150–400). CRP: 3.2 mg/dL (<0.5) — 상승. 기본 대사 패널: Na 137 mmol/L (135–145); K 4.1 mmol/L (3.5–5.0); CO₂ 22 mmol/L (22–28). 소변 검사: 백혈구 에스터레이스 및 아질산염 음성; 혈뇨 없음. β-hCG(혈청): 음성(임신 아님). 우하복부 초음파: 직경 7.9 mm의 압박되지 않는 막힌 끝 구조, 벽 혈류 증가 및 충수 주위 지방 침윤, 충수결석 확인 — 급성 충수염 소견." }
       ],
     },
     rubrics: [
