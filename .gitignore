@@ -1,0 +1,9 @@
+# Local PyCharm scaffold (not part of the survey)
+.idea/
+main.py
+
+# Working docs (not shipped with the site)
+rewording_doc.csv
+rewording_doc.html
+partA_mockup.html
+session_transcript.md
