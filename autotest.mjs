@@ -18,6 +18,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const HEADLESS = process.env.HEADLESS !== 'false';
+const SLOWMO = parseInt(process.env.SLOWMO || '0', 10);  // ms pause between actions (watch mode)
 
 // checksum — byte-identical to index.html pidCheckChar / make_tokens.js
 const AB = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
@@ -47,7 +48,7 @@ const U = (q) => `http://localhost:${PORT}/index.html${q || ''}`;
 let pass = 0, fail = 0; const fails = [];
 const ok = (name, cond, extra = "") => { cond ? pass++ : (fail++, fails.push(name)); console.log(`  ${cond ? "✅" : "❌"} ${name}${extra ? "  — " + extra : ""}`); };
 
-const browser = await chromium.launch({ executablePath: CHROME, headless: HEADLESS });
+const browser = await chromium.launch({ executablePath: CHROME, headless: HEADLESS, slowMo: SLOWMO });
 const VIEWPORTS = { Desktop: { width: 1280, height: 900 }, Mobile: { width: 390, height: 844, hasTouch: true } };
 
 async function open(vp, { query = '', seed = null, pid = null } = {}) {
@@ -68,9 +69,10 @@ async function open(vp, { query = '', seed = null, pid = null } = {}) {
 }
 const storedPid = (page) => page.evaluate(() => localStorage.getItem('rubric_survey_pid'));
 const savedSession = (page) => page.evaluate(() => JSON.parse(localStorage.getItem('rubric_survey_session_v2') || 'null'));
-async function dismissVignette(page) {                       // mobile auto-modal per case
+async function dismissVignette(page) {                       // mobile auto-modal per case; returns true if it closed one
   const got = page.getByRole('button', { name: /Got it/ });
-  if (await got.count()) { await got.first().click(); await page.waitForTimeout(150); }
+  if (await got.count()) { await got.first().click(); await page.waitForTimeout(150); return true; }
+  return false;
 }
 // read the Part B ranked item names in order (via the ⠿ grips)
 const partBOrder = (page) => page.evaluate(() =>
@@ -86,11 +88,11 @@ console.log("\n═══ pid resolution ═══");
   ok("TEST- stored verbatim", await storedPid(page) === p);
   await ctx.close();
 }
-{
-  const p = mint("K"); const { ctx, page } = await open(VIEWPORTS.Desktop, { query: `?pid=${p}` });
+for (const prefix of ["K", "V"]) {
+  const p = mint(prefix); const { ctx, page } = await open(VIEWPORTS.Desktop, { query: `?pid=${p}` });
   await page.waitForSelector('text=Continue →', { timeout: 20000 });
-  ok("K- no TEST pill", await page.locator('text=TEST MODE').count() === 0);
-  ok("K- stored (attributed)", await storedPid(page) === p);
+  ok(`${prefix}- no TEST pill`, await page.locator('text=TEST MODE').count() === 0);
+  ok(`${prefix}- stored (attributed)`, await storedPid(page) === p);
   await ctx.close();
 }
 for (const [q, label] of [['', 'bare URL'], ['?pid=GARBLED-9', 'invalid pid']]) {
@@ -101,6 +103,7 @@ for (const [q, label] of [['', 'bare URL'], ['?pid=GARBLED-9', 'invalid pid']]) 
 }
 
 // ══ per-viewport suites ═══════════════════════════════════════════════════════
+let fullResponses = null;   // a completed 12-rubric responses map, captured once for the per-prefix submit test
 for (const [label, vp] of Object.entries(VIEWPORTS)) {
   const isMobile = vp.width < 768;
   console.log(`\n═══ ${label} (${vp.width}×${vp.height}) ═══`);
@@ -225,10 +228,10 @@ for (const [label, vp] of Object.entries(VIEWPORTS)) {
     await page.reload();  // ensure route+seed both active from a clean load
     await page.waitForSelector('text=Continue to Part B →', { timeout: 20000 });
 
-    let rubrics = 0, done = false;
+    let rubrics = 0, done = false, autoModals = 0;
     for (let i = 0; i < 90; i++) {
       if (await page.getByRole('button', { name: /Submit Responses/ }).count()) { done = true; break; }
-      await dismissVignette(page);                                    // clear the per-case modal on mobile
+      if (await dismissVignette(page)) autoModals++;                  // count each per-case auto-modal (mobile)
       const cont = page.getByRole('button', { name: /Continue to Part B/ });
       if (await cont.count()) {
         const n = await page.getByRole('button', { name: '✓ Agree', exact: true }).count();
@@ -241,8 +244,10 @@ for (const [label, vp] of Object.entries(VIEWPORTS)) {
       await page.waitForTimeout(110);
     }
     ok("walked all 12 rubrics", rubrics === 12, `${rubrics}`);
+    if (isMobile) ok("vignette auto-pops on every new case (4)", autoModals === 4, `${autoModals} auto-modals`);
     ok("reached Done screen", done);
     if (done) {
+      if (!fullResponses) fullResponses = (await savedSession(page)).responses;   // reuse for per-prefix submit test
       ok("Done: download-backup link present", await page.locator('a[download]').count() > 0);
       await page.getByRole('button', { name: /Submit Responses/ }).click();
       ok("submit → success", await page.waitForSelector('text=Your responses have been recorded', { timeout: 20000 }).then(() => true).catch(() => false));
@@ -257,6 +262,51 @@ for (const [label, vp] of Object.entries(VIEWPORTS)) {
     ok("no console/page errors during full run", page._errors.length === 0, page._errors.slice(0, 2).join(" | "));
     await ctx.close();
   }
+}
+
+// ══ submission works for every pid type (TEST- / K- / V- / P-) ════════════════
+// Fast: seed a fully-completed survey (jump straight to Done) and submit once per
+// prefix. The POST is faked as always — we only assert the payload it WOULD send.
+console.log("\n═══ submission across pid types ═══");
+for (const prefix of ["TEST", "K", "V", "P"]) {
+  const pid = prefix === "P" ? null : mint(prefix);                 // P- = no link → app mints one
+  const seed = { ...session("en"), step: "done", responses: fullResponses };
+  const { ctx, page } = await open(VIEWPORTS.Desktop, { pid, seed, query: pid ? `?pid=${pid}` : '' });
+  let captured = null;
+  await page.route('**/rest/v1/responses', route => { captured = route.request().postData(); route.fulfill({ status: 201, body: '' }); });
+  await page.reload();
+  await page.waitForSelector('text=Submit Responses', { timeout: 20000 });
+  const effPid = pid || await storedPid(page);                     // resolve the minted P- code
+  await page.getByRole('button', { name: /Submit Responses/ }).click();
+  const success = await page.waitForSelector('text=Your responses have been recorded', { timeout: 15000 }).then(() => true).catch(() => false);
+  let rows = null; try { rows = JSON.parse(captured); } catch {}
+  const good = Array.isArray(rows) && rows.length === 240 && rows.every(r => r.participant_id === effPid);
+  ok(`${prefix}- submits → 240 rows all tagged ${effPid}`, success && good, rows ? `${rows.length} rows` : "no payload");
+  await ctx.close();
+}
+
+// ══ OPT-IN: one REAL submission against live Supabase (REAL_SUBMIT=1) ══════════
+// Confirms the real pipe end-to-end: columns match + RLS allows the anon INSERT.
+// The POST is NOT faked here. Anon can't SELECT (IRB-safe), so we can't read the
+// row back — instead we trust the app's own success/error screen + the HTTP status
+// (Supabase returns 201 on success). ⚠️ Writes 240 real rows tagged TEST-… that
+// anon cannot delete (RLS blocks DELETE); remove them from the dashboard if wanted.
+if (process.env.REAL_SUBMIT === '1' && fullResponses) {
+  console.log("\n═══ REAL submission → live Supabase (REAL_SUBMIT=1) ═══");
+  const pid = mint("TEST");
+  const { ctx, page } = await open(VIEWPORTS.Desktop, { pid, query: `?pid=${pid}`,
+    seed: { ...session("en"), step: "done", responses: fullResponses } });
+  let status = null;
+  page.on('response', r => { if (r.url().includes('/rest/v1/responses')) status = r.status(); });
+  await page.waitForSelector('text=Submit Responses', { timeout: 20000 });
+  await page.getByRole('button', { name: /Submit Responses/ }).click();
+  const success = await page.waitForSelector('text=Your responses have been recorded', { timeout: 20000 }).then(() => true).catch(() => false);
+  ok(`REAL insert accepted by Supabase (HTTP ${status})`, success && status >= 200 && status < 300, `pid ${pid}`);
+  if (success) console.log(`   ⚠️  Wrote 240 real rows tagged ${pid} (anon can't delete — remove via dashboard if desired).`);
+  else console.log(`   The app showed the error screen — the real insert was rejected (check columns/RLS).`);
+  await ctx.close();
+} else {
+  console.log("\n(REAL submission skipped — run `REAL_SUBMIT=1 node autotest.mjs` to write one genuine TEST- submission)");
 }
 
 await browser.close();
