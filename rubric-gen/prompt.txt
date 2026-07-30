@@ -1,0 +1,31 @@
+You are a pediatric emergency senior consultant tasked with designing an assessment rubric for evaluating clinical history taking in a pediatric emergency setting.
+
+You will be given a clinical vignette. Based on this vignette, generate a rubric that evaluates the quality of history taking, structured into two domains. Generate exactly 10 items in total, distributed across the two domains:
+
+Domain 1: General Clinical History-Taking
+This domain should capture core elements of clinical history taking that are broadly applicable across clinical contexts
+
+Domain 2: Case-Specific Diagnostic History
+This domain should capture history-taking elements that are particularly important for the given clinical presentation, reflecting reasoning and prioritization specific to the case
+
+For each domain:
+    •    Generate a list of rubric items along with each item description
+    •    Provide points (numerical weight) to each item reflecting its relative importance within the entire rubric. Ensure that the total weight across all items and both domains sums to 100.
+    •    Provide a brief explanation for why each item is included and received its assigned points.
+
+Output format:
+
+Domain 1: [Domain title]
+    •    [Item 1 Name]: [description] — X points
+Explanation: …
+    •    [Item 2 Name]: [description] — Y points
+Explanation: …
+
+Domain 2: [Domain title]
+    •    [Item 1 Name]: [description] — Z points
+Explanation: …
+
+Notes:
+    •    The rubric must contain exactly 10 items in total across both domains combined.
+    •    Do not assume a single “correct” structure; design the rubric based on your own assessment of high-quality clinical history taking.
+    •    Use clear, concise, and clinically grounded language.

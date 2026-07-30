@@ -1,9 +1,28 @@
 # Local PyCharm scaffold (not part of the survey)
 .idea/
 main.py
+.DS_Store
 
 # Working docs (not shipped with the site)
 rewording_doc.csv
 rewording_doc.html
 partA_mockup.html
 session_transcript.md
+
+# Rubric-generation tooling outputs (keep the scripts, ignore generated data)
+rubric-gen/output/
+rubric-gen/output_ko/
+rubric-gen/chrome_strings.json
+rubric-gen/chrome_ko.json
+rubric-gen/vignettes_source.json
+rubric-gen/venv/
+rubric-gen/__pycache__/
+rubric-gen/vignettes.json
+# Blinding key — which model made which rubric. Never commit to the public repo.
+rubric-gen/model_mapping.json
+# Participant code→email map (pseudonymous key). Never commit / never upload to Supabase.
+rubric-gen/tokens.csv
+
+# Autotest tooling (not part of the deployed site)
+node_modules/
+package-lock.json
