@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang="en"><head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Evaluating AI-Generated Rubrics — Pediatric Emergency Cases</title>
+<title>Validation of AI-Generated Rubrics for Clinical History-Taking Assessment: Analysis of Inter-Clinician Variability and Alignment with AI</title>
 <style>*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif}</style>
 </head>
 <body><div id="root"></div>
@@ -46,7 +46,7 @@ const CASES = [
   {
     "id": 1,
     "en": "Case 1: Toddler with vomiting and diarrhea — viral gastroenteritis with moderate dehydration",
-    "ko": "사례 1: 구토와 설사를 호소하는 유아 — 중등도 탈수를 동반한 바이러스성 위장관염",
+    "ko": "증례 1: 구토와 설사를 호소하는 유아 — 중등도 탈수를 동반한 바이러스성 위장관염",
     "vignette": {
       "rows": [
         {
@@ -65,13 +65,13 @@ const CASES = [
           "en": "Past Medical History",
           "ko": "과거 병력",
           "val_en": "Unremarkable; term birth; normal development.",
-          "val_ko": "특이사항 없음; 만삭 출생; 발달 정상."
+          "val_ko": "특이사항 없음, 만삭 출생, 발달 정상."
         },
         {
           "en": "Medications",
           "ko": "복용 약물",
           "val_en": "None routinely; single dose acetaminophen last night.",
-          "val_ko": "정기 복용 약물 없음; 어젯밤 아세트아미노펜 1회 복용."
+          "val_ko": "정기 복용 약물 없음, 어젯밤 아세트아미노펜 1회 복용."
         },
         {
           "en": "Allergies",
@@ -83,7 +83,7 @@ const CASES = [
           "en": "Family/Social History",
           "ko": "사회력/가족력",
           "val_en": "Lives with parents; attends daycare; no smokers at home.",
-          "val_ko": "부모와 함께 거주; 어린이집 등원 중; 집에서 흡연자 없음."
+          "val_ko": "부모와 함께 거주, 어린이집 등원 중, 집에서 흡연자 없음."
         },
         {
           "en": "Immunizations",
@@ -95,7 +95,7 @@ const CASES = [
           "en": "Review of Systems",
           "ko": "계통별 문진",
           "val_en": "Positive for fever, vomiting, diarrhea, abdominal cramping, decreased urine output; negative for severe localized abdominal pain, rash, cough, dysuria, blood in stool.",
-          "val_ko": "양성: 발열, 구토, 설사, 복부 경련, 소변량 감소; 음성: 심한 국소 복부 통증, 발진, 기침, 배뇨통, 혈변."
+          "val_ko": "양성: 발열, 구토, 설사, 복부 경련, 소변량 감소 / 음성: 심한 국소 복부 통증, 발진, 기침, 배뇨통, 혈변."
         }
       ],
       "vitals": [
@@ -147,51 +147,51 @@ const CASES = [
           "en": "General",
           "ko": "전반",
           "val_en": "Tired but alert; mildly ill-appearing; no respiratory distress.",
-          "val_ko": "피곤해 보이나 의식 명료; 경미한 병색; 호흡곤란 없음."
+          "val_ko": "피곤해 보이나 의식 명료, 경미한 병색, 호흡곤란 없음."
         },
         {
           "en": "HEENT",
           "ko": "HEENT",
           "val_en": "Dry mucous membranes, mild sunken eyes; no tonsillar exudates; TMs clear.",
-          "val_ko": "점막 건조, 눈이 약간 들어감; 편도 삼출 없음; 고막 정상."
+          "val_ko": "점막 건조, 눈이 약간 들어감, 편도 삼출 없음, 고막 정상."
         },
         {
           "en": "Cardiovascular",
           "ko": "심혈관",
           "val_en": "Tachycardic, regular rhythm, no murmur; capillary refill ~3 seconds.",
-          "val_ko": "빈맥, 규칙적 리듬, 심잡음 없음; 모세혈관 재충만 약 3초."
+          "val_ko": "빈맥, 규칙적 리듬, 심잡음 없음, 모세혈관 재충만 약 3초."
         },
         {
           "en": "Respiratory",
           "ko": "호흡기",
           "val_en": "Clear to auscultation; no wheeze/crackles; good air entry.",
-          "val_ko": "청진 시 깨끗함; 천명/수포음 없음; 공기 유입 양호."
+          "val_ko": "청진 시 깨끗함, 천명/수포음 없음, 공기 유입 양호."
         },
         {
           "en": "Abdomen",
           "ko": "복부",
           "val_en": "Soft, nondistended; mild diffuse tenderness without guarding or rebound; no organomegaly; bowel sounds hyperactive.",
-          "val_ko": "부드럽고 팽만 없음; 전반적 경미 압통, 근육 경직 및 반발통 없음; 장기 비대 없음; 장음 증가."
+          "val_ko": "부드럽고 팽만 없음, 전반적 경미 압통, 근육 경직 및 반발통 없음, 장기 비대 없음, 장음 증가."
         },
         {
           "en": "Skin",
           "ko": "피부",
           "val_en": "Warm; mild decreased turgor; no rash; no petechiae/purpura.",
-          "val_ko": "따뜻함; 피부 긴장도 약간 감소; 발진 없음; 점상출혈/자반 없음."
+          "val_ko": "따뜻함, 피부 긴장도 약간 감소, 발진 없음, 점상출혈/자반 없음."
         },
         {
           "en": "Neuro",
           "ko": "신경",
           "val_en": "Interactive; normal tone; no focal deficit.",
-          "val_ko": "상호작용 가능; 근긴장도 정상; 국소 신경학적 결손 없음."
+          "val_ko": "상호작용 가능, 근긴장도 정상, 국소 신경학적 결손 없음."
         }
       ],
       "labs": [
         {
           "en": "Relevant Lab/Studies Findings",
           "ko": "관련 검사 결과",
-          "val_en": "CBC: WBC 11.0 ×10³/µL (5.0–14.0) — normal; Hgb 12.2 g/dL (11.0–14.0); Platelets 320 ×10³/µL (150–400).\nBasic Metabolic Panel: Na 134 mmol/L (135–145) — low; K 3.6 mmol/L (3.5–5.0); Cl 98 mmol/L (98–107); CO₂ (HCO₃⁻) 16 mmol/L (22–28) — low; BUN 24 mg/dL (7–18) — high; Creatinine 0.40 mg/dL (0.20–0.50).\nVenous blood gas: pH 7.34 (7.35–7.45) — slightly low; pCO₂ 36 mmHg (35–45); HCO₃⁻ 18 mmol/L (22–26) — low.\nSerum Glucose: 74 mg/dL (70–140).\nUrinalysis: Specific gravity 1.030 (1.005–1.030) — high end; ketones 1+ (negative); nitrite negative; leukocyte esterase negative.\nRapid influenza/RSV testing: Not indicated; no respiratory symptoms.\nStool studies: Not obtained in absence of red flags (bloody stool, travel, prolonged course).",
-          "val_ko": "CBC: WBC 11.0 ×10³/µL (5.0–14.0) — 정상; Hgb 12.2 g/dL (11.0–14.0); 혈소판 320 ×10³/µL (150–400).\n기본 대사 패널: Na 134 mmol/L (135–145) — 낮음; K 3.6 mmol/L (3.5–5.0); Cl 98 mmol/L (98–107); CO₂ (HCO₃⁻) 16 mmol/L (22–28) — 낮음; BUN 24 mg/dL (7–18) — 높음; Creatinine 0.40 mg/dL (0.20–0.50).\n정맥 혈액 가스: pH 7.34 (7.35–7.45) — 약간 낮음; pCO₂ 36 mmHg (35–45); HCO₃⁻ 18 mmol/L (22–26) — 낮음.\n혈청 포도당: 74 mg/dL (70–140).\n소변 검사: 비중 1.030 (1.005–1.030) — 상한선; 케톤 1+ (음성); 아질산염 음성; 백혈구 에스테라아제 음성.\n인플루엔자/RSV 신속 검사: 시행하지 않음 — 호흡기 증상 없음.\n대변 검사: 적색 경고 소견(혈변, 여행력, 장기간 지속) 없으므로 시행하지 않음."
+          "val_en": "CBC: WBC 11.0 ×10³/µL (5.0–14.0) — normal; Hgb 12.2 g/dL (11.0–14.0); Platelets 320 ×10³/µL (150–400).\nBasic Metabolic Panel: Na 134 mmol/L (135–145) — low; K 3.6 mmol/L (3.5–5.0); Cl 98 mmol/L (98–107); CO₂ (HCO₃⁻) 18 mmol/L (22–28) — low; BUN 24 mg/dL (7–18) — high; Creatinine 0.40 mg/dL (0.20–0.50).\nVenous blood gas: pH 7.34 (7.35–7.45) — slightly low; pCO₂ 36 mmHg (35–45); HCO₃⁻ 16 mmol/L (22–26) — low.\nSerum Glucose: 74 mg/dL (70–140).\nUrinalysis: Specific gravity 1.030 (1.005–1.030) — high end; ketones 1+ (normal: negative); nitrite negative; leukocyte esterase negative.\nRapid influenza/RSV testing: Not indicated; no respiratory symptoms.\nStool studies: Not obtained in absence of red flags (bloody stool, travel, prolonged course).",
+          "val_ko": "CBC: WBC 11.0 ×10³/µL (5.0–14.0) — 정상, Hgb 12.2 g/dL (11.0–14.0), 혈소판 320 ×10³/µL (150–400).\n기본 대사 패널: Na 134 mmol/L (135–145) — 낮음, K 3.6 mmol/L (3.5–5.0), Cl 98 mmol/L (98–107), CO₂ (HCO₃⁻) 18 mmol/L (22–28) — 낮음, BUN 24 mg/dL (7–18) — 높음, Creatinine 0.40 mg/dL (0.20–0.50).\n정맥 혈액 가스: pH 7.34 (7.35–7.45) — 약간 낮음, pCO₂ 36 mmHg (35–45), HCO₃⁻ 16 mmol/L (22–26) — 낮음.\n혈청 포도당: 74 mg/dL (70–140).\n소변 검사: 비중 1.030 (1.005–1.030) — 상한선, 케톤 1+ (정상: 음성), 아질산염 음성, 백혈구 에스테라아제 음성.\n인플루엔자/RSV 신속 검사: 시행하지 않음 — 호흡기 증상 없음.\n대변 검사: 적색 경고 소견(혈변, 여행력, 장기간 지속) 없으므로 시행하지 않음."
         }
       ]
     },
@@ -199,7 +199,7 @@ const CASES = [
       {
         "id": "1-1",
         "label_en": "Rubric 1",
-        "label_ko": "기준표 1",
+        "label_ko": "루브릭 1",
         "d1pts": 40,
         "d2pts": 60,
         "d1desc_en": "General Clinical History-Taking",
@@ -211,9 +211,9 @@ const CASES = [
             "id": "1-1-1-1",
             "pts": 10,
             "en": "Item 1. Chief Complaint and Structured HPI: Elicits a clear chronology of vomiting and diarrhea including onset, duration, frequency, volume, and progression of symptoms; characterizes abdominal pain (location, quality, severity); establishes the overall symptom timeline over the 2-day course.",
-            "ko": "항목 1. 주소 및 체계적 현병력(HPI): 구토와 설사의 발생 시점, 지속 기간, 빈도, 양, 증상의 진행 경과를 포함한 명확한 시간 순서를 파악한다; 복통의 특성(위치, 양상, 중증도)을 규명한다; 2일간의 경과에 걸친 전반적인 증상 시간표를 확립한다.",
+            "ko": "항목 1. 주소 및 체계적 현병력(HPI): 구토와 설사의 발생 시점, 지속 기간, 빈도, 양, 증상의 진행 경과를 포함한 명확한 시간 순서를 파악한다. 복통의 특성(위치, 양상, 중증도)을 규명한다. 2일간의 경과에 걸친 전반적인 증상 시간표를 확립한다.",
             "xEn": "A systematic HPI is the foundation of all diagnostic reasoning. Frequency and duration of losses directly drive the estimate of dehydration severity and disposition, so this receives the highest weight in the general domain.",
-            "xKo": "체계적인 현병력 청취는 모든 진단적 추론의 기초이다. 소실(구토·설사)의 빈도와 지속 기간은 탈수 중증도 평가와 처치 방향 결정에 직접적으로 영향을 미치므로, 일반 영역에서 가장 높은 가중치를 부여한다."
+            "xKo": "체계적인 현병력 청취는 모든 진단적 추론의 기초이다. 수분 소실(구토·설사)의 빈도와 지속 기간은 탈수 중증도 평가와 처치 방향 결정에 직접 영향을 미치므로, 일반 영역에서 가장 높은 가중치를 부여한다."
           },
           {
             "id": "1-1-1-2",
@@ -221,7 +221,7 @@ const CASES = [
             "en": "Item 2. Past Medical, Birth, and Developmental History: Screens for prematurity, chronic conditions (renal, cardiac, metabolic, GI), prior abdominal surgery, previous similar episodes, and normal growth and development.",
             "ko": "항목 2. 과거력, 출생력 및 발달력: 미숙아 출생 여부, 만성 질환(신장, 심장, 대사, 위장관), 이전 복부 수술력, 과거 유사한 삽화, 정상적인 성장 및 발달 여부를 선별한다.",
             "xEn": "Comorbidities and prior surgery raise the risk of complicated dehydration or surgical pathology (e.g., adhesive obstruction). An unremarkable background supports a benign self-limited course, but this is confirmatory rather than discriminating, warranting moderate weight.",
-            "xKo": "동반 질환과 이전 수술력은 합병된 탈수 또는 외과적 병변(예: 유착성 장폐색)의 위험을 높인다. 특이 소견 없는 과거력은 양성의 자가 한정성 경과를 뒷받침하지만, 이는 감별적이라기보다 확인적인 성격이므로 중간 정도의 가중치가 적절하다."
+            "xKo": "동반 질환과 이전 수술력은 합병된 탈수 또는 외과적 병변(예: 유착성 장폐색)의 위험을 높인다. 특이 소견 없는 과거력은 저절로 좋아지는 양성 경과를 뒷받침하지만, 이는 감별에 쓰이기보다 이미 세운 인상을 확인하는 정보이므로 중간 정도의 가중치가 적절하다."
           },
           {
             "id": "1-1-1-3",
@@ -237,15 +237,15 @@ const CASES = [
             "en": "Item 4. Immunization History: Verifies vaccination status is up-to-date for age, specifically confirming completion of the rotavirus series.",
             "ko": "항목 4. 예방접종력: 연령에 맞는 예방접종이 완료되었는지 확인하며, 특히 로타바이러스 접종 시리즈의 완료 여부를 확인한다.",
             "xEn": "Immunization status is a core pediatric history element; rotavirus vaccination lowers the likelihood of severe rotavirus disease and completeness of other vaccines reduces concern for occult serious bacterial infection in a febrile toddler. Slightly higher weight given its direct relevance to this presentation.",
-            "xKo": "예방접종 상태는 소아 병력 청취의 핵심 요소이다; 로타바이러스 백신 접종은 중증 로타바이러스 질환의 가능성을 낮추며, 기타 백신 접종의 완료는 발열이 있는 유아에서 잠재적 중증 세균 감염에 대한 우려를 줄인다. 본 증례와의 직접적 관련성을 고려하여 다소 높은 가중치를 부여한다."
+            "xKo": "예방접종 상태는 소아 병력 청취의 핵심 요소이다. 로타바이러스 백신 접종은 중증 로타바이러스 질환의 가능성을 낮추며, 기타 백신 접종의 완료는 발열이 있는 유아에서 잠재적 중증 세균 감염에 대한 우려를 줄인다. 본 증례와의 직접적 관련성을 고려하여 다소 높은 가중치를 부여한다."
           },
           {
             "id": "1-1-1-5",
             "pts": 10,
             "en": "Item 5. Focused Review of Systems and Psychosocial Context: Performs a targeted ROS (respiratory symptoms, dysuria, rash, ear pain, neurologic symptoms) to screen for non-GI sources of fever and vomiting; explores household composition, caregiver capacity, and ability to return if the child worsens.",
-            "ko": "항목 5. 집중적 계통 문진 및 심리사회적 배경: 발열과 구토의 비위장관성 원인을 선별하기 위해 표적화된 계통 문진(호흡기 증상, 배뇨통, 발진, 귀 통증, 신경학적 증상)을 시행한다; 가구 구성원, 보호자의 돌봄 역량, 아이의 상태가 악화될 경우 재내원 가능 여부를 확인한다.",
+            "ko": "항목 5. 집중적 계통 문진 및 심리사회적 배경: 발열과 구토의 비위장관성 원인을 선별하기 위해 초점을 맞춘 계통 문진(호흡기 증상, 배뇨통, 발진, 귀 통증, 신경학적 증상)을 시행한다. 가구 구성원, 보호자의 돌봄 역량, 아이의 상태가 악화될 경우 재내원 가능 여부를 확인한다.",
             "xEn": "Vomiting and fever in a toddler can reflect UTI, otitis media, pneumonia, or CNS disease; a disciplined ROS prevents premature closure on gastroenteritis. Caregiver reliability determines whether outpatient oral rehydration is safe, making this item weighty for disposition planning.",
-            "xKo": "유아에서 구토와 발열은 요로감염, 중이염, 폐렴 또는 중추신경계 질환을 반영할 수 있으며, 철저한 계통 문진은 위장관염으로의 성급한 진단 종결을 방지한다. 보호자의 신뢰성은 외래 경구 수액 요법이 안전한지를 결정하므로, 이 항목은 처치 계획 수립에 있어 중요한 가중치를 가진다."
+            "xKo": "유아에서 구토와 발열은 요로감염, 중이염, 폐렴 또는 중추신경계 질환을 반영할 수 있으며, 철저한 계통 문진은 위장관염으로 성급히 진단을 확정하는 것을 막아 준다. 보호자를 얼마나 신뢰할 수 있는지는 외래 경구 수액 요법이 안전한지를 결정하므로, 이 항목은 처치 계획 수립에서 가중치가 높다."
           }
         ],
         "d2": [
@@ -253,7 +253,7 @@ const CASES = [
             "id": "1-1-2-1",
             "pts": 12,
             "en": "Item 1. Characterization of Emesis and Stool: Explicitly asks whether vomiting is bilious or bloody and whether stools are watery, mucoid, or bloody; quantifies episodes of each (4 emeses, 6-7 stools/day) and notes stool color and consistency.",
-            "ko": "항목 1. 구토물 및 대변의 특성 규명: 구토물이 담즙성인지 혈성인지, 대변이 수양성인지 점액성인지 혈성인지 명시적으로 질문한다; 각각의 횟수를 정량화하고(구토 4회, 대변 6-7회/일) 대변의 색과 굳기를 기록한다.",
+            "ko": "항목 1. 구토물 및 대변의 특성 규명: 구토물이 담즙성인지 혈성인지, 대변이 수양성인지 점액성인지 혈성인지 빠뜨리지 말고 질문한다. 각각의 횟수를 정량화하고(구토 4회, 대변 6-7회/일) 대변의 색과 굳기를 기록한다.",
             "xEn": "Bilious emesis suggests obstruction (e.g., malrotation with volvulus) and hematochezia suggests bacterial colitis, intussusception, or HUS - findings that would fundamentally change workup and management. Confirming non-bilious, non-bloody output is the key branch point supporting viral gastroenteritis, justifying high weight.",
             "xKo": "담즙성 구토는 장폐색(예: 장회전이상을 동반한 장염전)을 시사하고 혈변은 세균성 대장염, 장중첩증 또는 HUS를 시사하며, 이러한 소견은 검사와 치료 방향을 근본적으로 바꾼다. 비담즙성, 비혈성 배출물임을 확인하는 것은 바이러스성 위장관염을 뒷받침하는 핵심 분기점이므로 높은 가중치가 타당하다."
           },
@@ -263,13 +263,13 @@ const CASES = [
             "en": "Item 2. Hydration Status and Intake-Output Assessment: Quantifies oral intake and tolerance of fluids, time of last void or wet diaper (~10 hours here), presence of tears when crying, activity level and alertness, and any known recent weight for comparison.",
             "ko": "항목 2. 수분 상태 및 섭취-배설량 평가: 경구 섭취량과 수분 섭취 내약성, 마지막 배뇨 또는 젖은 기저귀 시각(본 증례에서 약 10시간 전), 울 때 눈물 유무, 활동 수준과 의식 상태, 비교 가능한 최근 체중을 정량적으로 파악한다.",
             "xEn": "In pediatric gastroenteritis, the central clinical question is not the diagnosis but the degree of dehydration, which determines need for oral versus IV rehydration and admission. Urine output, intake, and mental status are the most predictive historical markers, making this the highest-weighted item in the rubric.",
-            "xKo": "소아 위장관염에서 핵심적인 임상 질문은 진단 자체가 아니라 탈수의 정도이며, 이는 경구 대 IV 수액 요법의 필요성과 입원 여부를 결정한다. 소변량, 섭취량, 의식 상태는 가장 예측력이 높은 병력적 지표이므로, 이 항목은 평가 기준에서 가장 높은 가중치를 가진다."
+            "xKo": "소아 위장관염에서 핵심적인 임상 질문은 진단 자체가 아니라 탈수의 정도이며, 이는 경구 수액으로 될지 정맥 수액이 필요할지과 입원 여부를 결정한다. 소변량, 섭취량, 의식 상태는 가장 예측력이 높은 병력적 지표이므로, 이 항목은 평가 기준에서 가중치가 가장 높다."
           },
           {
             "id": "1-1-2-3",
             "pts": 12,
             "en": "Item 3. Red-Flag Screening for Alternative Diagnoses: Screens for severe or localized abdominal pain (RLQ pain suggesting appendicitis), intermittent inconsolable episodes with drawing up of legs or lethargy between episodes (intussusception), petechiae or purpura, decreased responsiveness, headache or neck stiffness, head trauma, and possible toxic ingestion.",
-            "ko": "항목 3. 대체 진단에 대한 위험 징후 선별: 심하거나 국소화된 복통(충수염을 시사하는 우하복부 통증), 다리를 끌어당기며 달랠 수 없는 간헐적 삽화와 삽화 사이의 처짐(장중첩증), 점상출혈 또는 자반, 반응성 저하, 두통이나 목 경직, 두부 외상, 독성 물질 섭취 가능성을 선별한다.",
+            "ko": "항목 3. 다른 진단을 시사하는 위험 징후 선별: 심하거나 국소화된 복통(충수염을 시사하는 우하복부 통증), 다리를 끌어당기며 달랠 수 없는 간헐적 삽화와 삽화 사이의 처짐(장중첩증), 점상출혈 또는 자반, 반응성 저하, 두통이나 목 경직, 두부 외상, 독성 물질 섭취 가능성을 선별한다.",
             "xEn": "The greatest danger in presumed gastroenteritis is missing a surgical abdomen, intussusception, HUS, meningitis, or ingestion presenting with vomiting. Actively excluding these red flags demonstrates the safety-oriented reasoning expected in pediatric emergency care and merits high weight.",
             "xKo": "위장관염으로 추정되는 환자에서 가장 큰 위험은 외과적 복증, 장중첩증, HUS, 수막염 또는 구토로 발현하는 독성 물질 섭취를 놓치는 것이다. 이러한 위험 징후를 능동적으로 배제하는 것은 소아 응급 진료에서 요구되는 안전 중심의 추론을 보여주므로 높은 가중치가 합당하다."
           },
@@ -285,16 +285,16 @@ const CASES = [
             "id": "1-1-2-5",
             "pts": 10,
             "en": "Item 5. Fever Course and Pre-Presentation Management: Clarifies fever height, pattern, and duration; response to acetaminophen; home rehydration attempts (type, volume, and tolerance of fluids offered); and whether vomiting occurs with all intake or only large volumes.",
-            "ko": "항목 5. 발열 경과 및 내원 전 처치: 발열의 최고 체온, 양상, 지속 기간; 아세트아미노펜에 대한 반응; 가정에서 시도한 수분 보충(제공한 수액의 종류, 양, 내약성); 구토가 모든 섭취 시 발생하는지 아니면 많은 양 섭취 시에만 발생하는지를 명확히 한다.",
+            "ko": "항목 5. 발열 경과 및 내원 전 처치: 발열의 최고 체온, 양상, 지속 기간, 아세트아미노펜에 대한 반응, 가정에서 시도한 수분 보충(제공한 수액의 종류, 양, 내약성), 구토가 모든 섭취 시 발생하는지 아니면 많은 양 섭취 시에만 발생하는지를 명확히 한다.",
             "xEn": "Low-grade fever fits viral gastroenteritis, whereas high persistent fever raises concern for invasive bacterial disease. Knowing what oral rehydration has already been attempted and whether small-volume fluids are retained directly informs whether ondansetron plus trial ORT is feasible versus IV fluids, so this earns solid weight.",
-            "xKo": "미열은 바이러스성 위장관염에 부합하는 반면, 지속되는 고열은 침습성 세균 질환에 대한 우려를 높인다. 어떤 경구 수분 보충이 이미 시도되었는지와 소량의 수분이 유지되는지를 아는 것은 온단세트론 투여 후 경구 수액 요법 시도가 가능한지 아니면 IV 수액이 필요한지를 직접적으로 결정하므로, 이 항목은 상당한 가중치를 가진다."
+            "xKo": "미열은 바이러스성 위장관염에 부합하는 반면, 지속되는 고열은 침습성 세균 질환에 대한 우려를 높인다. 어떤 경구 수분 보충이 이미 시도되었는지와 소량의 수분이 유지되는지를 아는 것은 온단세트론 투여 후 경구 수액 요법 시도가 가능한지 아니면 정맥 수액이 필요한지를 곧바로 결정하므로, 이 항목은 가중치가 상당히 높다."
           }
         ]
       },
       {
         "id": "1-2",
         "label_en": "Rubric 2",
-        "label_ko": "기준표 2",
+        "label_ko": "루브릭 2",
         "d1pts": 40,
         "d2pts": 60,
         "d1desc_en": "General Clinical History-Taking",
@@ -364,7 +364,7 @@ const CASES = [
             "id": "1-2-2-3",
             "pts": 12,
             "en": "Item 3. Gastrointestinal and Systemic Emergency Red Flags: Explicitly asks about bilious, bloody, or forceful vomiting; hematochezia, melena, or mucus; severe localized or episodic pain; abdominal distension; persistent inconsolability; high or prolonged fever; lethargy, altered responsiveness, seizures, or a petechial or purpuric rash.",
-            "ko": "항목 3. 위장관 및 전신 응급 위험 징후: 담즙성, 혈성 또는 분출성 구토, 혈변, 흑색변 또는 점액변, 심한 국소적 또는 간헐적 통증, 복부 팽만, 지속적인 달랠 수 없는 보챔, 고열 또는 지속되는 발열, 처짐, 의식 변화, 경련, 점상출혈 또는 자반성 발진에 대해 명시적으로 질문한다.",
+            "ko": "항목 3. 위장관 및 전신 응급 위험 징후: 담즙성, 혈성 또는 분출성 구토, 혈변, 흑색변 또는 점액변, 심한 국소적 또는 간헐적 통증, 복부 팽만, 지속적인 달랠 수 없는 보챔, 고열 또는 지속되는 발열, 처짐, 의식 변화, 경련, 점상출혈 또는 자반성 발진에 대해 빠뜨리지 말고 질문한다.",
             "xEn": "These features may indicate obstruction, intussusception, appendicitis, invasive infection, sepsis, or another condition requiring urgent investigation rather than routine gastroenteritis care.",
             "xKo": "이러한 소견은 장폐색, 장중첩증, 충수염, 침습성 감염, 패혈증 또는 통상적인 위장관염 치료가 아닌 긴급한 검사가 필요한 다른 질환을 시사할 수 있다."
           },
@@ -389,7 +389,7 @@ const CASES = [
       {
         "id": "1-3",
         "label_en": "Rubric 3",
-        "label_ko": "기준표 3",
+        "label_ko": "루브릭 3",
         "d1pts": 40,
         "d2pts": 60,
         "d1desc_en": "General Clinical History-Taking",
@@ -486,7 +486,7 @@ const CASES = [
   {
     "id": 2,
     "en": "Case 2: Infant in respiratory distress — RSV bronchiolitis",
-    "ko": "사례 2: 호흡곤란을 보이는 영아 — RSV 세기관지염",
+    "ko": "증례 2: 호흡곤란을 보이는 영아 — RSV 세기관지염",
     "vignette": {
       "rows": [
         {
@@ -505,13 +505,13 @@ const CASES = [
           "en": "Past Medical History",
           "ko": "과거 병력",
           "val_en": "Unremarkable; full-term; no cardiac history.",
-          "val_ko": "특이사항 없음; 만삭 출생; 심장 병력 없음."
+          "val_ko": "특이사항 없음, 만삭 출생, 심장 병력 없음."
         },
         {
           "en": "Medications",
           "ko": "복용 약물",
           "val_en": "None; no home bronchodilators.",
-          "val_ko": "없음; 가정에서 사용하는 기관지 확장제 없음."
+          "val_ko": "없음, 가정에서 사용하는 기관지 확장제 없음."
         },
         {
           "en": "Allergies",
@@ -523,7 +523,7 @@ const CASES = [
           "en": "Family/Social History",
           "ko": "사회력/가족력",
           "val_en": "Attends nursery; older sibling recently had a \"cold.\" No smokers at home.",
-          "val_ko": "어린이집 등원 중; 손위 형제가 최근 \"감기\"를 앓음. 집에서 흡연자 없음."
+          "val_ko": "어린이집 등원 중, 손위 형제가 최근 \"감기\"를 앓음. 집에서 흡연자 없음."
         },
         {
           "en": "Immunizations",
@@ -535,7 +535,7 @@ const CASES = [
           "en": "Review of Systems",
           "ko": "계통별 문진",
           "val_en": "Positive for rhinorrhea, cough, feeding difficulty, tachypnea; negative for apnea, cyanosis, fever >38.5°C, vomiting.",
-          "val_ko": "양성: 콧물, 기침, 수유 곤란, 빈호흡; 음성: 무호흡, 청색증, 38.5°C 초과 발열, 구토."
+          "val_ko": "양성: 콧물, 기침, 수유 곤란, 빈호흡 / 음성: 무호흡, 청색증, 38.5°C 초과 발열, 구토."
         }
       ],
       "vitals": [
@@ -581,51 +581,51 @@ const CASES = [
           "en": "General",
           "ko": "전반",
           "val_en": "Alert but irritable; moderate respiratory distress.",
-          "val_ko": "의식은 명료하나 보챔 있음; 중등도 호흡곤란."
+          "val_ko": "의식은 명료하나 보챔 있음, 중등도 호흡곤란."
         },
         {
           "en": "HEENT",
           "ko": "HEENT",
           "val_en": "Nasal congestion; copious secretions; oral mucosa slightly dry.",
-          "val_ko": "비충혈; 다량의 분비물; 구강 점막 약간 건조."
+          "val_ko": "비충혈, 다량의 분비물, 구강 점막 약간 건조."
         },
         {
           "en": "Respiratory",
           "ko": "호흡기",
           "val_en": "Nasal flaring; intercostal and subcostal retractions; diffuse wheezes and fine crackles bilaterally; prolonged expiratory phase.",
-          "val_ko": "비익 확장; 늑간 및 늑하 함몰; 양측에서 전반적인 천명과 미세 수포음; 호기 연장."
+          "val_ko": "비익 확장, 늑간 및 늑하 함몰, 양측에서 전반적인 천명과 미세 수포음, 호기 연장."
         },
         {
           "en": "Cardiovascular",
           "ko": "심혈관",
           "val_en": "Tachycardic; good peripheral pulses; no murmur.",
-          "val_ko": "빈맥; 말초 맥박 양호; 심잡음 없음."
+          "val_ko": "빈맥, 말초 맥박 양호, 심잡음 없음."
         },
         {
           "en": "Abdomen",
           "ko": "복부",
           "val_en": "Soft, nondistended; no hepatosplenomegaly.",
-          "val_ko": "부드럽고 팽만 없음; 간비종대 없음."
+          "val_ko": "부드럽고 팽만 없음, 간비종대 없음."
         },
         {
           "en": "Skin",
           "ko": "피부",
           "val_en": "Warm, well perfused; capillary refill ~2–3 seconds.",
-          "val_ko": "따뜻하고 말초 관류 양호; 모세혈관 재충만 약 2–3초."
+          "val_ko": "따뜻하고 말초 관류 양호, 모세혈관 재충만 약 2–3초."
         },
         {
           "en": "Neuro",
           "ko": "신경",
           "val_en": "Moves all extremities; no focal deficit.",
-          "val_ko": "모든 사지 움직임 정상; 국소 신경학적 결손 없음."
+          "val_ko": "모든 사지 움직임 정상, 국소 신경학적 결손 없음."
         }
       ],
       "labs": [
         {
           "en": "Relevant Lab/Studies Findings",
           "ko": "관련 검사 결과",
-          "val_en": "Rapid RSV antigen (nasopharyngeal): Positive (negative).\nRapid influenza A/B: Negative (negative).\nCBC: WBC 9.0 ×10³/µL (6.0–17.5) — normal; Hgb 11.4 g/dL (10.5–13.5); Platelets 410 ×10³/µL (150–450).\nBasic Metabolic Panel: Within age-appropriate limits (Na 138 mmol/L [135–145], K 4.3 mmol/L [3.5–5.5], CO₂ 23 mmol/L [22–28]).\nVenous blood gas: pH 7.33 (7.35–7.45) — slightly low; pCO₂ 48 mmHg (35–45) — mildly high; HCO₃⁻ 24 mmol/L (22–26).\nChest radiograph: Hyperinflation with peribronchial cuffing; no focal consolidation; cardiac silhouette normal.\nStool studies: Not obtained in absence of red flags (bloody stool, travel, prolonged course).",
-          "val_ko": "RSV 신속 항원 검사(비인두): 양성 (정상: 음성).\n인플루엔자 A/B 신속 검사: 음성 (정상: 음성).\nCBC: WBC 9.0 ×10³/µL (6.0–17.5) — 정상; Hgb 11.4 g/dL (10.5–13.5); 혈소판 410 ×10³/µL (150–450).\n기본 대사 패널: 연령에 적절한 범위 내 (Na 138 mmol/L [135–145], K 4.3 mmol/L [3.5–5.5], CO₂ 23 mmol/L [22–28]).\n정맥 혈액 가스: pH 7.33 (7.35–7.45) — 약간 낮음; pCO₂ 48 mmHg (35–45) — 약간 높음; HCO₃⁻ 24 mmol/L (22–26).\n흉부 X선: 과팽창 및 기관지 주위 음영(peribronchial cuffing); 국소 폐경화 없음; 심장 음영 정상.\n대변 검사: 적색 경고 소견(혈변, 여행력, 장기간 지속) 없으므로 시행하지 않음."
+          "val_en": "Rapid RSV antigen (nasopharyngeal): Positive (negative).\nRapid influenza A/B: Negative (negative).\nCBC: WBC 9.0 ×10³/µL (6.0–17.5) — normal; Hgb 11.4 g/dL (10.5–13.5); Platelets 410 ×10³/µL (150–450).\nBasic Metabolic Panel: Within age-appropriate limits (Na 138 mmol/L [135–145], K 4.3 mmol/L [3.5–5.5], CO₂ 23 mmol/L [22–28]).\nVenous blood gas: pH 7.33 (7.35–7.45) — slightly low; pCO₂ 48 mmHg (35–45) — mildly high; HCO₃⁻ 24 mmol/L (22–26).\nChest radiograph: Hyperinflation with peribronchial cuffing; no focal consolidation; cardiac silhouette normal.",
+          "val_ko": "RSV 신속 항원 검사(비인두): 양성 (정상: 음성).\n인플루엔자 A/B 신속 검사: 음성 (정상: 음성).\nCBC: WBC 9.0 ×10³/µL (6.0–17.5) — 정상, Hgb 11.4 g/dL (10.5–13.5), 혈소판 410 ×10³/µL (150–450).\n기본 대사 패널: 연령에 적절한 범위 내 (Na 138 mmol/L [135–145], K 4.3 mmol/L [3.5–5.5], CO₂ 23 mmol/L [22–28]).\n정맥 혈액 가스: pH 7.33 (7.35–7.45) — 약간 낮음, pCO₂ 48 mmHg (35–45) — 약간 높음, HCO₃⁻ 24 mmol/L (22–26).\n흉부 X선: 과팽창 및 기관지 주위 음영(peribronchial cuffing), 국소 폐경화 없음, 심장 음영 정상."
         }
       ]
     },
@@ -633,7 +633,7 @@ const CASES = [
       {
         "id": "2-1",
         "label_en": "Rubric 1",
-        "label_ko": "기준표 1",
+        "label_ko": "루브릭 1",
         "d1pts": 40,
         "d2pts": 60,
         "d1desc_en": "General Clinical History-Taking",
@@ -719,7 +719,7 @@ const CASES = [
             "id": "2-1-2-5",
             "pts": 10,
             "en": "Item 5. Diagnostic Discriminators and Competing Causes: Asks about previous wheeze, eczema, family asthma or atopy, and bronchodilator response; sudden choking or aspiration; cough associated with feeds; paroxysmal or whooping cough; barking cough or stridor; and focal or persistent febrile symptoms.",
-            "ko": "항목 5. 진단적 감별 요소 및 경쟁 원인: 이전 천명, 습진, 가족의 천식 또는 아토피 병력과 기관지확장제 반응; 갑작스러운 사레 또는 흡인; 수유와 연관된 기침; 발작적 기침 또는 백일해양 기침; 컹컹거리는 기침 또는 협착음; 국소적이거나 지속되는 발열 증상에 대해 질문한다.",
+            "ko": "항목 5. 진단적 감별 요소 및 경쟁 원인: 이전 천명, 습진, 가족의 천식 또는 아토피 병력과 기관지확장제 반응, 갑작스러운 사레 또는 흡인, 수유와 연관된 기침, 발작적 기침 또는 백일해양 기침, 컹컹거리는 기침 또는 협착음, 국소적이거나 지속되는 발열 증상에 대해 질문한다.",
             "xEn": "These questions distinguish first-episode bronchiolitis from viral-induced wheeze, foreign-body aspiration, aspiration syndromes, pertussis, upper-airway disease, and pneumonia; RSV positivity does not exclude competing pathology.",
             "xKo": "이러한 질문들은 첫 삽화의 세기관지염을 바이러스 유발성 천명, 이물 흡인, 흡인 증후군, 백일해, 상기도 질환, 폐렴과 감별하는 데 도움이 되며, RSV 양성이라고 해서 경쟁 병리를 배제할 수 있는 것은 아니다."
           }
@@ -728,7 +728,7 @@ const CASES = [
       {
         "id": "2-2",
         "label_en": "Rubric 2",
-        "label_ko": "기준표 2",
+        "label_ko": "루브릭 2",
         "d1pts": 40,
         "d2pts": 60,
         "d1desc_en": "General Clinical History-Taking",
@@ -823,7 +823,7 @@ const CASES = [
       {
         "id": "2-3",
         "label_en": "Rubric 3",
-        "label_ko": "기준표 3",
+        "label_ko": "루브릭 3",
         "d1pts": 35,
         "d2pts": 65,
         "d1desc_en": "General Clinical History-Taking",
@@ -835,7 +835,7 @@ const CASES = [
             "id": "2-3-1-1",
             "pts": 10,
             "en": "Item 1. Chief Complaint and Structured History of Presenting Illness: Elicits the caregiver's account of the presenting problem with a clear chronology: onset, duration, sequence, and progression of rhinorrhea, cough, breathing difficulty, and feeding decline; clarifies severity and rate of change; screens associated symptoms and pertinent negatives (vomiting, diarrhea, rash) in a systematic manner.",
-            "ko": "항목 1. 주소 및 구조화된 현병력: 보호자로부터 주 호소 문제에 대한 설명을 명확한 시간 순서에 따라 청취함: 콧물, 기침, 호흡곤란, 수유량 감소의 발병 시점, 지속 기간, 순서 및 진행 양상; 중증도와 변화 속도를 명확히 함; 동반 증상 및 유의한 음성 소견(구토, 설사, 발진)을 체계적으로 선별함.",
+            "ko": "항목 1. 주소 및 구조화된 현병력: 보호자로부터 주 호소 문제에 대한 설명을 명확한 시간 순서에 따라 청취함: 콧물, 기침, 호흡곤란, 수유량 감소의 발병 시점, 지속 기간, 순서 및 진행 양상, 중증도와 변화 속도를 명확히 함. 동반 증상 및 유의한 음성 소견(구토, 설사, 발진)을 체계적으로 선별함.",
             "xEn": "The HPI is the backbone of all diagnostic reasoning. In a preverbal infant, the caregiver narrative is the only source of symptom data, and establishing an accurate timeline (2 days of URI symptoms with deterioration over 12 hours) anchors every subsequent decision. This warrants the highest weight in the general domain.",
             "xKo": "현병력(HPI)은 모든 진단적 추론의 근간이다. 말을 하지 못하는 영아에서는 보호자의 진술이 증상 정보의 유일한 출처이며, 정확한 시간 경과(2일간의 상기도 감염 증상과 12시간에 걸친 악화)를 확립하는 것이 이후의 모든 결정의 기준이 된다. 따라서 일반 영역에서 가장 높은 가중치를 부여할 만하다."
           },
@@ -869,7 +869,7 @@ const CASES = [
             "en": "Item 5. Family, Social, and Environmental History: Explores household composition and caregiver capacity, nursery/daycare attendance, sick contacts (sibling with recent cold), tobacco smoke exposure in the home, and family history of atopy or asthma.",
             "ko": "항목 5. 가족력, 사회력 및 환경력: 가구 구성과 보호자의 돌봄 역량, 어린이집/보육시설 이용 여부, 감염원 접촉(최근 감기를 앓은 형제자매), 가정 내 담배 연기 노출, 아토피 또는 천식의 가족력을 탐색함.",
             "xEn": "This general element has direct case relevance: daycare attendance and an ill sibling establish a plausible viral exposure, smoke exposure is a modifiable severity risk factor, and caregiver capacity determines whether safe discharge with return precautions is feasible. It is weighted slightly above other routine items for this reason.",
-            "xKo": "이 일반 항목은 본 증례와 직접적인 관련이 있다: 어린이집 이용과 아픈 형제자매의 존재는 바이러스 노출의 개연성을 뒷받침하고, 담배 연기 노출은 교정 가능한 중증도 위험 인자이며, 보호자의 돌봄 역량은 재내원 주의사항과 함께 안전한 퇴원이 가능한지를 결정한다. 이러한 이유로 다른 통상적인 항목보다 약간 높은 가중치가 부여된다."
+            "xKo": "이 일반 항목은 본 증례와 직접 관련된다. 어린이집 이용과 아픈 형제자매의 존재는 바이러스 노출의 개연성을 뒷받침하고, 담배 연기 노출은 교정 가능한 중증도 위험 인자이며, 보호자의 돌봄 역량은 재내원 주의사항과 함께 안전한 퇴원이 가능한지를 결정한다. 이러한 이유로 다른 통상적인 항목보다 약간 높은 가중치가 부여된다."
           }
         ],
         "d2": [
@@ -877,9 +877,9 @@ const CASES = [
             "id": "2-3-2-1",
             "pts": 14,
             "en": "Item 1. Respiratory Illness Trajectory and Day of Illness: Characterizes the classic progression from upper respiratory prodrome (rhinorrhea, cough) to lower respiratory involvement (tachypnea, retractions, wheeze); establishes the exact day of illness and pace of deterioration; asks caregivers what they observed at home regarding work of breathing (fast breathing, chest sinking in, nasal flaring, grunting, noisy or pause-interrupted breathing).",
-            "ko": "항목 1. 호흡기 질환의 경과 및 발병 경과 일수: 상기도 전구 증상(콧물, 기침)에서 하기도 침범(빈호흡, 흉부 함몰, 천명)으로 진행하는 전형적인 경과를 특징화함; 정확한 발병 경과 일수와 악화 속도를 확인함; 가정에서 관찰한 호흡 노력(빠른 호흡, 흉부 함몰, 콧구멍 벌렁거림, 신음 호흡, 시끄럽거나 중간에 멈추는 호흡)에 대해 보호자에게 질문함.",
+            "ko": "항목 1. 호흡기 질환의 경과 및 발병 경과 일수: 상기도 전구 증상(콧물, 기침)에서 하기도 침범(빈호흡, 흉부 함몰, 천명)으로 진행하는 전형적인 경과를 특징화함. 정확한 발병 경과 일수와 악화 속도를 확인함. 가정에서 관찰한 호흡 노력(빠른 호흡, 흉부 함몰, 콧구멍 벌렁거림, 신음 호흡, 시끄럽거나 중간에 멈추는 호흡)에 대해 보호자에게 질문함.",
             "xEn": "The prodrome-to-lower-tract pattern is the diagnostic signature of bronchiolitis, and day of illness is prognostically critical because severity typically peaks on days 3 to 5. This infant, on day 2 to 3 and worsening, may not yet have peaked, which directly shapes disposition and anticipatory guidance. This reasoning earns one of the highest weights.",
-            "xKo": "전구 증상에서 하기도 침범으로 이어지는 양상은 세기관지염의 진단적 특징이며, 발병 경과 일수는 예후적으로 매우 중요하다. 중증도가 일반적으로 3~5일째에 최고조에 달하기 때문이다. 발병 2~3일째이며 악화 중인 이 영아는 아직 최고조에 이르지 않았을 수 있으며, 이는 퇴원/입원 결정과 예기 지도에 직접적인 영향을 미친다. 이러한 논리로 가장 높은 가중치 중 하나를 부여받는다."
+            "xKo": "전구 증상에서 하기도 침범으로 이어지는 양상은 세기관지염의 진단적 특징이며, 발병 경과 일수는 예후적으로 매우 중요하다. 중증도가 일반적으로 3~5일째에 최고조에 달하기 때문이다. 발병 2~3일째이며 악화 중인 이 영아는 아직 최고조에 이르지 않았을 수 있으며, 이는 퇴원/입원 결정과 예기 지도에 직접적인 영향을 미친다. 이러한 이유로 가중치가 가장 높은 항목 중 하나다."
           },
           {
             "id": "2-3-2-2",
@@ -895,7 +895,7 @@ const CASES = [
             "en": "Item 3. Red-Flag Symptom Screening: Directly and specifically asks about apnea or pauses in breathing, cyanosis or color change (especially perioral), grunting, lethargy or reduced responsiveness, and the height and pattern of fever.",
             "ko": "항목 3. 위험 징후(red flag) 증상 선별: 무호흡 또는 호흡 멈춤, 청색증 또는 피부색 변화(특히 입 주위), 신음 호흡, 처짐 또는 반응 저하, 발열의 정도와 양상에 대해 직접적이고 구체적으로 질문함.",
             "xEn": "Apnea can be the presenting feature of RSV in infants and mandates monitoring or admission; cyanosis and lethargy herald impending respiratory failure. Documented pertinent negatives (no apnea, no cyanosis, fever below 38.5 C) are as important as positives for safe disposition, making structured red-flag inquiry a critical safety behavior.",
-            "xKo": "무호흡은 영아 RSV 감염의 초기 발현 양상일 수 있으며 모니터링 또는 입원을 필요로 한다. 청색증과 처짐은 임박한 호흡부전의 전조이다. 문서화된 유의한 음성 소견(무호흡 없음, 청색증 없음, 발열 38.5°C 미만)은 안전한 퇴원/입원 결정에 있어 양성 소견만큼 중요하므로, 구조화된 위험 징후 확인은 핵심적인 안전 행위이다."
+            "xKo": "무호흡은 영아 RSV 감염의 초기 발현 양상일 수 있으며 모니터링 또는 입원을 필요로 한다. 청색증과 처짐은 임박한 호흡부전의 전조이다. 문서화된 유의한 음성 소견(무호흡 없음, 청색증 없음, 발열 38.5°C 미만)은 안전한 퇴원/입원 결정에서 양성 소견만큼 중요하므로, 구조화된 위험 징후 확인은 핵심적인 안전 행위이다."
           },
           {
             "id": "2-3-2-4",
@@ -903,13 +903,13 @@ const CASES = [
             "en": "Item 4. Risk Factors for Severe Bronchiolitis: Systematically screens for established risk factors for severe disease: prematurity (especially under 32 weeks), chronological age under 3 months, chronic lung disease of prematurity, hemodynamically significant congenital heart disease, immunodeficiency, neuromuscular disease, and Down syndrome.",
             "ko": "항목 4. 중증 세기관지염의 위험 인자: 중증 질환의 확립된 위험 인자를 체계적으로 선별함: 미숙아(특히 32주 미만), 생후 3개월 미만의 연령, 미숙아 만성 폐질환, 혈역학적으로 유의한 선천성 심장질환, 면역결핍, 신경근육 질환, 다운증후군.",
             "xEn": "These factors, drawn from AAP and NICE guidance, define which infants are most likely to deteriorate and lower the threshold for admission and escalation. Actively confirming their absence in this full-term 8-month-old demonstrates deliberate risk stratification rather than passive reassurance.",
-            "xKo": "AAP 및 NICE 지침에 근거한 이러한 인자들은 어떤 영아가 악화될 가능성이 가장 높은지를 규정하며 입원과 치료 상향의 역치를 낮춘다. 만삭 출생의 이 8개월 영아에서 이러한 인자들의 부재를 능동적으로 확인하는 것은 수동적인 안심이 아닌 의도적인 위험도 층화를 보여주는 것이다."
+            "xKo": "AAP 및 NICE 지침에 근거한 이러한 인자들은 어떤 영아가 악화될 가능성이 가장 높은지를 규정하며 입원과 치료 상향의 역치를 낮춘다. 만삭 출생의 이 8개월 영아에서 이러한 인자들의 부재를 능동적으로 확인하는 것은 수동적인 안심이 아닌 의도적인 위험도 층화를 보여준다."
           },
           {
             "id": "2-3-2-5",
             "pts": 12,
             "en": "Item 5. Differential-Narrowing History: Explores features that discriminate bronchiolitis from mimics: prior wheezing episodes, bronchodilator response, or strong atopic history (recurrent viral wheeze or early asthma); witnessed choking or sudden-onset symptoms (foreign body aspiration); sweating or exhaustion with feeds and poor weight gain (cardiac failure); paroxysmal or whooping cough with post-tussive vomiting or apnea (pertussis); and high fever or toxic appearance (bacterial pneumonia or sepsis).",
-            "ko": "항목 5. 감별진단을 좁히는 병력: 세기관지염과 유사 질환을 감별하는 특징들을 탐색함: 이전의 천명 삽화, 기관지확장제에 대한 반응, 뚜렷한 아토피 병력(반복적인 바이러스성 천명 또는 조기 천식); 목격된 사레 걸림 또는 급성 발병 증상(이물 흡인); 수유 시 발한이나 지침 및 불량한 체중 증가(심부전); 발작성 기침 또는 흡기 시 '흡' 소리를 동반한 기침과 기침 후 구토 또는 무호흡(백일해); 고열 또는 독성 외양(세균성 폐렴 또는 패혈증).",
+            "ko": "항목 5. 감별진단을 좁히는 병력: 세기관지염과 유사 질환을 감별하는 특징들을 탐색함: 이전의 천명 삽화, 기관지확장제에 대한 반응, 뚜렷한 아토피 병력(반복적인 바이러스성 천명 또는 조기 천식), 목격된 사레 걸림 또는 급성 발병 증상(이물 흡인), 수유 시 발한이나 지침 및 불량한 체중 증가(심부전), 발작성 기침 또는 흡기 시 '흡' 소리를 동반한 기침과 기침 후 구토 또는 무호흡(백일해), 고열 또는 독성 외양(세균성 폐렴 또는 패혈증).",
             "xEn": "A first episode of wheeze with a viral prodrome in an infant strongly supports bronchiolitis, but excellent history taking deliberately tests the alternatives; a missed foreign body or undiagnosed cardiac lesion carries serious consequences. The pertinent negatives in this vignette (no prior wheeze, no aspiration event, no cardiac history) show why these targeted questions merit significant weight.",
             "xKo": "바이러스성 전구 증상을 동반한 영아의 첫 천명 삽화는 세기관지염을 강력히 시사하지만, 우수한 병력 청취는 의도적으로 다른 가능성들을 검증한다. 이물을 놓치거나 심장 병변을 진단하지 못하면 심각한 결과를 초래한다. 이 증례의 유의한 음성 소견(이전 천명 없음, 흡인 사건 없음, 심장질환 병력 없음)은 이러한 표적화된 질문들이 상당한 가중치를 받을 만한 이유를 보여준다."
           }
@@ -920,7 +920,7 @@ const CASES = [
   {
     "id": 3,
     "en": "Case 3: Toddler with a brief generalized seizure during high fever — simple febrile seizure",
-    "ko": "사례 3: 고열 중 짧은 전신 발작을 보인 유아 — 단순 열성 경련",
+    "ko": "증례 3: 고열 중 짧은 전신 발작을 보인 유아 — 단순 열성 경련",
     "vignette": {
       "rows": [
         {
@@ -933,13 +933,13 @@ const CASES = [
           "en": "History of Presenting Illness",
           "ko": "현병력",
           "val_en": "18-month-old boy developed a generalized tonic-clonic seizure lasting ~3 minutes at home, followed by 15 minutes of postictal sleepiness with full recovery upon ED arrival. Fever for 12 hours with rhinorrhea and sore throat; no prior seizures; no focal deficits post-event. No vomiting/diarrhea; no known ingestions or trauma.",
-          "val_ko": "18개월 남아로 집에서 약 3분간 전신 강직-간대 발작 발생, 이후 15분간 발작 후 졸음이 있었으며 응급실 도착 시 완전 회복. 12시간 동안 발열과 콧물, 인후통; 이전 발작 없음; 발작 후 국소 신경 결손 없음. 구토/설사 없음; 알려진 섭취나 외상 없음."
+          "val_ko": "18개월 남아로 집에서 약 3분간 전신 강직-간대 발작 발생, 이후 15분간 발작 후 졸음이 있었으며 응급실 도착 시 완전 회복. 12시간 동안 발열과 콧물, 인후통, 이전 발작 없음, 발작 후 국소 신경 결손 없음. 구토/설사 없음, 알려진 섭취나 외상 없음."
         },
         {
           "en": "Past Medical History",
           "ko": "과거 병력",
           "val_en": "Healthy; normal development; no history of neurologic disease.",
-          "val_ko": "건강함; 발달 정상; 신경 질환 병력 없음."
+          "val_ko": "건강함, 발달 정상, 신경 질환 병력 없음."
         },
         {
           "en": "Medications",
@@ -957,7 +957,7 @@ const CASES = [
           "en": "Family/Social History",
           "ko": "사회력/가족력",
           "val_en": "No family history of epilepsy; attends daycare.",
-          "val_ko": "뇌전증 가족력 없음; 어린이집 등원 중."
+          "val_ko": "뇌전증 가족력 없음, 어린이집 등원 중."
         },
         {
           "en": "Immunizations",
@@ -969,7 +969,7 @@ const CASES = [
           "en": "Review of Systems",
           "ko": "계통별 문진",
           "val_en": "Positive for fever, rhinorrhea, sore throat; negative for rash, dysuria, focal weakness, persistent vomiting.",
-          "val_ko": "양성: 발열, 콧물, 인후통; 음성: 발진, 배뇨통, 국소 약화, 지속적 구토."
+          "val_ko": "양성: 발열, 콧물, 인후통 / 음성: 발진, 배뇨통, 국소 약화, 지속적 구토."
         }
       ],
       "vitals": [
@@ -1015,31 +1015,31 @@ const CASES = [
           "en": "General",
           "ko": "전반",
           "val_en": "Alert, consolable; no distress after recovery.",
-          "val_ko": "의식 명료, 달랠 수 있음; 회복 후 곤란 없음."
+          "val_ko": "의식 명료, 달랠 수 있음, 회복 후 곤란 없음."
         },
         {
           "en": "Neuro",
           "ko": "신경계",
           "val_en": "Nonfocal exam; normal tone and strength; no meningeal signs; normal gait for age.",
-          "val_ko": "국소 신경학적 이상 없음; 정상 근긴장도와 근력; 수막 자극 징후 없음; 연령에 맞는 보행."
+          "val_ko": "국소 신경학적 이상 없음, 정상 근긴장도와 근력, 수막 자극 징후 없음, 연령에 맞는 보행."
         },
         {
           "en": "HEENT",
           "ko": "HEENT",
           "val_en": "Mildly erythematous pharynx without exudates; TMs mildly injected; nasal discharge present.",
-          "val_ko": "경미한 인두 발적, 삼출물 없음; 고막 경미한 충혈; 비루 있음."
+          "val_ko": "경미한 인두 발적, 삼출물 없음, 고막 경미한 충혈, 비루 있음."
         },
         {
           "en": "Cardiovascular",
           "ko": "심혈관",
           "val_en": "Tachycardic; regular rhythm; good perfusion.",
-          "val_ko": "빈맥; 규칙적 리듬; 관류 양호."
+          "val_ko": "빈맥, 규칙적 리듬, 관류 양호."
         },
         {
           "en": "Respiratory",
           "ko": "호흡기",
           "val_en": "Clear to auscultation; no retractions/wheeze.",
-          "val_ko": "청진 시 깨끗함; 함몰/천명 없음."
+          "val_ko": "청진 시 깨끗함, 함몰/천명 없음."
         },
         {
           "en": "Abdomen",
@@ -1059,7 +1059,7 @@ const CASES = [
           "en": "Relevant Lab/Studies Findings",
           "ko": "관련 검사 결과",
           "val_en": "Point-of-care glucose: 98 mg/dL (70–140).\nBasic Metabolic Panel: Na 137 mmol/L (135–145); K 4.2 mmol/L (3.5–5.5); CO₂ 22 mmol/L (22–28) — normal.\nCBC: WBC 12.1 ×10³/µL (6.0–17.5) — mild leukocytosis; Hgb 11.8 g/dL (10.5–13.5); Platelets 360 ×10³/µL (150–450).\nUrinalysis: Negative leukocyte esterase/nitrite; no ketonuria.\nRapid viral testing: Influenza A/B negative (negative); RSV negative (negative).\nNeuroimaging/LP: Not indicated for a simple febrile seizure in a well-appearing, immunized child without meningeal signs or focal neurological deficits.",
-          "val_ko": "현장 혈당 검사: 98 mg/dL (70–140).\n기본 대사 패널: Na 137 mmol/L (135–145); K 4.2 mmol/L (3.5–5.5); CO₂ 22 mmol/L (22–28) — 정상.\nCBC: WBC 12.1 ×10³/µL (6.0–17.5) — 경미한 백혈구 증가; Hgb 11.8 g/dL (10.5–13.5); 혈소판 360 ×10³/µL (150–450).\n소변 검사: 백혈구 에스테라아제/아질산염 음성; 케톤뇨 없음.\n신속 바이러스 검사: 인플루엔자 A/B 음성 (정상: 음성); RSV 음성 (정상: 음성).\n신경영상/요추천자: 수막 자극 징후나 국소 신경학적 결손이 없는 양호한 외관의 접종 완료된 아동의 단순 열성 경련에는 시행 적응증 없음."
+          "val_ko": "현장 혈당 검사: 98 mg/dL (70–140).\n기본 대사 패널: Na 137 mmol/L (135–145), K 4.2 mmol/L (3.5–5.5), CO₂ 22 mmol/L (22–28) — 정상.\nCBC: WBC 12.1 ×10³/µL (6.0–17.5) — 경미한 백혈구 증가, Hgb 11.8 g/dL (10.5–13.5), 혈소판 360 ×10³/µL (150–450).\n소변 검사: 백혈구 에스테라아제/아질산염 음성, 케톤뇨 없음.\n신속 바이러스 검사: 인플루엔자 A/B 음성 (정상: 음성), RSV 음성 (정상: 음성).\n신경영상/요추천자: 수막 자극 징후나 국소 신경학적 결손이 없는 양호한 외관의 접종 완료된 아동의 단순 열성 경련에는 시행 적응증 없음."
         }
       ]
     },
@@ -1067,7 +1067,7 @@ const CASES = [
       {
         "id": "3-1",
         "label_en": "Rubric 1",
-        "label_ko": "기준표 1",
+        "label_ko": "루브릭 1",
         "d1pts": 40,
         "d2pts": 60,
         "d1desc_en": "General Clinical History-Taking",
@@ -1162,13 +1162,13 @@ const CASES = [
       {
         "id": "3-2",
         "label_en": "Rubric 2",
-        "label_ko": "기준표 2",
+        "label_ko": "루브릭 2",
         "d1pts": 34,
         "d2pts": 66,
         "d1desc_en": "General Clinical History-Taking",
-        "d1desc_ko": "일반 임상 병력청취",
+        "d1desc_ko": "일반 임상 병력 청취",
         "d2desc_en": "Case-Specific Diagnostic History (Fever with First Seizure)",
-        "d2desc_ko": "증례 특이적 진단 병력청취 (발열 동반 첫 경련)",
+        "d2desc_ko": "증례 특이적 진단 병력 청취 (발열 동반 첫 경련)",
         "d1": [
           {
             "id": "3-2-1-1",
@@ -1192,7 +1192,7 @@ const CASES = [
             "en": "Item 3. Medications and Allergies: Documents current and recent medications including home antipyretics (agent, dose, timing), over-the-counter/herbal products, and known drug allergies.",
             "ko": "항목 3. 복용 약물 및 알레르기: 가정에서 사용한 해열제(약제, 용량, 투여 시각), 일반의약품/한방 제제를 포함한 현재 및 최근 복용 약물과 알려진 약물 알레르기를 기록한다.",
             "xEn": "A mandatory safety element in every history; antipyretic timing also affects interpretation of measured temperature. Lower weight because it is essential practice but rarely changes the diagnosis in this presentation.",
-            "xKo": "모든 병력청취에서 필수적인 안전 요소이며, 해열제 투여 시점은 측정된 체온의 해석에도 영향을 미친다. 필수적인 진료 행위이지만 이 증례에서 진단을 바꾸는 경우는 드물기 때문에 가중치는 낮다."
+            "xKo": "모든 병력 청취에서 필수적인 안전 요소이며, 해열제 투여 시점은 측정된 체온의 해석에도 영향을 미친다. 필수적인 진료 행위이지만 이 증례에서 진단을 바꾸는 경우는 드물기 때문에 가중치는 낮다."
           },
           {
             "id": "3-2-1-4",
@@ -1216,7 +1216,7 @@ const CASES = [
             "id": "3-2-2-1",
             "pts": 16,
             "en": "Item 1. Seizure Semiology and Simple-versus-Complex Classification: Characterizes the event precisely: generalized versus focal onset, tonic-clonic activity, eye deviation, cyanosis, incontinence, exact duration (<15 minutes), and whether it was a single episode within 24 hours.",
-            "ko": "항목 1. 경련 양상(semiology) 및 단순-복합 열성경련 분류: 사건을 정밀하게 특성화한다: 전신성 대 국소성 발작 시작, 강직-간대 운동, 안구 편위, 청색증, 실금, 정확한 지속 시간(15분 미만), 24시간 이내 단일 삽화 여부.",
+            "ko": "항목 1. 경련 양상(semiology) 및 단순-복합 열성경련 분류: 발작이 전신성으로 시작했는지 국소성으로 시작했는지, 강직-간대 운동, 안구 편위, 청색증, 실금, 정확한 지속 시간(15분 미만), 24시간 이내에 한 번만 있었는지를 확인하여 사건을 정밀하게 특성화한다.",
             "xEn": "These features are the defining criteria separating simple from complex febrile seizure and directly determine the need for neuroimaging, lumbar puncture, EEG, and admission. Misclassification changes the entire management pathway, so this carries the highest weight.",
             "xKo": "이러한 특징들은 단순 열성경련과 복합 열성경련을 구분하는 정의적 기준이며, 신경영상검사, 요추천자, EEG, 입원의 필요성을 직접 결정한다. 오분류는 전체 치료 경로를 바꾸므로 가장 높은 가중치를 부여한다."
           },
@@ -1224,7 +1224,7 @@ const CASES = [
             "id": "3-2-2-2",
             "pts": 12,
             "en": "Item 2. Postictal Course and Return to Neurologic Baseline: Quantifies duration of postictal drowsiness and confirms full return to behavioral and neurologic baseline; specifically asks about persistent focal weakness (Todd paralysis), abnormal gaze, or ongoing altered awareness.",
-            "ko": "항목 2. 발작 후 경과 및 신경학적 기저 상태로의 회복: 발작 후 기면 상태의 지속 시간을 정량화하고 행동적·신경학적 기저 상태로의 완전한 회복을 확인한다; 특히 지속적인 국소 위약(Todd 마비), 비정상적 시선, 지속되는 의식 변화에 대해 질문한다.",
+            "ko": "항목 2. 발작 후 경과 및 신경학적 기저 상태로의 회복: 발작 후 기면 상태의 지속 시간을 정량화하고 행동적·신경학적 기저 상태로 완전히 회복되었는지 확인한다. 특히 지속적인 국소 위약(Todd 마비), 비정상적 시선, 지속되는 의식 변화에 대해 질문한다.",
             "xEn": "Complete recovery within a short postictal period is a key discriminator between a benign febrile seizure and meningitis, encephalitis, or ongoing subtle seizure activity. Failure to confirm baseline recovery is a common and dangerous omission.",
             "xKo": "짧은 발작 후 기간 내의 완전한 회복은 양성 열성경련과 수막염, 뇌염 또는 지속되는 미세 발작 활동을 구별하는 핵심 감별점이다. 기저 상태로의 회복 확인을 누락하는 것은 흔하면서도 위험한 실수이다."
           },
@@ -1232,7 +1232,7 @@ const CASES = [
             "id": "3-2-2-3",
             "pts": 11,
             "en": "Item 3. Fever History and Infectious Source Localization: Establishes fever onset and duration relative to the seizure, maximum recorded temperature, and targeted source-seeking symptoms: rhinorrhea, sore throat, ear pulling, cough, dysuria, diarrhea, and rash.",
-            "ko": "항목 3. 발열 병력 및 감염원 국소화: 경련과의 시간적 관계에서 발열의 시작과 지속 기간, 최고 측정 체온을 확인하고, 감염원을 찾기 위한 표적 증상을 질문한다: 콧물, 인후통, 귀 잡아당기기, 기침, 배뇨통, 설사, 발진.",
+            "ko": "항목 3. 발열 병력 및 감염원 국소화: 경련과의 시간적 관계에서 발열의 시작과 지속 기간, 최고 측정 체온을 확인하고, 감염원을 찾기 위해 콧물, 인후통, 귀 잡아당기기, 기침, 배뇨통, 설사, 발진 등의 증상을 질문한다.",
             "xEn": "A febrile seizure diagnosis requires documented fever with a plausible source; identifying a benign viral focus (URI in this case) supports minimal workup and guides targeted testing rather than broad investigation.",
             "xKo": "열성경련의 진단에는 타당한 감염원과 함께 기록된 발열이 필요하며, 양성 바이러스성 병소(이 증례에서는 상기도 감염)의 확인은 최소한의 검사를 뒷받침하고 광범위한 검사 대신 표적 검사를 안내한다."
           },
@@ -1240,7 +1240,7 @@ const CASES = [
             "id": "3-2-2-4",
             "pts": 14,
             "en": "Item 4. Red-Flag Screening for CNS Infection: Actively screens for meningitis/encephalitis features: persistent lethargy or irritability, inconsolability, poor feeding, neck stiffness or pain, bulging fontanelle history, petechial rash, and recent or current antibiotic use that could partially mask meningitis.",
-            "ko": "항목 4. 중추신경계 감염에 대한 위험 신호(red flag) 선별: 수막염/뇌염의 특징을 적극적으로 선별한다: 지속적인 기면 또는 보챔, 달래지지 않음, 수유 저하, 목 경직 또는 통증, 대천문 팽윤 병력, 점상출혈성 발진, 그리고 수막염을 부분적으로 은폐할 수 있는 최근 또는 현재의 항생제 사용.",
+            "ko": "항목 4. 중추신경계 감염에 대한 위험 신호(red flag) 선별: 지속적인 기면 또는 보챔, 달래지지 않음, 수유 저하, 목 경직 또는 통증, 대천문 팽윤 병력, 점상출혈성 발진, 그리고 수막염을 부분적으로 가릴 수 있는 최근 또는 현재의 항생제 사용을 확인하여 수막염·뇌염의 특징을 적극적으로 선별한다.",
             "xEn": "Bacterial meningitis is the critical cannot-miss diagnosis in fever plus seizure. Explicitly documenting the absence of these features, including partially treated infection, is what safely justifies deferring lumbar puncture; high weight reflects patient-safety stakes.",
             "xKo": "세균성 수막염은 발열과 경련에서 절대 놓쳐서는 안 되는 결정적 진단이다. 부분적으로 치료된 감염을 포함하여 이러한 특징들의 부재를 명시적으로 기록하는 것이 요추천자를 안전하게 유보할 수 있는 근거이며, 높은 가중치는 환자 안전상의 중대성을 반영한다."
           },
@@ -1248,7 +1248,7 @@ const CASES = [
             "id": "3-2-2-5",
             "pts": 13,
             "en": "Item 5. Exclusion of Alternative Etiologies and Recurrence Risk Factors: Excludes non-febrile seizure causes: head trauma (including possible non-accidental injury), toxic ingestion or medication access in the home, prior afebrile seizures, and metabolic risks (vomiting, diarrhea, poor intake, excessive free water); elicits family history of febrile seizures or epilepsy.",
-            "ko": "항목 5. 대체 원인의 배제 및 재발 위험 인자: 비열성 경련 원인을 배제한다: 두부 외상(비우발적 손상 가능성 포함), 독성 물질 섭취 또는 가정 내 약물 접근 가능성, 이전의 무열성 경련, 대사성 위험(구토, 설사, 섭취 저하, 과도한 맹물 섭취); 열성경련 또는 뇌전증의 가족력을 확인한다.",
+            "ko": "항목 5. 대체 원인의 배제 및 재발 위험 인자: 두부 외상(비우발적 손상 가능성 포함), 독성 물질 섭취 또는 가정 내 약물 접근 가능성, 이전의 무열성 경련, 대사성 위험(구토, 설사, 섭취 저하, 과도한 맹물 섭취), 열성경련 또는 뇌전증의 가족력을 확인하여 열성이 아닌 경련의 원인을 배제한다.",
             "xEn": "A seizure occurring with fever must not be presumed febrile until trauma, ingestion, electrolyte derangement, and evolving epilepsy are addressed, as each mandates a different workup. Family seizure history refines recurrence-risk counseling and anticipatory guidance for discharge.",
             "xKo": "발열과 동반된 경련은 외상, 독성 물질 섭취, 전해질 이상, 진행 중인 뇌전증이 다루어지기 전까지 열성경련으로 단정해서는 안 되며, 각각은 서로 다른 검사를 요구한다. 경련의 가족력은 재발 위험 상담과 퇴원 시 예방적 지도를 정교하게 한다."
           }
@@ -1257,7 +1257,7 @@ const CASES = [
       {
         "id": "3-3",
         "label_en": "Rubric 3",
-        "label_ko": "기준표 3",
+        "label_ko": "루브릭 3",
         "d1pts": 35,
         "d2pts": 65,
         "d1desc_en": "General Clinical History-Taking",
@@ -1354,7 +1354,7 @@ const CASES = [
   {
     "id": 4,
     "en": "Case 4: Adolescent with right-lower-quadrant pain — acute appendicitis",
-    "ko": "사례 4: 우하복부 통증을 호소하는 청소년 — 급성 충수염",
+    "ko": "증례 4: 우하복부 통증을 호소하는 청소년 — 급성 충수염",
     "vignette": {
       "rows": [
         {
@@ -1367,13 +1367,13 @@ const CASES = [
           "en": "History of Presenting Illness",
           "ko": "현병력",
           "val_en": "12-year-old girl with 24 hours of abdominal pain starting periumbilically and migrating to the right lower quadrant, associated with anorexia and nausea. Two episodes of non-bilious emesis, no diarrhea. Reports low-grade fever at home. Pain worsens with movement and coughing. Last menstrual period 3 weeks ago; denies dysuria or vaginal discharge.",
-          "val_ko": "12세 여아로 24시간 동안 배꼽 주위에서 시작하여 우하복부로 이동한 복통, 식욕부진과 오심 동반. 비담즙성 구토 2회, 설사 없음. 집에서 미열 호소. 움직임과 기침으로 통증 악화. 마지막 월경 3주 전; 배뇨통이나 질 분비물 부인."
+          "val_ko": "12세 여아로 24시간 동안 배꼽 주위에서 시작하여 우하복부로 이동한 복통, 식욕부진과 오심 동반. 비담즙성 구토 2회, 설사 없음. 집에서 미열 호소. 움직임과 기침으로 통증 악화. 마지막 월경 3주 전, 배뇨통이나 질 분비물 부인."
         },
         {
           "en": "Past Medical History",
           "ko": "과거 병력",
           "val_en": "Healthy; no prior abdominal surgeries.",
-          "val_ko": "건강함; 이전 복부 수술력 없음."
+          "val_ko": "건강함, 이전 복부 수술력 없음."
         },
         {
           "en": "Medications",
@@ -1391,7 +1391,7 @@ const CASES = [
           "en": "Family/Social History",
           "ko": "사회력/가족력",
           "val_en": "Lives with parents; no family history of IBD.",
-          "val_ko": "부모와 함께 거주; 염증성 장 질환 가족력 없음."
+          "val_ko": "부모와 함께 거주, 염증성 장 질환 가족력 없음."
         },
         {
           "en": "Immunizations",
@@ -1403,7 +1403,7 @@ const CASES = [
           "en": "Review of Systems",
           "ko": "계통별 문진",
           "val_en": "Positive for anorexia, nausea, RLQ pain, fever; negative for diarrhea, urinary symptoms, respiratory symptoms.",
-          "val_ko": "양성: 식욕부진, 오심, 우하복부 통증, 발열; 음성: 설사, 비뇨기 증상, 호흡기 증상."
+          "val_ko": "양성: 식욕부진, 오심, 우하복부 통증, 발열 / 음성: 설사, 비뇨기 증상, 호흡기 증상."
         }
       ],
       "vitals": [
@@ -1455,13 +1455,13 @@ const CASES = [
           "en": "Abdomen",
           "ko": "복부",
           "val_en": "Localized tenderness at McBurney's point with guarding; rebound tenderness present; positive Rovsing and psoas signs; no masses; bowel sounds decreased.",
-          "val_ko": "McBurney 지점에 국소 압통과 근육 경직; 반발통 있음; Rovsing 및 요근 징후 양성; 종괴 없음; 장음 감소."
+          "val_ko": "McBurney 지점에 국소 압통과 근육 경직, 반발통 있음, Rovsing 및 요근 징후 양성, 종괴 없음, 장음 감소."
         },
         {
           "en": "HEENT/Resp",
           "ko": "HEENT/호흡기",
           "val_en": "Oropharynx clear; lungs clear to auscultation.",
-          "val_ko": "구인두 깨끗; 청진 시 폐 깨끗함."
+          "val_ko": "구인두 깨끗, 청진 시 폐 깨끗함."
         },
         {
           "en": "Cardiovascular",
@@ -1479,7 +1479,7 @@ const CASES = [
           "en": "Neuro/Skin",
           "ko": "신경/피부",
           "val_en": "No focal deficits; skin warm, no rash.",
-          "val_ko": "국소 신경학적 결손 없음; 피부 따뜻함, 발진 없음."
+          "val_ko": "국소 신경학적 결손 없음, 피부 따뜻함, 발진 없음."
         }
       ],
       "labs": [
@@ -1487,7 +1487,7 @@ const CASES = [
           "en": "Relevant Lab/Studies Findings",
           "ko": "관련 검사 결과",
           "val_en": "CBC: WBC 15.2 ×10³/µL (4.5–13.0) — high; Neutrophils 80% (40–70%) — high; Hgb 12.8 g/dL (11.5–15.5); Platelets 310 ×10³/µL (150–400).\nCRP: 3.2 mg/dL (<0.5) — elevated.\nBasic Metabolic Panel: Na 137 mmol/L (135–145); K 4.1 mmol/L (3.5–5.0); CO₂ 22 mmol/L (22–28).\nUrinalysis: Negative leukocyte esterase and nitrites; no hematuria.\nβ-hCG (serum): Negative (non-pregnant).\nRight-lower-quadrant ultrasound: Noncompressible blind-ended tubular structure 7.9 mm in diameter with wall hyperemia and periappendiceal fat stranding; appendicolith present — consistent with acute appendicitis.",
-          "val_ko": "CBC: WBC 15.2 ×10³/µL (4.5–13.0) — 증가; 호중구 80% (40–70%) — 증가; Hgb 12.8 g/dL (11.5–15.5); 혈소판 310 ×10³/µL (150–400).\nCRP: 3.2 mg/dL (<0.5) — 상승.\n기본 대사 패널: Na 137 mmol/L (135–145); K 4.1 mmol/L (3.5–5.0); CO₂ 22 mmol/L (22–28).\n소변 검사: 백혈구 에스테라아제 및 아질산염 음성; 혈뇨 없음.\nβ-hCG (혈청): 음성 (비임신).\n우하복부 초음파: 직경 7.9 mm의 비압축성 맹관 구조물, 벽 충혈 및 충수 주위 지방 음영 증가; 충수석 존재 — 급성 충수염에 합당."
+          "val_ko": "CBC: WBC 15.2 ×10³/µL (4.5–13.0) — 증가, 호중구 80% (40–70%) — 증가, Hgb 12.8 g/dL (11.5–15.5), 혈소판 310 ×10³/µL (150–400).\nCRP: 3.2 mg/dL (<0.5) — 상승.\n기본 대사 패널: Na 137 mmol/L (135–145), K 4.1 mmol/L (3.5–5.0), CO₂ 22 mmol/L (22–28).\n소변 검사: 백혈구 에스테라아제 및 아질산염 음성, 혈뇨 없음.\nβ-hCG (혈청): 음성 (비임신).\n우하복부 초음파: 직경 7.9 mm의 비압축성 맹관 구조물, 벽 충혈 및 충수 주위 지방 음영 증가, 충수석 존재 — 급성 충수염에 합당."
         }
       ]
     },
@@ -1495,7 +1495,7 @@ const CASES = [
       {
         "id": "4-1",
         "label_en": "Rubric 1",
-        "label_ko": "기준표 1",
+        "label_ko": "루브릭 1",
         "d1pts": 34,
         "d2pts": 66,
         "d1desc_en": "General Clinical History-Taking",
@@ -1507,7 +1507,7 @@ const CASES = [
             "id": "4-1-1-1",
             "pts": 10,
             "en": "Item 1. Structured Pain Characterization: Elicits a systematic description of the abdominal pain using a framework such as OPQRST/SOCRATES: onset, location, duration, character, severity, progression, radiation, and aggravating/relieving factors.",
-            "ko": "항목 1. 체계적인 통증 특성 파악: OPQRST/SOCRATES와 같은 체계를 사용하여 복통에 대한 체계적인 기술을 이끌어낸다: 발병 양상, 위치, 지속 시간, 양상, 중증도, 진행 경과, 방사통, 악화/완화 인자.",
+            "ko": "항목 1. 체계적인 통증 특성 파악: OPQRST/SOCRATES와 같은 틀을 사용하여 발병 양상, 위치, 지속 시간, 양상, 중증도, 진행 경과, 방사통, 악화·완화 인자를 빠짐없이 청취한다.",
             "xEn": "A disciplined pain history is the backbone of any abdominal pain evaluation and drives the entire diagnostic pathway. It receives the highest weight in this domain because incomplete pain characterization frequently leads to missed or delayed diagnoses in the emergency department.",
             "xKo": "체계적인 통증 병력 청취는 모든 복통 평가의 근간이며 전체 진단 과정을 이끌어간다. 불완전한 통증 특성 파악은 응급실에서 진단 누락이나 지연으로 이어지는 경우가 많기 때문에 이 영역에서 가장 높은 가중치를 받는다."
           },
@@ -1523,7 +1523,7 @@ const CASES = [
             "id": "4-1-1-3",
             "pts": 8,
             "en": "Item 3. Focused Review of Systems with Pertinent Negatives: Performs a targeted review of systems covering constitutional, gastrointestinal, genitourinary, and respiratory symptoms, explicitly documenting pertinent negatives (e.g., no diarrhea, no dysuria, no cough), and assesses oral intake, hydration, and time of last meal.",
-            "ko": "항목 3. 주요 음성 소견을 포함한 초점화된 계통 문진: 전신, 위장관, 비뇨생식기, 호흡기 증상을 포괄하는 표적화된 계통 문진을 시행하고, 주요 음성 소견(예: 설사 없음, 배뇨통 없음, 기침 없음)을 명시적으로 기록하며, 경구 섭취량, 수분 상태, 마지막 식사 시간을 평가한다.",
+            "ko": "항목 3. 주요 음성 소견을 포함한 초점화된 계통 문진: 전신, 위장관, 비뇨생식기, 호흡기 증상을 포괄하는 초점을 맞춘 계통 문진을 시행하고, 주요 음성 소견(예: 설사 없음, 배뇨통 없음, 기침 없음)을 명시적으로 기록하며, 경구 섭취량, 수분 상태, 마지막 식사 시간을 평가한다.",
             "xEn": "Pertinent negatives narrow the differential as powerfully as positive findings, and documenting last oral intake and hydration status is critical for a child likely heading to the operating room. Moderate weight reflects its supporting but indispensable role.",
             "xKo": "주요 음성 소견은 양성 소견만큼이나 강력하게 감별진단 범위를 좁히며, 수술실로 향할 가능성이 높은 소아에서 마지막 경구 섭취 시간과 수분 상태를 기록하는 것은 매우 중요하다. 중간 가중치는 보조적이지만 필수불가결한 역할을 반영한다."
           },
@@ -1551,7 +1551,7 @@ const CASES = [
             "en": "Item 2. Sequence and Character of Associated GI Symptoms: Establishes the temporal sequence of anorexia, nausea, and vomiting relative to pain onset (pain-first sequence favors appendicitis), characterizes emesis as bilious vs non-bilious, quantifies episodes, and asks about diarrhea and stool pattern.",
             "ko": "항목 2. 동반 위장관 증상의 순서와 양상: 통증 발생 시점을 기준으로 식욕부진, 오심, 구토의 시간적 순서를 확인하고(통증이 먼저 시작된 경우 충수염을 시사), 구토물이 담즙성인지 비담즙성인지 특성을 파악하며, 구토 횟수를 정량화하고, 설사와 배변 양상에 대해 질문한다.",
             "xEn": "Anorexia and pain-preceding-vomiting are classic appendicitis features and components of validated scoring systems; bilious emesis would redirect concern toward obstruction, and prominent diarrhea toward gastroenteritis. High weight reflects its discriminatory power within the GI differential.",
-            "xKo": "식욕부진과 통증이 구토에 선행하는 양상은 충수염의 고전적 소견이며 검증된 채점 체계의 구성 요소이다; 담즙성 구토는 장폐색으로, 두드러진 설사는 위장염으로 의심의 방향을 전환시킨다. 높은 가중치는 위장관 감별진단 내에서의 판별력을 반영한다."
+            "xKo": "식욕부진과 통증이 구토에 선행하는 양상은 충수염의 고전적 소견이며 검증된 채점 체계의 구성 요소이다. 담즙성 구토는 장폐색으로, 두드러진 설사는 위장염으로 의심의 방향을 전환시킨다. 높은 가중치는 위장관 감별진단 내에서의 판별력을 반영한다."
           },
           {
             "id": "4-1-2-3",
@@ -1581,16 +1581,16 @@ const CASES = [
             "id": "4-1-2-6",
             "pts": 10,
             "en": "Item 6. Differential-Directed Screening History: Systematically screens alternatives: urinary symptoms and flank pain (UTI, pyelonephritis, renal colic), recent viral illness or sore throat (mesenteric adenitis, streptococcal pharyngitis), constipation history, abdominal trauma, prior similar episodes, and family history of IBD.",
-            "ko": "항목 6. 감별진단 지향적 선별 병력: 대안적 진단을 체계적으로 선별한다: 비뇨기 증상 및 옆구리 통증(요로감염, 신우신염, 신산통), 최근 바이러스 질환 또는 인후통(장간막 림프절염, 사슬알균 인두염), 변비 병력, 복부 외상, 이전 유사 삽화, 염증성 장질환(IBD) 가족력.",
+            "ko": "항목 6. 감별진단 지향적 선별 병력: 비뇨기 증상 및 옆구리 통증(요로감염, 신우신염, 신산통), 최근 바이러스 질환 또는 인후통(장간막 림프절염, 사슬알균 인두염), 변비 병력, 복부 외상, 이전 유사 삽화, 염증성 장질환(IBD) 가족력을 확인하여 다른 진단 가능성을 체계적으로 선별한다.",
             "xEn": "Appendicitis in children is commonly misdiagnosed as one of these mimics; deliberately excluding them by history shows breadth of pediatric-specific differential reasoning and protects against premature closure. Weighted to reward completeness of the case-relevant differential.",
-            "xKo": "소아 충수염은 이러한 유사 질환 중 하나로 흔히 오진된다; 병력을 통해 이들을 의도적으로 배제하는 것은 소아 특이적 감별 추론의 폭넓음을 보여주며 성급한 결론(premature closure)을 방지한다. 증례 관련 감별진단의 완전성에 보상을 주도록 가중치를 부여한다."
+            "xKo": "소아 충수염은 이러한 유사 질환 중 하나로 흔히 오진된다. 병력을 통해 이들을 의도적으로 배제하는 것은 소아 특이적 감별 추론의 폭넓음을 보여주며 성급한 결론(premature closure)을 방지한다. 증례 관련 감별진단의 완전성에 보상을 주도록 가중치를 부여한다."
           }
         ]
       },
       {
         "id": "4-2",
         "label_en": "Rubric 2",
-        "label_ko": "기준표 2",
+        "label_ko": "루브릭 2",
         "d1pts": 35,
         "d2pts": 65,
         "d1desc_en": "General Clinical History-Taking",
@@ -1685,7 +1685,7 @@ const CASES = [
       {
         "id": "4-3",
         "label_en": "Rubric 3",
-        "label_ko": "기준표 3",
+        "label_ko": "루브릭 3",
         "d1pts": 30,
         "d2pts": 70,
         "d1desc_en": "General Clinical History-Taking",
@@ -1840,7 +1840,7 @@ const StickyHeader = ({ lang, setLang, doneR, totalR, breadcrumb }) => {
       h('span', {style:{color:white, fontSize: 13, fontWeight:600,
         flex:1, marginRight:12, lineHeight:1.35}},
         T("AI-Generated Rubric Frameworks — Clinical History-Taking Assessment",
-          "AI 생성 루브릭 프레임워크 — 임상 병력청취 평가", lang)),
+          "AI 생성 루브릭 프레임워크 — 임상 병력 청취 평가", lang)),
       h('div', {style:{display:"flex", gap:4}},
         ["en","ko"].map(l =>
           h('button', {key:l, onClick:()=>setLang(l),
@@ -1884,8 +1884,8 @@ function ConsentScreen({ onAgree }) {
         h('p',{style:bp},"You are invited to take part in a research study on how pediatric clinicians evaluate AI-generated rubrics for clinical history-taking in urgent care settings."),
         h('p',{style:bp},"The study aims to understand variability among clinicians and the degree of alignment between clinician judgment and AI-generated rubrics.")),
       h('div',null,
-        h('p',{style:bp},"귀하는 소아 임상의가 긴급 진료(urgent care) 환경에서의 임상 병력 청취에 대한 AI 생성 루브릭을 어떻게 평가하는지에 관한 연구에 참여하도록 초대되었습니다."),
-        h('p',{style:bp},"본 연구는 임상의 간의 편차(variability) 및 임상의의 판단과 AI 생성 루브릭 간의 일치(alignment) 정도를 파악하는 것을 목적으로 합니다.")))
+        h('p',{style:bp},"본 연구는 소아 임상의가 AI 생성 루브릭을 어떻게 평가하는지 알아보는 연구입니다. 루브릭의 주제는 응급 진료 환경에서의 임상 병력 청취입니다. 귀하께 본 연구의 참여를 요청드립니다."),
+        h('p',{style:bp},"본 연구에서는 임상의 간 변동성(variability)과, 임상의의 판단이 AI 생성 루브릭과 얼마나 부합하는지(alignment)를 살펴봅니다.")))
     },
     {n:"2", en:"Procedures", ko:"연구 절차", body: t(
       h('div',null,
@@ -1895,31 +1895,31 @@ function ConsentScreen({ onAgree }) {
           h('li',null,"B. Rank the items within each domain by clinical importance.")),
         h('p',{style:bp},"The survey is expected to take approximately 40 minutes to complete.")),
       h('div',null,
-        h('p',{style:bp},"참여에 동의하시면 온라인 설문조사를 완료하게 됩니다. 귀하는 4개의 표준화된 소아 응급 임상 사례와 관련된 루브릭 프레임워크를 검토하게 됩니다. 각 루브릭에 대해 귀하는 다음을 수행하게 됩니다:"),
+        h('p',{style:bp},"참여에 동의하시면 온라인 설문에 응답하시게 됩니다. 표준화된 소아 응급 증례 4개에 대한 루브릭을 검토하시며, 루브릭마다 다음 두 가지를 해 주시면 됩니다:"),
         h('ul',{style:ulp},
-          h('li',null,"A. 각 항목이 루브릭에 포함되어야 하는지 여부를 표시합니다."),
-          h('li',null,"B. 각 영역 내의 항목들을 임상적 중요도에 따라 순위를 매깁니다.")),
-        h('p',{style:bp},"본 설문조사를 완료하는 데는 약 40분이 소요될 것으로 예상됩니다.")))
+          h('li',null,"A. 각 항목을 루브릭에 포함해야 하는지 판단합니다."),
+          h('li',null,"B. 각 영역 안에서 항목의 순위를 임상적 중요도 순으로 매깁니다.")),
+        h('p',{style:bp},"설문에 응답하시는 데는 약 40분이 걸립니다.")))
     },
     {n:"3", en:"Voluntary Participation and Right to Withdraw", ko:"자발적 참여 및 철회 권리", body: t(
       h('p',{style:bp},"Your participation is entirely voluntary. You may choose not to participate or to withdraw from the study at any time without penalty or loss of benefits to which you are otherwise entitled."),
-      h('p',{style:bp},"귀하의 참여는 전적으로 자발적입니다. 귀하는 참여하지 않기로 선택하거나 언제든지 연구 참여를 철회할 수 있으며, 이로 인한 어떠한 불이익이나 귀하가 원래 받을 수 있는 혜택의 상실도 없습니다."))
+      h('p',{style:bp},"귀하의 참여는 전적으로 자발적입니다. 참여하지 않으시거나 언제든지 참여를 철회하실 수 있으며, 그로 인해 어떠한 불이익도 받지 않으시고 원래 받으실 수 있는 혜택을 잃지도 않으십니다."))
     },
     {n:"4", en:"Risks and Discomforts", ko:"위험 및 불편사항", body: t(
       h('p',{style:bp},"There are no foreseeable physical or psychological risks associated with participation. The primary burden is the time required to complete the survey and potential survey fatigue."),
-      h('p',{style:bp},"참여와 관련하여 예상되는 신체적 또는 심리적 위험은 없습니다. 주된 부담은 설문조사 완료에 소요되는 시간과 설문으로 인한 피로 가능성입니다."))
+      h('p',{style:bp},"참여와 관련하여 예상되는 신체적·심리적 위험은 없습니다. 다만 설문에 응답하시는 데 시간이 들고, 응답 중 피로를 느끼실 수 있습니다."))
     },
-    {n:"5", en:"Benefits", ko:"이익", body: t(
+    {n:"5", en:"Benefits", ko:"참여에 따른 이익", body: t(
       h('p',{style:bp},"There is no direct benefit to you from participating in this study. However, the findings may contribute to improving assessment frameworks and the responsible use of AI in medical education."),
-      h('p',{style:bp},"본 연구 참여로 인해 귀하에게 돌아가는 직접적인 이익은 없습니다. 그러나 연구 결과는 평가 프레임워크의 개선과 의학교육에서 AI의 책임 있는 활용에 기여할 수 있습니다."))
+      h('p',{style:bp},"본 연구에 참여하신다고 해서 귀하께 직접적인 이익이 돌아가지는 않습니다. 다만 연구 결과는 평가 도구를 개선하고, 의학교육에서 AI를 책임 있게 활용하는 데 기여할 수 있습니다."))
     },
     {n:"6", en:"Confidentiality", ko:"비밀 보장", body: t(
       h('p',{style:bp},"No patient data will be collected. Your responses will be kept confidential. Each participant is assigned a code, and responses are stored under that code rather than your name; the list linking codes to participants is held separately and securely by the research team. No identifying information will be included in the analysis or in any publications resulting from this study. All data will be stored securely and accessed only by the research team in accordance with institutional data protection policies."),
-      h('p',{style:bp},"환자 데이터는 수집되지 않습니다. 귀하의 응답은 비밀이 보장됩니다. 각 참여자에게는 고유 코드가 부여되며, 응답은 귀하의 이름이 아닌 해당 코드로 저장됩니다. 코드와 참여자를 연결하는 목록은 연구팀이 별도로 안전하게 보관합니다. 분석 과정이나 본 연구로부터 발생하는 어떠한 출판물에도 식별 정보는 포함되지 않습니다. 모든 데이터는 기관의 데이터 보호 정책에 따라 안전하게 저장되며, 연구팀만이 접근할 수 있습니다."))
+      h('p',{style:bp},"환자 데이터는 수집하지 않습니다. 귀하의 응답은 비밀이 보장됩니다. 참여자마다 고유 코드를 부여하고, 응답은 이름이 아닌 그 코드로 저장합니다. 코드와 참여자를 연결하는 목록은 연구팀이 별도로 안전하게 보관합니다. 분석 과정에도, 본 연구 결과를 발표하는 어떠한 논문에도 개인을 식별할 수 있는 정보는 포함하지 않습니다. 모든 데이터는 기관의 데이터 보호 정책에 따라 안전하게 저장하며, 연구팀만 접근할 수 있습니다."))
     },
     {n:"7", en:"Contact", ko:"연락처", body: t(
       h('p',{style:bp},"During the study, the research team may contact you by email for purposes related to this research (such as survey reminders, response clarification). Such contact will be made only when necessary, and responding is voluntary. Any such contact will be limited to the study period."),
-      h('p',{style:bp},"연구 기간 동안 연구팀은 본 연구와 관련된 목적(설문 리마인더, 응답 명확화 등)으로 이메일을 통해 귀하에게 연락할 수 있습니다. 이러한 연락은 필요한 경우에만 이루어지며, 이에 대한 응답은 자발적입니다. 이러한 연락은 연구 기간 내로 제한됩니다."))
+      h('p',{style:bp},"연구 기간 중에 연구팀이 본 연구와 관련된 일(설문 안내, 응답 내용 확인 등)로 귀하께 이메일을 드릴 수 있습니다. 연락은 꼭 필요할 때만, 연구 기간 안에서만 드리며, 회신 여부는 귀하의 자유입니다."))
     },
     {n:"8", en:"Questions", ko:"문의사항", body: t(
       h('p',{style:bp},"If you have questions about this study, please contact the principal investigator listed above."),
@@ -1936,21 +1936,21 @@ function ConsentScreen({ onAgree }) {
           h('path',{d:"M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"}),
           h('polyline',{points:"14 2 14 8 20 8"}))),
       h('h1',{style:{fontSize:22,fontWeight:700,color:navy,margin:"0 0 8px",fontFamily:ffs,lineHeight:1.4}},
-        t("Evaluating AI-Generated Rubric Frameworks for Clinical History-Taking Assessment",
-          "임상 병력청취 평가를 위한 AI 생성 루브릭 프레임워크 평가")),
+        t("Validation of AI-Generated Rubrics for Clinical History-Taking Assessment: Analysis of Inter-Clinician Variability and Alignment with AI",
+          "AI 생성 임상 병력 청취 평가 루브릭의 검증: 임상의 간 판단의 변동성과 AI와의 일치도 분석")),
     ),
     h(Card,{style:{overflow:"hidden",marginBottom:28}},
       h('div',{style:{background:navy,padding:"22px 32px"}},
         h('p',{style:{color:white,fontSize:15,fontWeight:700,margin:"0 0 10px"}},
           t("Your clinical expertise matters — and so does this research.",
-            "귀하의 임상 전문성은 중요합니다 — 그리고 이 연구도 마찬가지입니다.")),
+            "AI가 만든 평가 루브릭은 실제 임상의의 판단과 얼마나 맞을까요?")),
         h('div',null,
           h('p',{style:{color:"rgba(255,255,255,0.85)",fontSize:14,lineHeight:1.7,margin:"0 0 10px"}},
             t("As AI tools begin to shape how clinical competence is assessed, the judgments of experienced pediatric clinicians like you are essential. This study asks a simple but important question: do AI-generated rubrics for clinical history-taking actually reflect how expert clinicians think?",
-              "AI 도구가 임상 역량 평가 방식에 영향을 미치기 시작하면서, 귀하와 같은 숙련된 소아청소년과 임상의의 판단이 필수적입니다. 본 연구는 간단하지만 중요한 질문을 던집니다: AI가 생성한 임상 병력청취 루브릭이 실제로 전문 임상의의 사고방식을 반영하는가?")),
+              "AI 도구가 임상 역량 평가에 쓰이기 시작했습니다. 그러나 그 도구가 실제 전문가의 기준을 충족하는지는 아직 검증되지 않았습니다. 본 연구는 이 질문에 답하기 위해 숙련된 소아청소년과 임상의의 판단을 직접 수집합니다.")),
           h('p',{style:{color:"rgba(255,255,255,0.85)",fontSize:14,lineHeight:1.7,margin:0}},
             t("By completing this survey, you are directly contributing to evidence that will guide whether and how AI can responsibly support medical education and assessment. Your responses will help ensure that any AI tools used in training the next generation of clinicians are held to the standards that experienced practitioners like yourself would actually endorse.",
-              "본 설문을 완료함으로써 귀하는 AI가 의학교육 및 평가를 책임감 있게 지원할 수 있는지, 그리고 어떻게 지원해야 하는지를 판단할 근거 마련에 직접 기여하게 됩니다. 귀하의 응답은 차세대 임상의 양성에 사용되는 AI 도구가 귀하와 같은 숙련된 임상의가 실제로 인정할 수 있는 기준을 충족하도록 하는 데 도움이 될 것입니다.")))),
+              "앞으로 차세대 임상의를 양성하는 데에도 AI 도구가 쓰이게 됩니다. 선생님의 응답은 그 도구가 숙련된 임상의도 인정할 만한 기준을 갖추었는지 확인하는 근거가 됩니다.")))),
       h('div',{style:{display:"grid",gridTemplateColumns:"1fr 1fr",borderBottom:"1px solid "+cardBd}},
         h('div',{style:{padding:"18px 28px",borderRight:"1px solid "+cardBd}},
           h('p',{style:{fontSize:11,fontWeight:700,color:muted,textTransform:"uppercase",letterSpacing:"0.08em",margin:"0 0 5px"}},t("PRINCIPAL INVESTIGATOR","연구책임자")),
@@ -1960,8 +1960,8 @@ function ConsentScreen({ onAgree }) {
         h('div',{style:{padding:"18px 28px"}},
           h('p',{style:{fontSize:11,fontWeight:700,color:muted,textTransform:"uppercase",letterSpacing:"0.08em",margin:"0 0 5px"}},t("STUDY TITLE","연구 제목")),
           h('p',{style:{fontSize:13,color:txt,margin:0,lineHeight:1.6}},
-            t("Evaluating Human and AI Variability in Validating AI-Generated Rubric Frameworks for Clinical History-Taking Assessment",
-              "임상 병력청취 평가를 위한 AI 생성 루브릭 프레임워크 검증에서의 인간 및 AI 변동성 평가")))
+            t("Validation of AI-Generated Rubrics for Clinical History-Taking Assessment: Analysis of Inter-Clinician Variability and Alignment with AI",
+              "AI 생성 임상 병력 청취 평가 루브릭의 검증: 임상의 간 판단의 변동성과 AI와의 일치도 분석")))
       ),
       h('div',{style:{padding:"8px 28px 0"}},
         sections.map((sec,si) =>
@@ -1976,7 +1976,7 @@ function ConsentScreen({ onAgree }) {
           t("9. Consent Statement","9. 동의 확인")),
         h('p',{style:{fontSize:14,color:txt,lineHeight:1.8,margin:"0 0 10px"}},
           t('By selecting "I agree to participate in this study" below, you confirm that:',
-            "아래에서 \"본 연구에 참여하는 것에 동의합니다\"를 선택하시면 다음 사항을 확인하시는 것입니다:")),
+            "아래 \"본 연구에 참여하는 것에 동의합니다\"를 선택하시면 다음에 모두 동의하신 것으로 간주됩니다.")),
         h('ul',{style:{fontSize:14,color:txt,lineHeight:1.9,paddingLeft:22,margin:"0 0 20px",listStyleType:"disc"}},
           h('li',null,t("You have read and understood the information above.","위의 내용을 읽고 이해하였습니다.")),
           h('li',null,t("You voluntarily agree to participate in this study.","본 연구에 자발적으로 참여하는 것에 동의합니다."))
@@ -2269,10 +2269,10 @@ function DemographicsScreen({ onContinue, initialData }) {
   return h(PageWrap, null,
     h('div',{style:{textAlign:"center",marginBottom:28}},
       h('h1',{style:{fontSize:24,fontWeight:700,color:navy,fontFamily:ffs,marginBottom:10}},
-        t("About you","귀하에 대한 정보")),
+        t("About you","참여자 정보")),
       h('p',{style:{fontSize:14.5,color:muted,lineHeight:1.65,maxWidth:560,margin:"0 auto"}},
         t("Before we begin, please tell us a bit about yourself. This information helps us interpret survey results across different professional backgrounds. Your responses are kept confidential and are reported only in aggregate.",
-          "시작하기 전에 귀하에 대해 간단히 알려주시기 바랍니다. 이 정보는 다양한 전문 배경에 따른 설문 결과 해석에 도움이 됩니다. 귀하의 응답은 기밀로 유지되며 통계적으로 집계된 형태로만 보고됩니다."))
+          "시작하기 전에 간단한 배경 정보를 여쭙겠습니다. 전문 배경에 따라 결과를 해석하는 데 활용하기 위한 것입니다. 응답은 비밀이 보장되며, 집계된 형태로만 보고합니다."))
     ),
 
     h(Card, {style:{overflow:"visible"}},
@@ -2291,7 +2291,7 @@ function DemographicsScreen({ onContinue, initialData }) {
 
       // Q2 — Total years of clinical experience
       h(DemoSection,null,
-        h(DemoFieldLabel,{num:2,en:"In total, how many years of clinical experience do you have?",ko:"총 임상 경력은 몇 년입니까?",lang}),
+        h(DemoFieldLabel,{num:2,en:"In total, how many years of clinical experience do you have?",ko:"총 임상 경력이 어느 정도이십니까?",lang}),
         h(DemoRadioGroup,{lang,name:"exp",value:data.exp,onChange:v=>update("exp",v),
           options:[
             {value:"0-5",en:"0–5 years",ko:"0–5년"},
@@ -2323,7 +2323,7 @@ function DemographicsScreen({ onContinue, initialData }) {
             {value:"ed",en:"Emergency department / urgent care",ko:"응급실 / 응급진료센터"},
             {value:"outpatient",en:"Outpatient clinic",ko:"외래 진료"},
             {value:"inpatient",en:"Inpatient ward (non-ICU)",ko:"일반 병동 (중환자실 제외)"},
-            {value:"icu",en:"PICU / NICU",ko:"PICU / NICU"},
+            {value:"icu",en:"PICU / NICU",ko:"소아중환자실(PICU) / 신생아중환자실(NICU)"},
             {value:"other",en:"Other (please specify)",ko:"기타 (구체적으로 기재)"},
             {value:"na",en:"Prefer not to answer",ko:"응답하고 싶지 않음"}
           ],
@@ -2348,7 +2348,7 @@ function DemographicsScreen({ onContinue, initialData }) {
             {value:"ed",en:"Emergency department / urgent care",ko:"응급실 / 응급진료센터"},
             {value:"outpatient",en:"Outpatient clinic",ko:"외래 진료"},
             {value:"inpatient",en:"Inpatient ward (non-ICU)",ko:"일반 병동 (중환자실 제외)"},
-            {value:"icu",en:"PICU / NICU",ko:"PICU / NICU"},
+            {value:"icu",en:"PICU / NICU",ko:"소아중환자실(PICU) / 신생아중환자실(NICU)"},
             {value:"other",en:"Other (please specify)",ko:"기타 (구체적으로 기재)"}
           ],
           textInputs: {
@@ -2363,7 +2363,7 @@ function DemographicsScreen({ onContinue, initialData }) {
 
       // Q7 — Primary clinical specialty
       h(DemoSection,null,
-        h(DemoFieldLabel,{num:7,en:"Which best describes your primary clinical specialty?",ko:"귀하의 주 임상 전문 분야를 가장 잘 설명하는 것은 무엇입니까?",lang}),
+        h(DemoFieldLabel,{num:7,en:"Which best describes your primary clinical specialty?",ko:"주 임상 전문 분야는 무엇입니까?",lang}),
         h(DemoRadioGroup,{lang,name:"specialty",value:data.specialty,onChange:v=>update("specialty",v),
           options:[
             {value:"general",en:"General pediatrics",ko:"일반 소아청소년과"},
@@ -2375,7 +2375,7 @@ function DemographicsScreen({ onContinue, initialData }) {
             subspecialty: {
               value: data.specialty_sub,
               onChange: v => update("specialty_sub", v),
-              placeholder: t("e.g., pediatric cardiology, oncology, neurology","예: 소아심장, 종양, 신경")
+              placeholder: t("e.g., pediatric cardiology, oncology, neurology","예: 소아심장, 소아혈액종양, 소아신경")
             },
             other: {
               value: data.specialty_other,
@@ -2390,13 +2390,13 @@ function DemographicsScreen({ onContinue, initialData }) {
       h(DemoSection,null,
         h(DemoFieldLabel,{num:8,lang,
           en:"How often have you used AI chatbots/generative AI tools (e.g., ChatGPT, Claude, etc.) for clinical or professional tasks?",
-          ko:"임상 또는 업무 관련 작업에 AI 챗봇/생성형 AI 도구(예: ChatGPT, Claude 등)를 얼마나 자주 사용하셨습니까?"}),
+          ko:"임상이나 업무에 AI 챗봇·생성형 AI 도구(예: ChatGPT, Claude 등)를 얼마나 자주 사용하십니까?"}),
         h(DemoRadioGroup,{lang,name:"ai_use",value:data.ai_use,onChange:v=>update("ai_use",v),
           options:[
             {value:"never",en:"Never",ko:"전혀 사용하지 않음"},
             {value:"rarely",en:"Rarely",ko:"거의 사용하지 않음"},
             {value:"sometimes",en:"Sometimes",ko:"가끔 사용"},
-            {value:"regularly",en:"Regularly",ko:"정기적으로 사용"},
+            {value:"regularly",en:"Regularly",ko:"자주 사용"},
             {value:"na",en:"Prefer not to answer",ko:"응답하고 싶지 않음"}
           ]
         })
@@ -2413,6 +2413,26 @@ function DemographicsScreen({ onContinue, initialData }) {
   );
 }
 
+// ─── SHARED TASK GUIDANCE (Part A / Part B) ──────────────────────────────────
+// One source of truth, rendered on the Instructions page AND on every working
+// screen, so the two can never drift apart. EN is structured; KO is a single
+// reviewed block (Catherine's native review).
+function guideA(lang){
+  if(lang!=="en") return h('p',{style:{fontSize:14.5,color:txt,lineHeight:1.7,margin:0,whiteSpace:"pre-line"}},
+    "각 항목이 루브릭에 포함하기에 적절한지 판단해 주세요.\n동의 — 이 항목을 지금 이 문장 그대로 루브릭에 넣어도 된다.\n비동의 — 빼야 하거나, 고쳐야 한다. (임상적으로 관련이 없거나, 항목명·설명이 부정확 또는 불완전하거나, 다른 항목과 중복되거나, 표현이 모호한 경우)\n판단 기준: 문구 하나도 고칠 필요가 없을 때만 '동의'입니다. 조금이라도 걸리는 점이 있으면 비동의를 선택하시고, 무엇이 걸리는지 의견란에 적어 주세요. 의견은 비동의를 선택하신 경우에만 필수입니다. 의견은 한국어와 영어 중 편하신 언어로 쓰셔도 됩니다.\n각 항목에는 그 항목을 포함한 이유를 AI가 설명해 두었습니다. 참고용일 뿐이며, 여기에 동의하실 필요는 없습니다.");
+  return h('div',{style:{fontSize:14.5,color:txt,lineHeight:1.7}},
+    h('p',{style:{margin:"0 0 6px"}},"For each item, decide whether it is appropriate to include."),
+    h('ul',{style:{margin:"0 0 6px",paddingLeft:18}},
+      h('li',{style:{marginBottom:4}},h('b',null,"Agree:")," include the item as it is."),
+      h('li',null,h('b',null,"Disagree:")," it should not be included as it is (remove it, or it needs changes). Reasons may include: not relevant; inaccurate or incomplete name or description; redundant; unclear; etc.")),
+    h('p',{style:{margin:"0 0 6px"}},"Choose ",h('b',null,"Agree")," only if you fully support the item. If you have any reservation, choose ",h('b',null,"Disagree")," and explain in your comment. A comment is required only when you disagree. You may write comments in your preferred language."),
+    h('p',{style:{margin:0}},"Each item includes the AI's reasoning for why it was included. This is for reference only — you are not required to agree with it."));
+}
+function guideB(lang){
+  return T("Within each domain, rank all items by clinical importance, including any you would remove. Rank them from most to least important, with the most important at the top. Drag and drop, or use the ▲ ▼ arrows to reorder.",
+           "각 영역 안에서 항목을 임상적으로 중요한 순서대로 정렬해 주세요. 맨 위가 1위입니다. 앞에서 비동의를 선택하신 항목도 빼지 마시고 함께 순위를 매겨 주세요. 드래그해서 옮기거나 ▲ ▼ 버튼으로 이동하실 수 있습니다.", lang);
+}
+
 // ─── INSTRUCTIONS SCREEN ─────────────────────────────────────────────────────
 function InstrScreen({ onStart, onBack }) {
   const lang = useLang();
@@ -2421,25 +2441,17 @@ function InstrScreen({ onStart, onBack }) {
     {num:1,
       en:"Review the clinical vignette", ko:"임상 증례 검토",
       descEn:"Read the pediatric emergency case. This provides the context for evaluating the rubric.",
-      descKo:"소아 응급 증례를 읽어 주세요. 이는 루브릭 평가를 위한 맥락을 제공합니다."},
+      descKo:"소아 응급 증례를 읽어 주세요. 루브릭을 평가하시는 데 필요한 배경 정보입니다."},
     {num:2,
-      en:"Section A — Item inclusion", ko:"섹션 A — 항목 포함 여부",
-      descEl:()=>h('div',{style:{fontSize:14.5,color:txt,lineHeight:1.7}},
-        h('p',{style:{margin:"0 0 6px"}},"For each item, decide whether it is appropriate to include."),
-        h('ul',{style:{margin:"0 0 6px",paddingLeft:18}},
-          h('li',{style:{marginBottom:4}},h('b',null,"Agree:")," include the item as it is."),
-          h('li',null,h('b',null,"Disagree:")," it should not be included as it is (remove it, or it needs changes). Reasons may include: not relevant; inaccurate or incomplete name or description; redundant; unclear; etc.")),
-        h('p',{style:{margin:0}},"Choose ",h('b',null,"Agree")," only if you fully support the item. If you have any reservation, choose ",h('b',null,"Disagree")," and explain in your comment. A comment is required only when you disagree.")),
-      descEn:"For each item, decide whether it is appropriate to include.\nAgree: include the item as it is.\nDisagree: it should not be included as it is (remove it, or it needs changes). Reasons may include: not relevant, inaccurate or incomplete name or description, redundant, unclear, etc.\nChoose Agree only if you fully support the item. If you have any reservation, choose Disagree and explain in your comment.\nA comment is required only when you disagree.",
-      descKo:"각 항목에 대해 포함하는 것이 적절한지 판단해 주세요.\n동의: 항목을 그대로 포함합니다.\n비동의: 그대로 포함해서는 안 됩니다(제거하거나 수정이 필요합니다). 이유에는 관련성 없음, 이름이나 설명이 부정확하거나 불완전함, 중복, 불명확함 등이 포함될 수 있습니다.\n항목을 전적으로 지지하는 경우에만 동의를 선택하세요. 조금이라도 의문이 있다면 비동의를 선택하고 의견에 설명해 주세요.\n의견은 동의하지 않는 경우에만 필수입니다."},
+      en:"Part A — Item inclusion", ko:"파트 A — 항목 포함 여부",
+      render:(l)=>guideA(l)},
     {num:3,
-      en:"Section B — Item ranking", ko:"섹션 B — 항목 순위 매기기",
-      descEn:"Within each domain, rank all items by clinical importance, including any you would remove. Drag and drop or use the arrow buttons to reorder them.",
-      descKo:"각 영역 내에서, 제외하려는 항목을 포함하여 모든 항목을 임상적 중요도 순으로 순위를 매겨 주세요. 드래그 앤 드롭하거나 화살표 버튼을 사용하여 순서를 변경하세요."},
+      en:"Part B — Item ranking", ko:"파트 B — 항목 순위 매기기",
+      render:(l)=>h('p',{style:{fontSize:14.5,color:txt,lineHeight:1.7,margin:0}},guideB(l))},
     {num:4,
       en:"Repeat for all 4 cases", ko:"4개 증례 모두 반복",
-      descEn:"Complete Sections A and B for every rubric, across all 4 cases.",
-      descKo:"4개 증례 모두에서 각 루브릭에 대해 섹션 A와 B를 완료해 주세요."},
+      descEn:"Complete Parts A and B for every rubric, across all 4 cases.",
+      descKo:"4개 증례 모두에서 각 루브릭에 대해 파트 A와 B를 완료해 주세요."},
   ];
   return h(PageWrap, null,
     h('div',{style:{textAlign:"center",marginBottom:36}},
@@ -2449,7 +2461,7 @@ function InstrScreen({ onStart, onBack }) {
       h('p',{style:{fontSize:15,fontWeight:700,color:navy,margin:"0 0 10px"}},t("What you'll be reviewing:","검토하실 내용:")),
       h('p',{style:{fontSize:14.5,color:txt,lineHeight:1.8,margin:0}},
         t("Several AI models were each asked to generate assessment rubrics for 4 pediatric emergency cases. For each case you will see 3 rubrics, each from a different model. Each rubric is divided into 2 domains. You will review whether each rubric's items are appropriate and how they should be ranked in importance.",
-          "여러 AI 모델에게 각각 4개의 소아 응급 증례에 대한 평가 루브릭을 생성하도록 요청했습니다. 각 증례마다 서로 다른 모델이 생성한 3개의 루브릭을 보시게 됩니다. 각 루브릭은 2개의 영역으로 나뉩니다. 각 루브릭의 항목이 적절한지, 그리고 중요도 순위를 어떻게 매겨야 하는지 검토하시게 됩니다."))),
+          "소아 응급 증례 4개에 대해, 서로 다른 AI 모델이 만든 루브릭을 증례마다 3개씩 총 12개 검토하시게 됩니다. 루브릭 하나는 영역 2개로 나뉩니다. 루브릭마다 각 항목이 적절한지 판단하시고, 항목의 중요도 순위를 매기시면 됩니다."))),
     steps.map(s =>
       h(Card,{key:s.num,style:{padding:"16px 20px",marginBottom:10,display:"flex",gap:16,alignItems:"flex-start"}},
         h('div',{style:{width:30,height:30,borderRadius:"50%",background:navy,
@@ -2458,8 +2470,8 @@ function InstrScreen({ onStart, onBack }) {
           h('span',{style:{fontSize:13,fontWeight:700,color:white,fontFamily:ffs}},s.num)),
         h('div',null,
           h('p',{style:{fontSize:15,fontWeight:700,color:navy,margin:"0 0 4px",lineHeight:1.4}},t(s.en,s.ko)),
-          (s.descEl && lang==="en")
-            ? s.descEl()
+          s.render
+            ? s.render(lang)
             : h('p',{style:{fontSize:14.5,color:txt,lineHeight:1.7,margin:0,whiteSpace:"pre-line"}},t(s.descEn,s.descKo))))
     ),
     h(Card,{style:{padding:"18px 24px",marginBottom:32,background:amberBg,border:"1px solid "+amberBd}},
@@ -2468,8 +2480,7 @@ function InstrScreen({ onStart, onBack }) {
         h('div',null,
           h('p',{style:{fontSize:14,fontWeight:700,color:"#92400e",margin:"0 0 6px"}},t("Keep in mind","유의사항")),
           h('ul',{style:{fontSize:14,color:"#78350f",margin:0,paddingLeft:18,lineHeight:1.8}},
-            h('li',null,t("There are no right or wrong answers. Variation between clinicians is expected — measuring that variation is precisely what this research aims to do. Please respond based on your honest professional judgment.","정답이나 오답은 없습니다. 임상의 간 차이는 예상되는 것이며, 그 차이를 측정하는 것이 바로 본 연구의 목적입니다. 귀하의 솔직한 전문적 판단에 따라 응답해 주시기 바랍니다.")),
-            h('li',null,t("Each item includes the AI's reasoning for why it was included. This is for reference only — you are not required to agree with it.","각 항목에는 해당 항목이 포함된 이유에 대한 AI의 근거가 제시되어 있습니다. 이는 참고용일 뿐이며, 이에 동의하실 필요는 없습니다.")))))),
+            h('li',null,t("There are no right or wrong answers. Variation between clinicians is expected — measuring that variation is precisely what this research aims to do. Please respond based on your honest professional judgment.","정답도 오답도 없습니다. 임상의마다 판단이 다른 것은 당연하며, 그 차이를 측정하는 것이 바로 본 연구의 목적입니다. 솔직한 판단대로 응답해 주세요.")))))),
     h('div',{style:{display:"flex",gap:12,alignItems:"center"}},
       onBack && h('button',{onClick:()=>{scrollTop();onBack();},
         style:{padding:"12px 22px",fontSize:14,fontWeight:600,
@@ -2564,7 +2575,7 @@ function VignetteModal({ caseData, onClose, onGoBack, lang: langProp, setLang: s
         style:{background:navy,border:"none",borderRadius:8,color:white,
                fontSize:14,fontWeight:600,padding:"13px",width:"100%",
                cursor:"pointer",fontFamily:ffs}},
-        t("Got it, start reviewing →","확인했습니다, 검토 시작 →")))
+        t("Got it, start reviewing →","증례 확인 완료 — 검토 시작 →")))
   );
 }
 
@@ -2661,8 +2672,8 @@ function PartAItemRow({ item, lang, ans, comment, isHighlighted,
     isHighlighted && h('p',{style:{fontSize:12,fontWeight:700,color:"#92400e",
       margin:"0 0 8px",display:"flex",alignItems:"center",gap:6}},
       "⚠ "+(ans===false
-        ? t("Please explain why you disagree before continuing.","계속하기 전에 동의하지 않는 이유를 설명해 주세요.")
-        : t("Please answer this item before continuing.","계속하기 전에 이 항목에 답해 주세요."))),
+        ? t("Please explain why you disagree before continuing.","비동의를 선택하셨습니다. 어떤 점이 걸리는지 의견란에 적어 주세요.")
+        : t("Please answer this item before continuing.","아직 응답하지 않으신 항목입니다. 동의 또는 비동의를 선택해 주세요."))),
     h('p',{style:{fontSize:15.5,fontWeight:700,color:navy,lineHeight:1.45,margin:"0 0 6px"}},lbl),
     body && h('p',{style:{fontSize:14,color:txt,lineHeight:1.65,margin:"0 0 14px"}},body),
     h('div',{style:{
@@ -2690,8 +2701,8 @@ function PartAItemRow({ item, lang, ans, comment, isHighlighted,
         "✗ "+t("Disagree","비동의"))),
     ans!==undefined && h('textarea',{
       placeholder: required
-        ? t("Add your comment (required)","의견 작성 (필수)")
-        : t("Add your comment","의견 작성"),
+        ? t("Add your comment (required)","이 항목에 대한 의견 (필수)")
+        : t("Add your comment","이 항목에 대한 의견"),
       value:comment||"",
       onChange:e=>onComment(e.target.value),
       style:{width:"100%",padding:"9px 12px",fontSize:14,
@@ -2741,7 +2752,7 @@ function PartAScreen({ caseData, rubric, onNext, onBack, draftAnswers, onDraftCh
           h('p',{style:{fontSize:15,fontWeight:700,color:white,margin:0}},label),
           desc && h('p',{style:{fontSize:13,color:"rgba(255,255,255,0.7)",margin:"2px 0 0",lineHeight:1.5}},desc)),
         SHOW_POINTS && h('span',{style:{fontSize:13,fontWeight:700,color:"rgba(255,255,255,0.85)",flexShrink:0,marginLeft:12}},
-          pts+t(" pts"," 점"))),
+          pts+t(" pts","점"))),
       items.map((item)=>h(PartAItemRow,{key:item.id,item,lang,
         ans:partA[item.id], comment:comments[item.id]||"",
         isHighlighted:highlightId===item.id,
@@ -2750,7 +2761,7 @@ function PartAScreen({ caseData, rubric, onNext, onBack, draftAnswers, onDraftCh
         setRef:(el)=>{itemRefs.current[item.id]=el;}}))
     );
 
-  const d1label = t("Domain 1: General Clinical History-Taking","영역 1: 일반 임상 병력청취");
+  const d1label = t("Domain 1: General Clinical History-Taking","영역 1: 일반 임상 병력 청취");
   const d2label = t("Domain 2: Case-Specific Diagnostic History","영역 2: 증례 특이적 진단 병력");
 
   return h('div',{style:{flex:1,minWidth:0}},
@@ -2759,18 +2770,11 @@ function PartAScreen({ caseData, rubric, onNext, onBack, draftAnswers, onDraftCh
         h('div',null,
           h('p',{style:{fontSize:16,fontWeight:700,color:navy,margin:"0 0 10px"}},
             t(rubric.label_en,rubric.label_ko)+" — "+t("Part A","파트 A")),
-          lang==="en"
-            ? h('div',{style:{fontSize:13.5,color:muted,lineHeight:1.6}},
-                h('p',{style:{margin:"0 0 7px",fontWeight:700,color:navy,fontSize:14.5}},"Should this item be included in the rubric?"),
-                h('p',{style:{margin:"0 0 6px"}},"Choose ",h('b',{style:{color:navy}},"Agree")," to include it, or ",h('b',{style:{color:navy}},"Disagree")," if it should be removed, needs changes, or you are unsure."),
-                h('p',{style:{margin:0}},"A comment is required when you disagree. You may write comments in ",h('b',{style:{color:navy}},"your preferred language"),"."))
-            : h('p',{style:{fontSize:13.5,color:muted,margin:0,lineHeight:1.6}},
-                T("Should this item be included in the rubric? Choose Agree or Disagree; a comment is required when you disagree. You may write comments in your preferred language.",
-                  "이 항목을 루브릭에 포함해야 합니까? 동의 또는 비동의를 선택하세요. 동의하지 않는 경우 의견 작성이 필수입니다. 의견은 편하신 언어로 작성하셔도 됩니다.", lang))),
+          guideA(lang)),
         SHOW_POINTS && h('div',{style:{textAlign:"right",flexShrink:0}},
           h('p',{style:{fontSize:11,color:muted,margin:"0 0 2px"}},t("Total","합계")),
           h('p',{style:{fontSize:18,fontWeight:700,color:navyMid,margin:0}},
-            (rubric.d1pts+rubric.d2pts)+t(" pts"," 점")))),
+            (rubric.d1pts+rubric.d2pts)+t(" pts","점")))),
       (rubric.threshold_en||rubric.rationale_en) &&
         h('div',{style:{background:amberBg,border:"1px solid "+amberBd,
           borderRadius:8,padding:"10px 14px",marginTop:14,
@@ -3022,16 +3026,15 @@ function PartBScreen({ caseData, rubric, ci, ri, isLast, onSubmit, partAData, on
       h('p',{style:{fontSize:16,fontWeight:700,color:navy,margin:"0 0 8px"}},
         t(rubric.label_en,rubric.label_ko)+" — "+t("Part B","파트 B")),
       h('p',{style:{fontSize:13.5,color:muted,margin:0,lineHeight:1.6}},
-        t("Rank all items by clinical importance, including any you would remove. Drag and drop, or use the ▲ ▼ arrows to reorder.",
-          "제외하려는 항목을 포함하여 모든 항목을 임상적 중요도 순으로 순위를 매겨 주세요. 드래그 앤 드롭하거나 ▲ ▼ 화살표를 사용하여 순서를 변경하세요."))
+        guideB(lang))
     ),
     h(DomainRank,{items:rubric.d1,order:d1Order,setOrder:setD1Order,
-      label:t("Domain 1: General Clinical History-Taking","영역 1: 일반 임상 병력청취")}),
+      label:t("Domain 1: General Clinical History-Taking","영역 1: 일반 임상 병력 청취")}),
     h(DomainRank,{items:rubric.d2,order:d2Order,setOrder:setD2Order,
       label:t("Domain 2: Case-Specific Diagnostic History","영역 2: 증례 특이적 진단 병력")}),
     h(Card,{style:{padding:"20px 22px",marginBottom:20}},
       h('p',{style:{fontSize:14,fontWeight:700,color:navy,margin:"0 0 10px"}},
-        t("Overall Comment (optional)","전체 의견 (선택사항)")),
+        t("Overall Comment (optional)","이 루브릭 전반에 대한 의견 (선택)")),
       h('textarea',{
         placeholder:t("Any comments or suggestions for this rubric?","이 루브릭에 대한 의견이나 제안이 있으신가요?"),
         defaultValue:finalCmt,key:"finalcmt",onInput:e=>{const v=e.target.value; finalCmtRef.current=v; if(bCommentTimer.current) clearTimeout(bCommentTimer.current); bCommentTimer.current=setTimeout(()=>{setFinalCmt_(v); onBDraftChange(d1OrderRef.current,d2OrderRef.current,v);},600);},
@@ -3132,7 +3135,7 @@ function DoneScreen({ responses, demographics, pid, preSubmitState, onBack }) {
         t("Your responses have been recorded.","귀하의 응답이 기록되었습니다.")),
       h('p',{style:{fontSize:15,color:muted,lineHeight:1.75,maxWidth:480,margin:"0 auto 32px"}},
         t("Thank you for completing this survey. Your clinical expertise and time are genuinely appreciated — responses like yours are what make this research meaningful.",
-          "설문을 완료해 주셔서 감사합니다. 귀하의 임상 전문성과 시간에 진심으로 감사드립니다 — 귀하와 같은 응답이 본 연구를 의미 있게 만듭니다.")),
+          "설문을 마쳐 주셔서 감사합니다. 40분 가까운 시간과 전문가로서의 판단을 내어 주신 데 깊이 감사드립니다. 선생님께서 보내 주신 응답이 본 연구를 가능하게 합니다.")),
       h('p',{style:{fontSize:14,color:muted}},
         t("Participant ID: ","참여자 ID: "),
         h('strong',{style:{color:navy,marginLeft:4}},pid)),
@@ -3147,7 +3150,7 @@ function DoneScreen({ responses, demographics, pid, preSubmitState, onBack }) {
   return h(PageWrap,null,
     h('div',{style:{textAlign:"center",padding:"48px 0 36px"}},
       h('h1',{style:{fontSize:26,fontWeight:700,color:navy,margin:"0 0 12px",fontFamily:ffs}},
-        t("You've reached the end of the survey.","설문의 마지막에 도달하셨습니다.")),
+        t("You've reached the end of the survey.","설문이 모두 끝났습니다.")),
       h('p',{style:{fontSize:15,color:muted,lineHeight:1.75,maxWidth:500,margin:"0 auto"}},
         t("Please click the button below to submit your responses. If you do not submit, your responses will not be recorded.",
           "아래 버튼을 클릭하여 응답을 제출해 주세요. 제출하지 않으면 응답이 기록되지 않습니다."))
@@ -3170,8 +3173,10 @@ function DoneScreen({ responses, demographics, pid, preSubmitState, onBack }) {
       status==="error" && h('div',null,
         h('div',{style:{padding:"14px",marginBottom:14,background:redBg,
           border:"1px solid "+redBd,borderRadius:10,color:red,fontSize:14,textAlign:"center"}},
-          t("Something went wrong with your submission. Please try again. If it still fails, download a copy of your responses and email the file to the study coordinator, Dr. Ha Huynh (ha@haheho.co.kr). If you cannot download it or run into any other issue, please email the same address for support.",
-            "제출 중 문제가 발생했습니다. 다시 시도해 주세요. 계속 실패할 경우, 응답 사본을 다운로드하여 연구 코디네이터 Ha Huynh 박사(ha@haheho.co.kr)에게 파일을 이메일로 보내 주세요. 다운로드가 불가능하거나 다른 문제가 발생하면 같은 주소로 이메일을 보내 지원을 요청해 주세요.")),
+          t("Submission failed. ","제출에 실패했습니다. "),
+          h('b',null,t("Your responses are still on this screen, so don't close the window.","응답은 아직 이 화면에 남아 있으니 창을 닫지 마세요.")),
+          t(" First, press 'Try again'. If it keeps failing, press 'Download a copy of your responses' and email that file to the study coordinator, Dr. Ha Huynh (ha@haheho.co.kr). If the download also fails, email the same address and we'll help.",
+            " 먼저 '다시 시도' 버튼을 눌러 주세요. 계속 실패하면 '응답 사본 다운로드'를 누르신 뒤 그 파일을 ha@haheho.co.kr(연구 코디네이터 Ha Huynh 박사)로 보내 주세요. 다운로드도 되지 않으면 같은 주소로 메일 주시면 저희가 도와드리겠습니다.")),
         h(PrimaryBtn,{onClick:submit},t("Try again →","다시 시도 →"))),
       h('div',{style:{borderTop:"1px solid "+cardBd,paddingTop:20,marginTop:24,
         textAlign:"center"}},
