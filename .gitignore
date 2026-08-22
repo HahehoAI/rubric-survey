@@ -8,6 +8,8 @@ rewording_doc.csv
 rewording_doc.html
 partA_mockup.html
 session_transcript.md
+email_draft.txt
+ko_overlay_report.csv
 
 # Rubric-generation tooling outputs (keep the scripts, ignore generated data)
 rubric-gen/output/
@@ -15,6 +17,7 @@ rubric-gen/output_ko/
 rubric-gen/chrome_strings.json
 rubric-gen/chrome_ko.json
 rubric-gen/vignettes_source.json
+rubric-gen/review_bilingual.csv
 rubric-gen/venv/
 rubric-gen/__pycache__/
 rubric-gen/vignettes.json
