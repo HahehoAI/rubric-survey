@@ -1,0 +1,23 @@
+# Keeps the free-tier Supabase project from pausing after a week of inactivity.
+# Read-only ping with the public anon key (same one as in index.html); writes nothing.
+name: Supabase keep-alive
+
+on:
+  schedule:
+    - cron: "0 0 */3 * *"   # every 3 days, 00:00 UTC
+  workflow_dispatch:         # allows a manual "Run workflow" from the Actions tab
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase
+        env:
+          SUPABASE_URL: https://qydinydhytepqptcvslb.supabase.co
+          SUPABASE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF5ZGlueWRoeXRlcHFwdGN2c2xiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4Mjk0NTUsImV4cCI6MjA5MDQwNTQ1NX0.ZniqFMfctWHgbA4dJSlrvlFxWRcRfCrVuA9S3gjcA5o
+        run: |
+          code=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 \
+            "$SUPABASE_URL/rest/v1/responses?select=participant_id&limit=1" \
+            -H "apikey: $SUPABASE_KEY" -H "Authorization: Bearer $SUPABASE_KEY")
+          echo "Supabase responded with HTTP $code"
+          [ "$code" = "200" ]
