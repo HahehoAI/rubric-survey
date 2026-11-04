@@ -1871,8 +1871,10 @@ const StickyHeader = ({ lang, setLang, doneR, totalR, breadcrumb }) => {
 };
 
 // ─── CONSENT SCREEN ──────────────────────────────────────────────────────────
-function ConsentScreen({ onAgree }) {
+function ConsentScreen({ onAgree, initialName }) {
   const [agreed, setAgreed] = useState(false);
+  const [name, setName] = useState(initialName || "");
+  const nameOk = name.trim().length >= 2;
   const lang = useLang();
   const t = (en,ko) => T(en,ko,lang);
   const bp = {fontSize:14.5, color:txt, lineHeight:1.85, margin:"0 0 14px"};
@@ -1914,8 +1916,8 @@ function ConsentScreen({ onAgree }) {
       h('p',{style:bp},"본 연구에 참여하신다고 해서 귀하께 직접적인 이익이 돌아가지는 않습니다. 다만 연구 결과는 평가 도구를 개선하고, 의학교육에서 AI를 책임 있게 활용하는 데 기여할 수 있습니다."))
     },
     {n:"6", en:"Confidentiality", ko:"비밀 보장", body: t(
-      h('p',{style:bp},"No patient data will be collected. Your responses will be kept confidential. Each participant is assigned a code, and responses are stored under that code rather than your name; the list linking codes to participants is held separately and securely by the research team. No identifying information will be included in the analysis or in any publications resulting from this study. All data will be stored securely and accessed only by the research team in accordance with institutional data protection policies."),
-      h('p',{style:bp},"환자 데이터는 수집하지 않습니다. 귀하의 응답은 비밀이 보장됩니다. 참여자마다 고유 코드를 부여하고, 응답은 이름이 아닌 그 코드로 저장합니다. 코드와 참여자를 연결하는 목록은 연구팀이 별도로 안전하게 보관합니다. 분석 과정에도, 본 연구 결과를 발표하는 어떠한 논문에도 개인을 식별할 수 있는 정보는 포함하지 않습니다. 모든 데이터는 기관의 데이터 보호 정책에 따라 안전하게 저장하며, 연구팀만 접근할 수 있습니다."))
+      h('p',{style:bp},"No patient data will be collected. Your responses will be kept confidential. You will be asked to enter your name so the research team can track participation and contact you if needed; your name is stored together with your responses and can be accessed only by the research team. Your name and any other identifying information will be removed before analysis and will not appear in any publications resulting from this study. All data will be stored securely and accessed only by the research team in accordance with institutional data protection policies."),
+      h('p',{style:bp},"환자 데이터는 수집하지 않습니다. 귀하의 응답은 비밀이 보장됩니다. 연구팀이 참여 여부를 확인하고 필요할 때 연락드릴 수 있도록 성명을 입력받으며, 성명은 응답과 함께 저장되어 연구팀만 열람할 수 있습니다. 분석 전에 성명 등 개인을 식별할 수 있는 정보는 제거하며, 본 연구 결과를 발표하는 어떠한 논문에도 포함하지 않습니다. 모든 데이터는 기관의 데이터 보호 정책에 따라 안전하게 저장하며, 연구팀만 접근할 수 있습니다."))
     },
     {n:"7", en:"Contact", ko:"연락처", body: t(
       h('p',{style:bp},"During the study, the research team may contact you by email for purposes related to this research (such as survey reminders, response clarification). Such contact will be made only when necessary, and responding is voluntary. Any such contact will be limited to the study period."),
@@ -1983,13 +1985,22 @@ function ConsentScreen({ onAgree }) {
           h('li',null,t("I understand that my participation is voluntary and that I may withdraw at any time.","연구 참여가 자발적이며 언제든지 철회할 수 있음을 이해하였습니다.")),
           h('li',null,t("I voluntarily agree to participate in this study.","본 연구에 자발적으로 참여하는 것에 동의합니다."))
         ),
+        h('label',{htmlFor:"participant-name",style:{display:"block",fontSize:14,fontWeight:700,color:navy,margin:"0 0 8px"}},
+          t("Your name","성명"), h('span',{style:{color:red,marginLeft:3}},"*")),
+        h('input',{id:"participant-name",type:"text",value:name,maxLength:40,autoComplete:"name",
+          placeholder:t("Enter your full name","실명을 입력해 주세요 (예: 홍길동)"),
+          onChange:e=>setName(e.target.value),
+          style:{width:"100%",padding:"11px 14px",fontSize:15,border:"1.5px solid "+(nameOk||!name?navyBd:redBd),
+            borderRadius:8,margin:"0 0 20px",fontFamily:ffs,color:txt,background:white,outline:"none"}}),
         h('label',{style:{display:"flex",alignItems:"flex-start",gap:12,marginBottom:24,cursor:"pointer"}},
           h('input',{type:"checkbox",checked:agreed,onChange:e=>setAgreed(e.target.checked),
             style:{marginTop:3,width:18,height:18,cursor:"pointer",accentColor:navy,flexShrink:0}}),
           h('span',{style:{fontSize:14,fontWeight:600,color:txt,lineHeight:1.5}},
             t("I agree to participate in this study","본 연구에 참여하는 것에 동의합니다"))
         ),
-        h(PrimaryBtn,{onClick:()=>{scrollTop();onAgree();},disabled:!agreed},
+        (!nameOk || !agreed) && h('p',{style:{fontSize:13,color:muted,margin:"0 0 12px",textAlign:"center"}},
+          t("Enter your name and check the consent box to continue.","성명을 입력하고 동의에 체크하시면 계속할 수 있습니다.")),
+        h(PrimaryBtn,{onClick:()=>{scrollTop();onAgree(name.trim());},disabled:!agreed||!nameOk},
           t("Continue →","계속 →"))
       )
     )
@@ -3063,7 +3074,7 @@ function PartBScreen({ caseData, rubric, ci, ri, isLast, onSubmit, partAData, on
 }
 
 // ─── DONE SCREEN (two states: pre-submit and post-submit) ─────────────────────
-function DoneScreen({ responses, demographics, pid, preSubmitState, onBack }) {
+function DoneScreen({ responses, demographics, pid, name, preSubmitState, onBack }) {
   const lang = useLang();
   const t = (en,ko) => T(en,ko,lang);
   // preSubmitState: if true, show pre-submit UI (used by preview)
@@ -3095,7 +3106,7 @@ function DoneScreen({ responses, demographics, pid, preSubmitState, onBack }) {
         const parts=rubricId.split("-");
         const caseNo=parseInt(parts[0]), rubricNo=parseInt(parts[1]);
         const rubricLabel="C"+caseNo+"-R"+rubricNo; // e.g. "C1-R2" — unambiguous
-        const base={participant_id:pid,lang,case_no:caseNo,rubric_no:rubricNo,
+        const base={participant_id:pid,participant_name:(name||"").trim()||null,lang,case_no:caseNo,rubric_no:rubricNo,
           rubric_id:rubricLabel,overall_comment:rd.finalCmt||"",
           b_moves_d1: rd.d1Moves ?? null, b_moves_d2: rd.d2Moves ?? null,
           b_time_ms: rd.bTimeMs ?? null, ...demPayload};
@@ -3116,14 +3127,26 @@ function DoneScreen({ responses, demographics, pid, preSubmitState, onBack }) {
         });
       }
       if(rows.length===0) return;
-      const res=await fetch(SUPABASE_URL+"/rest/v1/responses",{
+      const post = body => fetch(SUPABASE_URL+"/rest/v1/responses",{
         method:"POST",
         headers:{"Content-Type":"application/json","apikey":SUPABASE_KEY,
           "Authorization":"Bearer "+SUPABASE_KEY,"Prefer":"return=minimal"},
-        body:JSON.stringify(rows)
+        body:JSON.stringify(body)
       });
+      let res=await post(rows);
+      if(!res.ok){
+        const errTxt=await res.text();
+        // Safety net: if the participant_name column hasn't been added to the
+        // table yet, don't lose the submission — fold the name into participant_id.
+        if(/participant_name/.test(errTxt)){
+          const nm=(name||"").trim();
+          res=await post(rows.map(({participant_name,...r})=>({...r,
+            participant_id: nm ? pid+" | "+nm : pid})));
+          if(!res.ok) console.error(await res.text());
+        } else console.error(errTxt);
+      }
       if(res.ok) { setStatus("success"); try{localStorage.removeItem(LS_KEY);}catch(e){} }
-      else { console.error(await res.text()); setStatus("error"); }
+      else setStatus("error");
     } catch(e){ console.error(e); setStatus("error"); }
   };
 
@@ -3142,6 +3165,7 @@ function DoneScreen({ responses, demographics, pid, preSubmitState, onBack }) {
         t("Thank you for completing this survey. Your clinical expertise and time are genuinely appreciated — responses like yours are what make this research meaningful.",
           "설문을 마쳐 주셔서 감사합니다. 40분 가까운 시간과 전문가로서의 판단을 내어 주신 데 깊이 감사드립니다. 선생님께서 보내 주신 응답이 본 연구를 가능하게 합니다.")),
       h('p',{style:{fontSize:14,color:muted}},
+        name && h('span',null,t("Name: ","성명: "),h('strong',{style:{color:navy,margin:"0 14px 0 4px"}},name)),
         t("Participant ID: ","참여자 ID: "),
         h('strong',{style:{color:navy,marginLeft:4}},pid)),
       h('div',{style:{marginTop:24}},
@@ -3162,6 +3186,7 @@ function DoneScreen({ responses, demographics, pid, preSubmitState, onBack }) {
     ),
     h(Card,{style:{padding:"32px 36px"}},
       h('p',{style:{fontSize:14,color:muted,textAlign:"center",margin:"0 0 24px"}},
+        name && h('span',null,t("Name: ","성명: "),h('strong',{style:{color:navy,margin:"0 14px 0 4px"}},name)),
         t("Participant ID: ","참여자 ID: "),
         h('strong',{style:{color:navy,fontSize:15,marginLeft:4}},pid)),
       status==="idle" && h('div',null,
@@ -3267,6 +3292,7 @@ function App() {
   const [partBDraft, setPartBDraft] = useState((saved && saved.partBDraft) || {});
   const [responses, setResponses] = useState((saved && saved.responses) || {});
   const [demographics, setDemographics] = useState((saved && saved.demographics) || null);
+  const [name, setName] = useState((saved && saved.name) || "");
 
   const totalR = CASES.reduce((s,c)=>s+c.rubrics.length,0);
   const doneR  = CASES.slice(0,ci).reduce((s,c)=>s+c.rubrics.length,0)+ri;
@@ -3285,9 +3311,9 @@ function App() {
   React.useEffect(() => {
     if (step === "consent") return; // don't save before they start
     try {
-      localStorage.setItem(LS_KEY, JSON.stringify({lang,step,ci,ri,partAData,partADraft,partBDraft,responses,demographics}));
+      localStorage.setItem(LS_KEY, JSON.stringify({lang,step,ci,ri,partAData,partADraft,partBDraft,responses,demographics,name}));
     } catch(e) {}
-  }, [lang, step, ci, ri, partAData, responses, demographics]);
+  }, [lang, step, ci, ri, partAData, responses, demographics, name]);
 
   const goPartB = useCallback((aData)=>{ setPartAData(aData); setStep("partB"); scrollTop(); },[]);
   const goBack = useCallback(()=>{
@@ -3364,7 +3390,7 @@ function App() {
           )
         ),
       h(StickyHeader,{lang,setLang,doneR,totalR,breadcrumb}),
-      step==="consent" && h(ConsentScreen,{onAgree:()=>{setStep("demographics");scrollTop();}}),
+      step==="consent" && h(ConsentScreen,{initialName:name,onAgree:(n)=>{setName(n);setStep("demographics");scrollTop();}}),
       step==="demographics" && h(DemographicsScreen,{
         initialData: demographics,
         onContinue:(d)=>{setDemographics(d);setStep("instr");scrollTop();}}),
@@ -3385,7 +3411,7 @@ function App() {
           ci,ri,isLast:doneR+1>=totalR,onSubmit:submitRubric,partAData,onBack:()=>{setStep("partA");scrollTop();},
           bDraft:partBDraft[curRubric.id]||(responses[curRubric.id]?{d1Order:responses[curRubric.id].d1Order,d2Order:responses[curRubric.id].d2Order,finalCmt:responses[curRubric.id].finalCmt||''}:null),
           onBDraftChange:(d1,d2,cmt)=>setPartBDraft(d=>({...d,[curRubric.id]:{d1Order:d1,d2Order:d2,finalCmt:cmt}}))})),
-      step==="done" && h(DoneScreen,{responses,demographics,pid,onBack:()=>{setStep("partB");scrollTop();}})
+      step==="done" && h(DoneScreen,{responses,demographics,pid,name,onBack:()=>{setStep("partB");scrollTop();}})
     )
   );
 }
