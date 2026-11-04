@@ -16,7 +16,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
-const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+const CHROME = process.env.CHROME || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const HEADLESS = process.env.HEADLESS !== 'false';
 const SLOWMO = parseInt(process.env.SLOWMO || '0', 10);  // ms pause between actions (watch mode)
 
@@ -29,7 +29,7 @@ const DEM = { exp:"6-10", active_5yr:"yes", country_practice:"KR", country_train
   setting:"ed", setting_other:"", setting_also:[], setting_also_other:"",
   specialty:"general", specialty_sub:"", specialty_other:"", ai_use:"weekly" };
 const session = (lang, ci = 0, ri = 0, step = "partA", responses = {}) =>
-  ({ lang, step, ci, ri, partAData:null, partADraft:{}, partBDraft:{}, responses, demographics: DEM });
+  ({ lang, step, ci, ri, partAData:null, partADraft:{}, partBDraft:{}, responses, demographics: DEM, name: "Test User" });
 
 // tiny static server for index.html (React still loads from its CDN)
 const server = http.createServer((req, res) => {
@@ -119,6 +119,9 @@ for (const [label, vp] of Object.entries(VIEWPORTS)) {
     await page.getByRole('button', { name: 'EN' }).click();
     ok("language toggle → back to English", await page.locator('text=I agree to participate').count() > 0);
     await page.getByRole('checkbox').first().check();
+    ok("consent Continue still gated without a name", await page.getByRole('button', { name: 'Continue →' }).isDisabled() === true);
+    await page.locator('#participant-name').fill('홍길동');
+    ok("name + consent → Continue enabled", await page.getByRole('button', { name: 'Continue →' }).isDisabled() === false);
     await page.getByRole('button', { name: 'Continue →' }).click();
     ok("consent → demographics", await page.waitForSelector('text=About you', { timeout: 15000 }).then(() => true).catch(() => false));
     await ctx.close();
@@ -255,6 +258,7 @@ for (const [label, vp] of Object.entries(VIEWPORTS)) {
       ok("payload non-empty array", Array.isArray(rows) && rows.length > 0, rows ? `${rows.length} rows` : "none");
       if (Array.isArray(rows)) {
         ok("every row = the pid", rows.every(r => r.participant_id === pid));
+        ok("every row carries the name", rows.every(r => r.participant_name === "Test User"));
         ok("all 4 cases present", new Set(rows.map(r => r.case_no)).size === 4);
         ok("120 agreement + 120 ranking rows", rows.filter(r => r.agreed === true).length === 120 && rows.filter(r => r.domain).length === 120);
       }
@@ -282,6 +286,30 @@ for (const prefix of ["TEST", "K", "V", "P"]) {
   let rows = null; try { rows = JSON.parse(captured); } catch {}
   const good = Array.isArray(rows) && rows.length === 240 && rows.every(r => r.participant_id === effPid);
   ok(`${prefix}- submits → 240 rows all tagged ${effPid}`, success && good, rows ? `${rows.length} rows` : "no payload");
+  await ctx.close();
+}
+
+// ══ fallback: table lacks participant_name → name folded into participant_id ══
+console.log("\n═══ fallback when participant_name column is missing ═══");
+{
+  const pid = mint("K");
+  const { ctx, page } = await open(VIEWPORTS.Desktop, { pid, query: `?pid=${pid}`,
+    seed: { ...session("en"), step: "done", responses: fullResponses } });
+  const bodies = [];
+  await page.route('**/rest/v1/responses', route => {
+    bodies.push(route.request().postData());
+    if (bodies.length === 1) route.fulfill({ status: 400, contentType: 'application/json',
+      body: JSON.stringify({ code: "PGRST204", message: "Could not find the 'participant_name' column of 'responses' in the schema cache" }) });
+    else route.fulfill({ status: 201, body: '' });
+  });
+  await page.reload();
+  await page.waitForSelector('text=Submit Responses', { timeout: 20000 });
+  await page.getByRole('button', { name: /Submit Responses/ }).click();
+  const success = await page.waitForSelector('text=Your responses have been recorded', { timeout: 15000 }).then(() => true).catch(() => false);
+  let rows = null; try { rows = JSON.parse(bodies[1]); } catch {}
+  ok("retry succeeds after missing-column error", success && bodies.length === 2);
+  ok("retry rows: no participant_name key, id = 'pid | name'", Array.isArray(rows) && rows.length === 240 &&
+    rows.every(r => !('participant_name' in r) && r.participant_id === `${pid} | Test User`));
   await ctx.close();
 }
 
